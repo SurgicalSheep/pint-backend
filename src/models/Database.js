@@ -1,6 +1,6 @@
 var Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    'PINT',
+    'pint',
     'postgres',
     '123123', {
         host: 'localhost',
