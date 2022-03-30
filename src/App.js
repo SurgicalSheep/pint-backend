@@ -3,7 +3,6 @@ const app = express();
 const utilizadorRouters = require('./routes/utilizadorRoute.js')
 const centroRouters = require('./routes/centroRoute.js')
 const salaRouters = require('./routes/salaRoute.js')
-
 //Configurações
 app.set('port', process.env.PORT || 3000);
 //Middlewares
