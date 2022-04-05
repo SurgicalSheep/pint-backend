@@ -1,5 +1,6 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
+var Utilizador = require("./Utilizador")
 const Sala = require('./Sala');
 
 var Centro = sequelize.define('centros', {
@@ -19,4 +20,5 @@ var Centro = sequelize.define('centros', {
     timestamps: false,
 });
 Centro.hasMany(Sala,{foreignKey:'idcentro', onDelete: 'cascade'})
+Centro.hasMany(Utilizador,{foreignKey:'idcentro'})
 module.exports = Centro

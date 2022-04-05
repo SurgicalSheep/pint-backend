@@ -2,10 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const utilizadorController = require('../controllers/utilizadorController')
-router.get('/test', utilizadorController.test);
-router.get('/save', (req, res) => {
-    res.json({ status: 'Utilizador Guardado' });
-});
-router.get('/testdata', utilizadorController.testdata);
 router.get('/list', utilizadorController.list);
+router.get('/:id', utilizadorController.getUtilizador);
+router.post('/add', utilizadorController.insertUtilizador);
+router.delete('/:id', utilizadorController.deleteUtilizador);
+router.put('/:id', utilizadorController.editUtilizador);
 module.exports = router;

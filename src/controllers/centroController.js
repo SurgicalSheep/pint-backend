@@ -22,20 +22,14 @@ controllers.getCentro = async (req, res) => {
     res.json(data);
 };
 controllers.editCentro = async(req, res) => {
-    if(req.body.estado !== "1" && req.body.estado !=="0"){
-        res.status(400).send("Err")
-    }else{
         const id = req.params.id;
         
-        const result = await Centro.update(req.body,
+        await Centro.update(req.body,
             { where: { idcentro: id } })
         res.status(200).send("1")
-    }
+    
 };
 controllers.insertCentro = async(req, res) => {
-    if(req.body.estado !== "1" && req.body.estado !== "0"){
-        res.status(400).send("Err")
-    }else{
         await sequelize.sync().then(()=>
         {
             Centro.create({
@@ -48,10 +42,9 @@ controllers.insertCentro = async(req, res) => {
             })
             
         }).catch((err)=>{
-            res.send(err)
+            res.status(400).send(err)
         })
         res.status(200).send("1")
-    }
 };
 controllers.deleteCentro = async(req, res) => {
     const id = req.params.id;
@@ -64,10 +57,10 @@ controllers.deleteCentro = async(req, res) => {
     })
     try{
         data.destroy()
-        res.status(200)
+        res.status(200).send("1")
         
     }catch{
-        res.status(200)
+        res.status(400).send("Err")
     }
 };
 
