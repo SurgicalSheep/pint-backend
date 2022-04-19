@@ -1,57 +1,50 @@
 const controllers = {}
-var Centro = require('../models/Centro');
+var Equipamento = require('../models/Equipamento');
 var sequelize = require('../models/Database');
 const Sequelize = require("sequelize");
+const Sala = require('../models/Sala')
 const { request } = require('express');
-const Utilizador = require('../models/Utilizador');
 const Op = Sequelize.Op;
 sequelize.sync()
 
 controllers.list = async(req, res) => {
-    const data = await Centro.findAll();
+    const data = await Equipamento.findAll();
     res.json(data)
 }
-controllers.getCentro = async (req, res) => {
+controllers.getEquipamento = async (req, res) => {
     const id = req.params.id;
-    const data = await Centro.findOne({
+    const data = await Equipamento.findOne({
         where:{
-            idcentro:{
+            idequipamento:{
                 [Op.eq]:id
             }
         }
     })
     res.json(data);
 };
-controllers.editCentro = async(req, res) => {
+controllers.editEquipamento = async(req, res) => {
         const id = req.params.id;
         
-        await Centro.update(req.body,
-            { where: { idcentro: id } })
+        await Equipamento.update(req.body,
+            { where: { idequipamento: id } })
         res.status(200).send("1")
     
 };
-controllers.insertCentro = async(req, res) => {
+controllers.insertEquipamento = async(req, res) => {
         await sequelize.sync().then(()=>
         {
-            Centro.create({
-                nome:req.body.nome,
-                cidade:req.body.cidade,
-                endereco:req.body.endereco,
-                imagem:req.body.imagem,
-                descricao:req.body.descricao,
-                estado:req.body.estado
-            })
+            Equipamento.create(req.body)
             
         }).catch((err)=>{
             res.status(400).send(err)
         })
         res.status(200).send("1")
 };
-controllers.deleteCentro = async(req, res) => {
+controllers.deleteEquipamento = async(req, res) => {
     const id = req.params.id;
-    const data = await Centro.findOne({
+    const data = await Equipamento.findOne({
         where:{
-            idcentro:{
+            idequipamento:{
                 [Op.eq]:id
             }
         }
@@ -64,15 +57,18 @@ controllers.deleteCentro = async(req, res) => {
         res.status(400).send("Err")
     }
 };
-controllers.getUtilizadorCentro = async (req, res) => {
+
+controllers.getEquipamentosSalas = async (req, res) => {
     //const id = req.params.id;
-    const data = await Centro.findAll({
+    const data = await Equipamento.findAll({
         where:{},
         include:[{
-            model:Utilizador.scope("noPassword"),
-            where:{}
+            model:Sala,
+            required:true,
+            where:{},
         }]
     })
     res.json(data);
   };
+
 module.exports = controllers;

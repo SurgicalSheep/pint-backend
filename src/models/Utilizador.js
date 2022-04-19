@@ -1,5 +1,6 @@
 var Sequelize = require("sequelize");
 var sequelize = require("./database");
+const Centro = require('./Centro')
 
 var Utilizador = sequelize.define(
   "utilizadores",

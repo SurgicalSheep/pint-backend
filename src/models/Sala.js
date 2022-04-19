@@ -10,10 +10,12 @@ var Sala = sequelize.define('salas', {
     },
     lotacaomax: {type:Sequelize.INTEGER,allowNull: false},
     lotacao: Sequelize.INTEGER,
-    descricao: Sequelize.STRING
+    descricao: Sequelize.STRING,
 }, {
     freezeTableName: true,
     timestamps: false,
 });
+
 Sala.hasMany(Equipamento,{foreignKey:'idsala',onDelete: 'cascade'})
+Equipamento.belongsTo(Sala,{foreignKey:'idsala'})
 module.exports = Sala

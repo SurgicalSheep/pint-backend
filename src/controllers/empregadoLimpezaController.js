@@ -1,5 +1,6 @@
 const controllers = {};
-var Utilizador = require("../models/Utilizador");
+var EmpregadoLimpeza = require("../models/EmpregadoLimpeza");
+var Utilizador = require("../models/Utilizador")
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
@@ -7,28 +8,27 @@ const Op = Sequelize.Op;
 sequelize.sync();
 
 controllers.list = async (req, res) => {
-  const data = await Utilizador.scope("noPassword").findAll();
+  const data = await EmpregadoLimpeza.findAll({
+    where:{}
+  });
   res.json(data);
 };
-controllers.editUtilizador = async(req, res) => {
+controllers.editEmpregadoLimpeza = async(req, res) => {
   try {
       const id = req.params.id;
       
-      await Utilizador.update(req.body,
-          { where: { idsala: id } })
+      await EmpregadoLimpeza.update(req.body,
+          { where: { idutilizador: id } })
       res.status(200).send("1")
   } catch (error) {
       res.status(400).send(error)
   }
 };
-controllers.insertUtilizador = async(req, res) => {
+controllers.insertEmpregadoLimpeza = async(req, res) => {
   try {
-      await sequelize.sync().then(()=>
+    await sequelize.sync().then(()=>
        {
-           Utilizador.create(req.body)
-           
-       }).catch((err)=>{
-           res.status(400).send(err)
+          EmpregadoLimpeza.create(req.body)
        })
        res.status(200).send("1")
   } catch (error) {
@@ -36,9 +36,9 @@ controllers.insertUtilizador = async(req, res) => {
   }
 };
 
-controllers.deleteUtilizador = async(req, res) => {
+controllers.deleteEmpregadoLimpeza = async(req, res) => {
   const id = req.params.id;
-  const data = await Utilizador.findOne({
+  const data = await EmpregadoLimpeza.findOne({
       where:{
           idutilizador:{
               [Op.eq]:id
@@ -53,9 +53,9 @@ controllers.deleteUtilizador = async(req, res) => {
       res.status(400).send("Err")
   }
 };
-controllers.getUtilizador = async (req, res) => {
+controllers.getEmpregadoLimpeza = async (req, res) => {
   const id = req.params.id;
-  const data = await Utilizador.scope("noPassword").findOne({
+  const data = await EmpregadoLimpeza.findOne({
       where:{
         idutilizador:{
               [Op.eq]:id
@@ -64,11 +64,11 @@ controllers.getUtilizador = async (req, res) => {
   })
   res.json(data);
 };
-controllers.bulkInsertUtilizador = async(req, res) => {
+controllers.bulkInsertEmpregadoLimpeza = async(req, res) => {
     try {
         await sequelize.sync().then(()=>
          {
-             Utilizador.bulkCreate(req.body)
+          EmpregadoLimpeza.bulkCreate(req.body)
              
          }).catch((err)=>{
              res.status(400).send(err)
@@ -78,10 +78,23 @@ controllers.bulkInsertUtilizador = async(req, res) => {
      res.status(400).send(error)
     }
   };
-  controllers.getUtilizadorCentro = async (req, res) => {
-    //const id = req.params.id;
-    const data = await Utilizador.scope("noPassword").findAll({
+  controllers.getEmpregadosLimpezaCentro = async (req, res) => {
+    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findAll({
         where:{},
+        include:[{
+            model:Centro,
+            required:true,
+            where:{},
+        }]
+    })
+    res.json(data);
+  };
+  controllers.getEmpregadoLimpezaCentro = async (req, res) => {
+    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findOne({
+        where:{
+          idutilizador:{
+          [Op.eq]:req.params.id
+      }},
         include:[{
             model:Centro,
             required:true,

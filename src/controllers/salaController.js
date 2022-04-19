@@ -39,11 +39,7 @@ controllers.insertSala = async(req, res) => {
    try {
        await sequelize.sync().then(()=>
         {
-            Sala.create({
-                lotacaomax:req.body.lotacaomax,
-                lotacao:req.body.lotacao,
-                descricao:req.body.descricao,
-            })
+            Sala.create(req.body)
             
         }).catch((err)=>{
             res.status(400).send(err)
