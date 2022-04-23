@@ -15,7 +15,7 @@ var Centro = sequelize.define('centros', {
     endereco: {type:Sequelize.STRING,allowNull: false},
     imagem: {type:Sequelize.STRING,allowNull: false},
     descricao: Sequelize.STRING,
-    estado:{type:Sequelize.BOOLEAN,allowNull: false},
+    estado:{type:Sequelize.BOOLEAN,allowNull: true},
 }, {
     freezeTableName: true,
     timestamps: false,

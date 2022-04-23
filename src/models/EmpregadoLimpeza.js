@@ -18,8 +18,8 @@ var EmpregadoLimpeza = sequelize.define('empregados_limpeza', {
       firstlogin:{type:Sequelize.BOOLEAN,allowNull:false,defaultValue:true},
       verificado:{type:Sequelize.BOOLEAN,allowNull:false,defaultValue:false},
       token:{type:Sequelize.STRING,allowNull:true},
-      foto:{type:Sequelize.BLOB,allowNull:true},
-    disponibilidade: {type:Sequelize.BOOLEAN,allowNull: false}
+        foto:{type:Sequelize.BLOB,allowNull:true},
+      disponibilidade: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue:true}
 }, {
     freezeTableName: true,
     timestamps: false,

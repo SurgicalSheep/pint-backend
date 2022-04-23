@@ -5,7 +5,7 @@ const utilizadorRouters = require('./routes/utilizadorRoute.js')
 const salaRouters = require('./routes/salaRoute.js')
 const equipamentoController = require('./routes/equipamentoRoute.js')
 const empregadoLimpezaController = require('./routes/empregadoLimpezaRoute.js')
-const empregadoManutencaoController = require('./routes/empregadoManutencaoRoute')
+//const empregadoManutencaoController = require('./routes/empregadoManutencaoRoute')
 const feedbackController = require('./routes/feedbackRoute.js')
 const pedidoController = require('./routes/pedidoRoute')
 //Configurações
@@ -18,7 +18,7 @@ app.use('/utilizador', utilizadorRouters)
 app.use('/sala', salaRouters)
 app.use('/equipamento',equipamentoController)
 app.use('/empregadoLimpeza',empregadoLimpezaController)
-app.use('/empregadoManutencao',empregadoManutencaoController)
+//app.use('/empregadoManutencao',empregadoManutencaoController)
 app.use('/pedido',pedidoController)
 app.use('/', (req, res) => {
     res.send(":)");

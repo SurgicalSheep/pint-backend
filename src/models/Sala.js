@@ -8,9 +8,11 @@ var Sala = sequelize.define('salas', {
         primaryKey: true,
         autoIncrement: true,
     },
+    nome: {type:Sequelize.STRING,allowNull: true},
     lotacaomax: {type:Sequelize.INTEGER,allowNull: false},
-    lotacao: Sequelize.INTEGER,
-    descricao: Sequelize.STRING,
+    lotacao: {type:Sequelize.INTEGER,allowNull: true},
+    descricao: {type:Sequelize.STRING,allowNull: true},
+    estado: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue:true}
 }, {
     freezeTableName: true,
     timestamps: false,

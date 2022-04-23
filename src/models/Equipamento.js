@@ -9,7 +9,7 @@ var Equipamento = sequelize.define('equipamentos', {
     },
     tipo: {type:Sequelize.STRING,allowNull: false},
     estado: Sequelize.STRING,
-    especificacoes:Sequelize.BOOLEAN
+    especificacoes:Sequelize.STRING
 }, {
     freezeTableName: true,
     timestamps: false,
