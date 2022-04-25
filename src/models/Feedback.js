@@ -2,7 +2,7 @@ var Sequelize = require('sequelize');
 var sequelize = require('./database');
 var Utilizador = require('./Utilizador')
 var Sala = require('./Sala')
-var Centro = require('./Centro')
+var Reserva = require('./Reserva')
 
 var Feedback = sequelize.define('feedbacks', {
     idfeedback: {
@@ -10,6 +10,7 @@ var Feedback = sequelize.define('feedbacks', {
         primaryKey: true,
         autoIncrement: true,
     },
+    classificacao: {type:Sequelize.INTEGER,allowNull: false},
     comentario: {type:Sequelize.STRING,allowNull: false},
     criado_em: {type:Sequelize.DATE,allowNull: false}
 }, {
@@ -19,5 +20,5 @@ var Feedback = sequelize.define('feedbacks', {
 
 Feedback.belongsTo(Utilizador,{foreignKey:'idutilizador',allowNull:false})
 Feedback.belongsTo(Sala,{foreignKey:'idsala',allowNull:true})
-Feedback.belongsTo(Centro,{foreignKey:'idcentro',allowNull:true})
+Feedback.belongsTo(Reserva,{foreignKey:'idreserva',allowNull:true})
 module.exports = Feedback
