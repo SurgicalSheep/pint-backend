@@ -5,14 +5,14 @@ const Utilizador = require("./Utilizador")
 const Notificacao = require("./Notificacao")
 
 var Utilizadores_Notificaco = sequelize.define(
-  "Utilizadores_Notificacoes",
+  "utilizadores_notificacoes",
   {},
   {
     freezeTableName: true,
     timestamps: false
   }
 );
-Notificacao.belongsToMany(Utilizador,{through:Utilizadores_Notificaco})
-Utilizador.belongsToMany(Notificacao,{through:Utilizadores_Notificaco})
+Notificacao.belongsToMany(Utilizador,{through:Utilizadores_Notificaco,foreignKey:'idnotificacao'})
+Utilizador.belongsToMany(Notificacao,{through:Utilizadores_Notificaco,foreignKey:'idutilizador'})
 
 module.exports = Utilizadores_Notificaco;

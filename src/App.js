@@ -8,6 +8,7 @@ const empregadoLimpezaController = require('./routes/empregadoLimpezaRoute.js')
 //const empregadoManutencaoController = require('./routes/empregadoManutencaoRoute')
 const feedbackController = require('./routes/feedbackRoute.js')
 const pedidoController = require('./routes/pedidoRoute')
+const notificacaoController = require('./routes/notificacaoRoute')
 //Configurações
 app.set('port', process.env.PORT || 3000);
 //Middlewares
@@ -20,6 +21,7 @@ app.use('/equipamento',equipamentoController)
 app.use('/empregadoLimpeza',empregadoLimpezaController)
 //app.use('/empregadoManutencao',empregadoManutencaoController)
 app.use('/pedido',pedidoController)
+app.use('/notificacao',notificacaoController)
 app.use('/', (req, res) => {
     res.send(":)");
 })

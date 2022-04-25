@@ -4,7 +4,7 @@ var sequelize = require("./database");
 const Utilizador = require("./Utilizador")
 
 var Notificacao = sequelize.define(
-  "notificacacoes",
+  "notificacoes",
   {
     idnotificacao: {
       type: Sequelize.INTEGER,

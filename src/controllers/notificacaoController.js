@@ -1,66 +1,96 @@
-const controllers = {}
-var Notificacao = require('../models/Notificacao');
-var sequelize = require('../models/Database');
+const controllers = {};
+var Notificacao = require("../models/Notificacao");
+var UtilizadorNotificacao = require("../models/UtilizadoresNotificacao");
+var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
-const Utilizador = require('../models/Utilizador')
-const { request } = require('express');
+const Utilizador = require("../models/Utilizador");
+const { request } = require("express");
 const Op = Sequelize.Op;
-sequelize.sync()
+sequelize.sync();
 
-controllers.list = async(req, res) => {
-    const data = await Notificacao.findAll();
-    res.json(data)
-}
+controllers.list = async (req, res) => {
+  const data = await Notificacao.findAll();
+  res.json(data);
+};
+
 controllers.getNotificacao = async (req, res) => {
-    const id = req.params.id;
-    const data = await Notificacao.findOne({
-        where:{
-            idnotificacao:{
-                [Op.eq]:id
-            }
-        }
-    })
-    res.json(data);
+  const data = await Notificacao.findByPk(req.params.id);
+  res.json(data);
 };
-controllers.insertNotificacao = async(req, res) => {
-        await sequelize.sync().then(()=>
-        {
-            Notificacao.create(req.body)
-            
-        }).catch((err)=>{
-            res.status(400).send(err)
-        })
-        res.status(200).send("1")
+
+controllers.insertNotificacao = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const not = await Notificacao.create(
+      {
+        titulo: req.body.titulo,
+        descricao: req.body.descricao,
+        hora: req.body.hora,
+        recebida: req.body.recebida,
+        idutilizador: req.body.idutilizador,
+      },
+      { transaction: t }
+    );
+    await t.commit();
+    res.status(200).json(not.idnotificacao);
+  } catch {
+    await t.rollback();
+    res.status(400).send("Err");
+  }
 };
-controllers.deleteNotificacao = async(req, res) => {
-    const id = req.params.id;
-    const data = await Notificacao.findOne({
-        where:{
-            idnotificacao:{
-                [Op.eq]:id
-            }
-        }
-    })
-    try{
-        data.destroy()
-        res.status(200).send("1")
-        
-    }catch{
-        res.status(400).send("Err")
-    }
+
+controllers.insertUtilizadorNotificacao = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const user = await Utilizador.findByPk(req.body.idutilizador);
+    const noti = await Notificacao.findByPk(req.body.idnotificacao);
+    await noti.addUtilizadores(user, { transaction: t });
+    await t.commit();
+    res.status(200).send("1");
+  } catch {
+    await t.rollback();
+    res.status(400).send("Err");
+  }
+};
+
+controllers.deleteNotificacao = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    await Notificacao.destroy(
+      { where: { idnotificacao: req.params.id } },
+      { transaction: t }
+    );
+    await t.commit();
+    res.status(200).send("1");
+  } catch {
+    await t.rollback();
+    res.status(400).send("Err");
+  }
 };
 
 controllers.getNotificacoesUtilizador = async (req, res) => {
-    //const id = req.params.id;
-    const data = await Notificacao.findAll({
-        where:{},
-        include:[{
-            model:Utilizador,
-            required:true,
-            where:{},
-        }]
-    })
-    res.json(data);
-  };
+  try {
+    const data = await Utilizador.findAll({
+      where: {},
+      include: [
+        {
+          model: Notificacao,
+          through: {
+            where: { idutilizador: req.params.id },
+          },
+          where: {},
+        },
+      ],
+    });
+    let x = data[0].notificacoes;
+    x.forEach((element) => {
+      delete element.dataValues.utilizadores_notificacoes;
+    });
+    res.status(200).json(x);
+  } catch {
+    await t.rollback();
+    res.status(400).send("Err");
+  }
+};
 
 module.exports = controllers;

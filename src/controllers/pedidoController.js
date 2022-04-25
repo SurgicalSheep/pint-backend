@@ -41,8 +41,7 @@ controllers.insertPedido = async (req, res) => {
 controllers.deletePedido = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const data = await Pedido.findByPk(req.params.id, { transaction: t });
-    data.destroy();
+    await Pedido.destroy({where:{idpedido:req.params.id}}, { transaction: t });
     await t.commit();
     res.status(200).send("1");
   } catch (err) {
