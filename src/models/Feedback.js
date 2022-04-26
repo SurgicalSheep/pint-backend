@@ -16,6 +16,14 @@ var Feedback = sequelize.define('feedbacks', {
 }, {
     freezeTableName: true,
     timestamps: false,
+    scopes: {
+        noIdUtilizador: {
+          attributes: { exclude: ["idutilizador"] },
+        },
+        noIdSala: {
+            attributes: { exclude: ["idsala"] },
+          },
+      },
 });
 
 Feedback.belongsTo(Utilizador,{foreignKey:'idutilizador',allowNull:false})

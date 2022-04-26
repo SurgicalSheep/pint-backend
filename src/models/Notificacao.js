@@ -26,7 +26,7 @@ var Notificacao = sequelize.define(
     },
   }
 );
-Notificacao.belongsTo(Utilizador,{foreignKey:'idutilizador',as:'utilizador'})
-Utilizador.hasMany(Notificacao,{foreignKey:'idutilizador',as:'utilizador'})
+Notificacao.belongsTo(Utilizador,{foreignKey:'idutilizador',as:'utilizador', useJunctionTable: false})
+Utilizador.hasMany(Notificacao,{foreignKey:'idutilizador',as:'utilizador',useJunctionTable: false})
 
 module.exports = Notificacao;

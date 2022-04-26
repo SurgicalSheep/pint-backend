@@ -10,7 +10,12 @@ const Op = Sequelize.Op;
 sequelize.sync()
 
 controllers.list = async(req, res) => {
-    const data = await Feedback.findAll();
+    const data = await Feedback.scope("noIdUtilizador").scope("noIdSala").findAll({
+        include: [
+          { model: Utilizador},
+          { model: Sala},
+        ],
+    });
     res.json(data)
 }
 controllers.getFeedback = async (req, res) => {

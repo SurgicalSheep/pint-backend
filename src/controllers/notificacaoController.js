@@ -10,8 +10,11 @@ sequelize.sync();
 
 controllers.list = async (req, res) => {
   const data = await Notificacao.scope('noIdUtilizador').findAll({
+    where:{},
     include:[{
-      model:Utilizador}
+      model:Utilizador.scope("noIdCentro"),as:'utilizador',
+      where:{}
+    },
     ]
   });
   res.json(data);
@@ -80,19 +83,16 @@ controllers.getNotificacoesUtilizador = async (req, res) => {
         {
           model: Notificacao,
           through: {
+            attributes: [],
             where: { idutilizador: req.params.id },
           },
           where: {},
         },
       ],
     });
-    let x = data[0].notificacoes;
-    x.forEach((element) => {
-      delete element.dataValues.utilizadores_notificacoes;
-    });
-    res.status(200).json(x);
+    
+    res.status(200).json(data);
   } catch {
-    await t.rollback();
     res.status(400).send("Err");
   }
 };

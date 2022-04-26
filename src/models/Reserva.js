@@ -11,7 +11,7 @@ var Reserva = sequelize.define('reservas', {
     },
     data: {type:Sequelize.DATE,allowNull: false},
     horainicio: {type:Sequelize.DATE,allowNull: false},
-    horaFinal: {type:Sequelize.DATE,allowNull: false},
+    horafinal: {type:Sequelize.DATE,allowNull: false},
     observacoes: Sequelize.TEXT
 }, {
     freezeTableName: true,
