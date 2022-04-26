@@ -7,7 +7,11 @@ const Op = Sequelize.Op;
 sequelize.sync();
 
 controllers.list = async (req, res) => {
-  const data = await Utilizador.scope("noPassword").findAll();
+  const data = await Utilizador.scope("noPassword").scope("noIdCentro").findAll({
+      include:[{
+          model:Centro
+      }]
+  });
   res.json(data);
 };
 controllers.editUtilizador = async(req, res) => {

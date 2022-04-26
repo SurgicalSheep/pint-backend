@@ -18,10 +18,15 @@ var Notificacao = sequelize.define(
   },
   {
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    scopes: {
+      noIdUtilizador: {
+        attributes: { exclude: ["idutilizador"] },
+      },
+    },
   }
 );
-Notificacao.belongsTo(Utilizador,{foreignKey:'idutilizador'})
-Utilizador.hasMany(Notificacao,{foreignKey:'idutilizador'})
+Notificacao.belongsTo(Utilizador,{foreignKey:'idutilizador',as:'utilizador'})
+Utilizador.hasMany(Notificacao,{foreignKey:'idutilizador',as:'utilizador'})
 
 module.exports = Notificacao;

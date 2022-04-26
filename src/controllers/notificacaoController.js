@@ -9,7 +9,11 @@ const Op = Sequelize.Op;
 sequelize.sync();
 
 controllers.list = async (req, res) => {
-  const data = await Notificacao.findAll();
+  const data = await Notificacao.scope('noIdUtilizador').findAll({
+    include:[{
+      model:Utilizador}
+    ]
+  });
   res.json(data);
 };
 

@@ -29,6 +29,9 @@ var Utilizador = sequelize.define(
       noPassword: {
         attributes: { exclude: ["password"] },
       },
+      noIdCentro: {
+        attributes: { exclude: ["idcentro"] },
+      },
     },
   }
 );
