@@ -15,83 +15,81 @@ controllers.list = async (req, res) => {
   res.json(data);
 };
 controllers.editUtilizador = async(req, res) => {
-  try {
-      const id = req.params.id;
-      
-      await Utilizador.update(req.body,
-          { where: { idsala: id } })
-      res.status(200).send("1")
-  } catch (error) {
-      res.status(400).send(error)
+    const t = await sequelize.transaction();
+    try {
+      await Utilizador.update({
+          ncolaborador:req.body.ncolaborador,
+          admin:req.body.admin,
+          nome:req.body.nome,
+          idcentro:req.body.idcentro,
+          telemovel:req.body.telemovel,
+          email:req.body.email,
+          password:req.body.password,
+          estado:req.body.estado,
+          firstlogin:req.body.firstlogin,
+          verificado:req.body.verificado,
+          token:req.body.token,
+          foto:req.body.foto
+    },{ where: { idsala: req.params.id },transaction:t })
+        await t.commit()
+        res.status(200).send("1")
+    } catch (err) {
+        await t.rollback()
+        res.status(400).send("Err")
   }
 };
 controllers.insertUtilizador = async(req, res) => {
-  try {
-      await sequelize.sync().then(()=>
-       {
-           Utilizador.create(req.body)
-           
-       }).catch((err)=>{
-           res.status(400).send(err)
-       })
-       res.status(200).send("1")
-  } catch (error) {
-   res.status(400).send(error)
-  }
+    const t = await sequelize.transaction();
+    try {
+        await Utilizador.create({
+            ncolaborador:req.body.ncolaborador,
+            admin:req.body.admin,
+            nome:req.body.nome,
+            idcentro:req.body.idcentro,
+            telemovel:req.body.telemovel,
+            email:req.body.email,
+            password:req.body.password,
+            estado:req.body.estado,
+            firstlogin:req.body.firstlogin,
+            verificado:req.body.verificado,
+            token:req.body.token,
+            foto:req.body.foto
+      },{transaction:t})  
+        await t.commit()
+        res.status(200).send("1")
+    } catch (error) {
+        await t.rollback()
+        res.status(400).send(error)
+    }
 };
 
 controllers.deleteUtilizador = async(req, res) => {
-  const id = req.params.id;
-  const data = await Utilizador.findOne({
-      where:{
-          idutilizador:{
-              [Op.eq]:id
-          }
-      }
-  })
+  const t = await sequelize.transaction();
   try{
-      data.destroy()
+    await Utilizador.destroy(
+        { where: { idutilizador: req.params.id } },
+        { transaction: t }
+      )
+      await t.commit()
       res.status(200).send("1")
-      
   }catch{
+      await t.rollback()
       res.status(400).send("Err")
   }
 };
 controllers.getUtilizador = async (req, res) => {
-  const id = req.params.id;
-  const data = await Utilizador.scope("noPassword").findOne({
-      where:{
-        idutilizador:{
-              [Op.eq]:id
-          }
-      }
-  })
+  const data = await Utilizador.scope("noPassword").findByPk(req.params.id)
   res.json(data);
 };
 controllers.bulkInsertUtilizador = async(req, res) => {
+    const t = await sequelize.transaction();
     try {
-        await sequelize.sync().then(()=>
-         {
-             Utilizador.bulkCreate(req.body)
-             
-         }).catch((err)=>{
-             res.status(400).send(err)
-         })
-         res.status(200).send("1")
+        await Utilizador.bulkCreate(req.body,{transaction:t})
+        await t.commit()
+        res.status(200).send("1")
     } catch (error) {
+        await t.rollback()
      res.status(400).send(error)
     }
-  };
-  controllers.getUtilizadorCentro = async (req, res) => {
-    //const id = req.params.id;
-    const data = await Utilizador.scope("noPassword").findAll({
-        where:{},
-        include:[{
-            model:Centro,
-            required:true,
-            where:{},
-        }]
-    })
-    res.json(data);
   };
 module.exports = controllers;

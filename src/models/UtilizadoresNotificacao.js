@@ -1,4 +1,3 @@
-const {NOW } = require("sequelize");
 var Sequelize = require("sequelize");
 var sequelize = require("./database");
 const Utilizador = require("./Utilizador")
@@ -12,7 +11,7 @@ var Utilizadores_Notificaco = sequelize.define(
     timestamps: false
   }
 );
-Notificacao.belongsToMany(Utilizador,{through:Utilizadores_Notificaco,foreignKey:'idnotificacao'})
-Utilizador.belongsToMany(Notificacao,{through:Utilizadores_Notificaco,foreignKey:'idutilizador'})
+Notificacao.belongsToMany(Utilizador,{through:Utilizadores_Notificaco,foreignKey:'idnotificacao',onDelete: 'CASCADE'})
+Utilizador.belongsToMany(Notificacao,{through:Utilizadores_Notificaco,foreignKey:'idutilizador',onDelete: 'CASCADE'})
 
 module.exports = Utilizadores_Notificaco;

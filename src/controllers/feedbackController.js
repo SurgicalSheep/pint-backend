@@ -12,7 +12,7 @@ sequelize.sync()
 controllers.list = async(req, res) => {
     const data = await Feedback.scope("noIdUtilizador").scope("noIdSala").findAll({
         include: [
-          { model: Utilizador},
+          { model: Utilizador,as:'utilizadores'},
           { model: Sala},
         ],
     });
@@ -30,40 +30,54 @@ controllers.getFeedback = async (req, res) => {
     res.json(data);
 };
 controllers.insertFeedback = async(req, res) => {
-        await sequelize.sync().then(()=>
-        {
-            Feedback.create(req.body)
-            
-        }).catch((err)=>{
-            res.status(400).send(err)
-        })
-        res.status(200).send("1")
+    const t = await sequelize.transaction();
+    try{
+        await Feedback.create({
+        idsala:req.body.idsala,
+        idutilizador:req.body.idutilizador,
+        classificacao:req.body.classificacao,
+        comentario:req.body.comentario,
+        idreserva:req.body.idreserva,
+        criado_em:req.body.criado_em
+    },{transaction:t});
+         await t.commit()
+         res.status(200).send("1")
+    }catch{
+        await t.rollback()
+        res.status(400).send(err)
+    }
 };
 controllers.deleteFeedack = async(req, res) => {
-    const id = req.params.id;
-    const data = await Notificacao.findOne({
-        where:{
-            idnotificacao:{
-                [Op.eq]:id
-            }
-        }
-    })
+    const t = await sequelize.transaction();
     try{
-        data.destroy()
+        await Feedback.destroy({
+            where:{
+                idfeedback:req.params.id
+            }
+        })
+
+        await t.commit();
         res.status(200).send("1")
-        
     }catch{
+        await t.rollback();
         res.status(400).send("Err")
     }
 };
 controllers.editFeedback = async(req, res) => {
+    const t = await sequelize.transaction();
     try {
-        const id = req.params.id;
-        
-        await Feedback.update(req.body,
-            { where: { idfeedback: id } })
+        await Feedback.update({
+            idsala:req.body.idsala,
+            idutilizador:req.body.idutilizador,
+            classificacao:req.body.classificacao,
+            comentario:req.body.comentario,
+            idreserva:req.body.idreserva,
+            criado_em:req.body.criado_em
+        },{ where: { idfeedback: req.params.id },transaction:t})
+        await t.commit()
         res.status(200).send("1")
     } catch (error) {
+        await t.rollback()
         res.status(400).send(error)
     }
         

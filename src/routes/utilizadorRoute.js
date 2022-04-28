@@ -3,7 +3,6 @@ const router = express.Router();
 
 const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list', utilizadorController.list);
-router.get('/UtilizadoresCentros', utilizadorController.getUtilizadorCentro);
 router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
 router.delete('/:id', utilizadorController.deleteUtilizador);
