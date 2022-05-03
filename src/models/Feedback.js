@@ -27,7 +27,4 @@ var Feedback = sequelize.define('feedbacks', {
       },
 });
 
-Feedback.belongsTo(Utilizador,{foreignKey:'idutilizador',allowNull:false,as:'utilizadores'})
-Feedback.belongsTo(Sala,{foreignKey:'idsala',allowNull:true})
-Feedback.belongsTo(Reserva,{foreignKey:'idreserva',allowNull:true})
 module.exports = Feedback

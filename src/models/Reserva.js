@@ -17,6 +17,4 @@ var Reserva = sequelize.define('reservas', {
     freezeTableName: true,
     timestamps: false,
 });
-Reserva.belongsTo(Sala,{foreignKey:'idsala'})
-Reserva.belongsTo(Utilizador,{foreignKey:'idutilizador'})
 module.exports = Reserva

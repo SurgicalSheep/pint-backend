@@ -9,7 +9,4 @@ var UtilizadorPermissao = sequelize.define('utilizadores_permissoes', {},
     timestamps: false,
 });
 
-Utilizador.belongsToMany(Permissao, { through: UtilizadorPermissao });
-Permissao.belongsToMany(Utilizador, { through: UtilizadorPermissao });
-
 module.exports = UtilizadorPermissao

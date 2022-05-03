@@ -7,7 +7,6 @@ const Sala = require('../models/Sala')
 const Centro = require('../models/Centro')
 const { request } = require('express');
 const Op = Sequelize.Op;
-sequelize.sync()
 
 controllers.list = async(req, res) => {
     const data = await Feedback.scope("noIdUtilizador").scope("noIdSala").findAll({

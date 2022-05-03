@@ -18,6 +18,4 @@ var Sala = sequelize.define('salas', {
     timestamps: false,
 });
 
-Sala.hasMany(Equipamento,{foreignKey:'idsala',onDelete: 'cascade'})
-Equipamento.belongsTo(Sala,{foreignKey:'idsala'})
 module.exports = Sala

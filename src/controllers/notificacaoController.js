@@ -6,7 +6,6 @@ const Sequelize = require("sequelize");
 const Utilizador = require("../models/Utilizador");
 const { request } = require("express");
 const Op = Sequelize.Op;
-sequelize.sync();
 
 controllers.list = async (req, res) => {
   const data = await Notificacao.scope('noIdUtilizador').findAll({

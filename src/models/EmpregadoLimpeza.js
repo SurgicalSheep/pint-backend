@@ -43,6 +43,4 @@ var EmpregadoLimpeza = sequelize.define('empregados_limpeza', {
     });
   }
 
-  EmpregadoLimpeza.belongsTo(Utilizador,{foreignKey:'idutilizador'})
-
 module.exports = EmpregadoLimpeza

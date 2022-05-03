@@ -17,6 +17,5 @@ var Pedido = sequelize.define('pedidos', {
     freezeTableName: true,
     timestamps: false,
 });
-Pedido.belongsTo(Utilizador,{foreignKey:'idutilizador',allowNull:false})
-Pedido.belongsTo(Sala,{foreignKey:'idsala',allowNull:false})
+
 module.exports = Pedido

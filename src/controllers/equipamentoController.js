@@ -5,7 +5,6 @@ const Sequelize = require("sequelize");
 const Sala = require('../models/Sala')
 const { request } = require('express');
 const Op = Sequelize.Op;
-sequelize.sync()
 
 controllers.list = async(req, res) => {
     const data = await Equipamento.findAll();

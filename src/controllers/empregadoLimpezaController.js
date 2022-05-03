@@ -5,7 +5,6 @@ var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
 const Op = Sequelize.Op;
-sequelize.sync();
 
 controllers.list = async (req, res) => {
   const data = await EmpregadoLimpeza.findAll({

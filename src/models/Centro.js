@@ -20,9 +20,4 @@ var Centro = sequelize.define('centros', {
     freezeTableName: true,
     timestamps: false,
 });
-Centro.hasMany(Sala,{foreignKey:'idcentro', onDelete: 'cascade'});
-Centro.hasMany(Utilizador,{foreignKey:'idcentro'});
-Centro.hasMany(empregadoLimpeza,{foreignKey:'idcentro'});
-Utilizador.belongsTo(Centro,{foreignKey:'idcentro'})
-empregadoLimpeza.belongsTo(Centro,{foreignKey:'idcentro'})
 module.exports = Centro

@@ -5,11 +5,10 @@ var sequelize = require('../models/Database');
 const Sequelize = require("sequelize");
 const { request } = require('express');
 const Op = Sequelize.Op;
-sequelize.sync()
 
 controllers.list = async(req, res) => {
     const data = await Sala.findAll();
-    res.json(data)
+    res.json({salas:data})
 }
 controllers.getSala = async (req, res) => {
     const id = req.params.id;

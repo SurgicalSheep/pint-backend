@@ -9,7 +9,4 @@ var ReservaEquipamento = sequelize.define('reservas_equipamentos', {},
     timestamps: false,
 });
 
-Reserva.belongsToMany(Equipamento, { through: ReservaEquipamento });
-Equipamento.belongsToMany(Reserva, { through: ReservaEquipamento });
-
 module.exports = ReservaEquipamento

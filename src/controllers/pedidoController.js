@@ -1,10 +1,8 @@
 const controllers = {};
 var Pedido = require("../models/Pedido");
-var PedidoSala = require("../models/PedidoSala");
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-sequelize.sync();
 
 controllers.list = async (req, res) => {
   const data = await Pedido.findAll();

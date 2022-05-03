@@ -11,7 +11,4 @@ var Utilizadores_Notificaco = sequelize.define(
     timestamps: false
   }
 );
-Notificacao.belongsToMany(Utilizador,{through:Utilizadores_Notificaco,foreignKey:'idnotificacao',onDelete: 'CASCADE'})
-Utilizador.belongsToMany(Notificacao,{through:Utilizadores_Notificaco,foreignKey:'idutilizador',onDelete: 'CASCADE'})
-
 module.exports = Utilizadores_Notificaco;
