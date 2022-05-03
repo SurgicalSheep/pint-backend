@@ -1,4 +1,4 @@
-var Sequelize = require('sequelize');
+/*var Sequelize = require('sequelize');
 const sequelize = new Sequelize(
     'pint',
     'postgres',
@@ -8,4 +8,7 @@ const sequelize = new Sequelize(
         dialect: 'postgres'
     }
 );
+module.exports = sequelize;*/
+var Sequelize = require('sequelize');
+const sequelize = new Sequelize('postgres://wmofcmru:itCC4s5yUEPDd_GdubIiP1P0_cf7DZ4I@tai.db.elephantsql.com/wmofcmru');
 module.exports = sequelize;
