@@ -26,7 +26,6 @@ app.use('/notificacao',notificacaoRouters)
 app.use('/', (req, res) => { 
     res.send(":)");
 })
-
 app.listen(app.get('port'), () => {
     console.log("Start server on port " + app.get('port'))
 })
