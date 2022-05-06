@@ -3,6 +3,8 @@ var Utilizador = require("../models/Utilizador");
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
+const Reserva = require("../models/Reserva");
+const Sala = require("../models/Sala")
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
@@ -11,7 +13,7 @@ controllers.list = async (req, res) => {
           model:Centro
       }]
   });
-  res.json(data);
+  res.json({utilizadores:data});
 };
 controllers.editUtilizador = async(req, res) => {
     const t = await sequelize.transaction();
@@ -78,7 +80,7 @@ controllers.deleteUtilizador = async(req, res) => {
 };
 controllers.getUtilizador = async (req, res) => {
   const data = await Utilizador.scope("noPassword").findByPk(req.params.id)
-  res.json(data);
+  res.json({utilizador:data});
 };
 controllers.bulkInsertUtilizador = async(req, res) => {
     const t = await sequelize.transaction();
@@ -90,5 +92,16 @@ controllers.bulkInsertUtilizador = async(req, res) => {
         await t.rollback()
      res.status(400).send(error)
     }
-  };
+};
+controllers.getUtilizadorReservas = async(req, res) => {
+  const data = await Reserva.scope("noIdSala").findAll({
+    where:[{
+      idutilizador:req.params.id
+    }],
+    include:[{
+      model:Sala
+    }]
+  })
+  res.json({reservas:data});
+};
 module.exports = controllers;

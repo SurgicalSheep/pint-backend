@@ -16,5 +16,10 @@ var Reserva = sequelize.define('reservas', {
 }, {
     freezeTableName: true,
     timestamps: false,
+    scopes: {
+        noIdSala: {
+          attributes: { exclude: ["idsala"] },
+        }
+    }
 });
 module.exports = Reserva

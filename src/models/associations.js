@@ -19,6 +19,7 @@ centro.hasMany(empregadoLimpeza,{foreignKey:'idcentro'});
 
 utilizador.belongsTo(centro,{foreignKey:'idcentro'});
 utilizador.hasMany(notificacao,{foreignKey:'idutilizador',as:'utilizador',useJunctionTable: false});
+utilizador.hasMany(reserva,{foreignKey:'idutilizador'});
 
 empregadoLimpeza.belongsTo(centro,{foreignKey:'idcentro'});
 empregadoLimpeza.belongsTo(utilizador,{foreignKey:'idutilizador'});
