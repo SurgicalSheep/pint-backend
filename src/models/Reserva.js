@@ -10,8 +10,8 @@ var Reserva = sequelize.define('reservas', {
         autoIncrement: true,
     },
     data: {type:Sequelize.DATE,allowNull: false},
-    horainicio: {type:Sequelize.DATE,allowNull: false},
-    horafinal: {type:Sequelize.DATE,allowNull: false},
+    horainicio: {type:Sequelize.TIME,allowNull: false},
+    horafinal: {type:Sequelize.TIME,allowNull: false},
     observacoes: Sequelize.TEXT
 }, {
     freezeTableName: true,
@@ -19,7 +19,10 @@ var Reserva = sequelize.define('reservas', {
     scopes: {
         noIdSala: {
           attributes: { exclude: ["idsala"] },
-        }
+        },
+        noIdUtilizador: {
+            attributes: { exclude: ["idutilizador"] },
+          }
     }
 });
 module.exports = Reserva
