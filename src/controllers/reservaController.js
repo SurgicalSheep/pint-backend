@@ -40,17 +40,14 @@ controllers.insertReserva = async(req, res) => {
 controllers.deleteReserva = async(req, res) => {
     const t = await sequelize.transaction();
     try{
-        await Reserva.destroy({
-            where:{
-                idreserva:req.params.id
-            }
-        })
+        const reserva = await Reserva.findByPk(req.params.id);
+        await reserva.destroy({transaction:t})
 
         await t.commit();
         res.status(200).send("1")
-    }catch{
+    }catch(err){
         await t.rollback();
-        res.status(400).send("Err")
+        res.status(400).send(err)
     }
 };
 
