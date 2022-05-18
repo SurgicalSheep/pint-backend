@@ -16,6 +16,11 @@ var Sala = sequelize.define('salas', {
 }, {
     freezeTableName: true,
     timestamps: false,
+    scopes: {
+        noIdCentro: {
+          attributes: { exclude: ["idcentro"] },
+        },
+    }
 });
 
 module.exports = Sala

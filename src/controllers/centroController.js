@@ -4,6 +4,7 @@ var sequelize = require('../models/Database');
 const Sequelize = require("sequelize");
 const { request } = require('express');
 const Utilizador = require('../models/Utilizador');
+const Sala = require('../models/Sala');
 const Op = Sequelize.Op;
 
 controllers.list = async(req, res) => {
@@ -69,6 +70,17 @@ controllers.getUtilizadorCentro = async (req, res) => {
         where:{},
         include:[{
             model:Utilizador.scope("noPassword"),
+            where:{}
+        }]
+    })
+    res.json(data);
+  };
+controllers.getSalasCentro = async (req, res) => {
+    //const id = req.params.id;
+    const data = await Centro.findAll({
+        where:{idcentro:req.params.id},
+        include:[{
+            model:Sala.scope("noIdCentro"),
             where:{}
         }]
     })
