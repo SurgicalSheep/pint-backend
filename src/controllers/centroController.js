@@ -2,7 +2,6 @@ const controllers = {}
 var Centro = require('../models/Centro');
 var sequelize = require('../models/Database');
 const Sequelize = require("sequelize");
-const { request } = require('express');
 const Utilizador = require('../models/Utilizador');
 const Sala = require('../models/Sala');
 const Op = Sequelize.Op;
@@ -65,7 +64,7 @@ controllers.deleteCentro = async(req, res) => {
     }
 };
 controllers.getUtilizadorCentro = async (req, res) => {
-    //const id = req.params.id;
+
     const data = await Centro.findAll({
         where:{},
         include:[{
@@ -76,7 +75,6 @@ controllers.getUtilizadorCentro = async (req, res) => {
     res.json(data);
   };
 controllers.getSalasCentro = async (req, res) => {
-    //const id = req.params.id;
     const data = await Centro.findAll({
         where:{idcentro:req.params.id},
         include:[{

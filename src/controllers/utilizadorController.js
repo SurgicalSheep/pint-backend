@@ -31,7 +31,7 @@ controllers.editUtilizador = async(req, res) => {
           verificado:req.body.verificado,
           token:req.body.token,
           foto:req.body.foto
-    },{ where: { idsala: req.params.id },transaction:t })
+    },{ where: { idutilizador: req.params.id },transaction:t })
         await t.commit()
         res.status(200).send("1")
     } catch (err) {
