@@ -8,7 +8,7 @@ const Op = Sequelize.Op;
 
 controllers.list = async(req, res) => {
     const data = await Centro.findAll();
-    res.json(data)
+    res.json({centros:data});
 }
 controllers.getCentro = async (req, res) => {
     const id = req.params.id;
@@ -19,7 +19,7 @@ controllers.getCentro = async (req, res) => {
             }
         }
     })
-    res.json(data);
+    res.json({centro:data});
 };
 controllers.editCentro = async(req, res) => {
         const id = req.params.id;
@@ -82,6 +82,6 @@ controllers.getSalasCentro = async (req, res) => {
             where:{}
         }]
     })
-    res.json(data);
+    res.json({salas:data});
   };
 module.exports = controllers;
