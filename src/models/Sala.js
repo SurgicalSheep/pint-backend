@@ -1,6 +1,5 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
-const Equipamento = require('./Equipamento');
 
 var Sala = sequelize.define('salas', {
     idsala: {

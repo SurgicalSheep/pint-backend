@@ -10,7 +10,6 @@ var EmpregadoLimpeza = sequelize.define('empregados_limpeza', {
         autoIncrement: true,
       },
       nome: {type:Sequelize.STRING,allowNull: false},
-      datanascimento: {type:Sequelize.DATE,allowNull: false},
       telemovel: {type:Sequelize.STRING,allowNull: false},
       email: {type:Sequelize.STRING,allowNull: false},
       password: {type:Sequelize.STRING,allowNull: false},
