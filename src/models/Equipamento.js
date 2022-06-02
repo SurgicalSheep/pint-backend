@@ -13,6 +13,11 @@ var Equipamento = sequelize.define('equipamentos', {
 }, {
     freezeTableName: true,
     timestamps: false,
+    scopes: {
+        noIdSala: {
+          attributes: { exclude: ["idsala"] },
+        },
+    }
 });
 
 module.exports = Equipamento

@@ -1,7 +1,7 @@
 var db = require('./Database')
 var centro = require('./Centro')
 var empregadoLimpeza = require('./EmpregadoLimpeza')
-var equipamento = require('./equipamento')
+var equipamento = require('./Equipamento')
 var feedback = require('./Feedback')
 var notificacao = require('./Notificacao')
 var pedido = require('./Pedido')
@@ -39,7 +39,7 @@ reserva.belongsTo(utilizador,{foreignKey:'idutilizador'});
 reserva.belongsToMany(equipamento, { through: reservaEquipamento });
 equipamento.belongsToMany(reserva, { through: reservaEquipamento });
 
-sala.hasMany(equipamento,{foreignKey:'idsala',onDelete: 'cascade'});
+sala.hasMany(equipamento,{foreignKey:'idsala',onDelete: 'SET NULL'});
 equipamento.belongsTo(sala,{foreignKey:'idsala'});
 
 notificacao.belongsToMany(utilizador,{through:utilizadorNotificacoes,foreignKey:'idnotificacao',onDelete: 'CASCADE'});

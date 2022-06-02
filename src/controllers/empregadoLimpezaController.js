@@ -1,105 +1,115 @@
 const controllers = {};
 var EmpregadoLimpeza = require("../models/EmpregadoLimpeza");
-var Utilizador = require("../models/Utilizador")
+var Utilizador = require("../models/Utilizador");
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
-  const data = await EmpregadoLimpeza.findAll({
-    where:{}
-  });
-  res.json(data);
+  const data = await EmpregadoLimpeza.findAll();
+  res.json({empregadosLimpeza:data});
 };
-controllers.editEmpregadoLimpeza = async(req, res) => {
-  try {
-      const id = req.params.id;
-      
-      await EmpregadoLimpeza.update(req.body,
-          { where: { idutilizador: id } })
-      res.status(200).send("1")
-  } catch (error) {
-      res.status(400).send(error)
+controllers.editEmpregadoLimpeza = async (req, res) => {
+  let id = req.params.id;
+  if (Number.isInteger(+id)) {
+    const t = await sequelize.transaction();
+    try {
+      await EmpregadoLimpeza.update(
+        {
+          ncolaborador: req.body.ncolaborador,
+          admin: req.body.admin,
+          nome: req.body.nome,
+          idcentro: req.body.idcentro,
+          telemovel: req.body.telemovel,
+          email: req.body.email,
+          password: req.body.password,
+          estado: req.body.estado,
+          firstlogin: req.body.firstlogin,
+          verificado: req.body.verificado,
+          token: req.body.token,
+          foto: req.body.foto,
+          disponibilidade: req.body.disponibilidade,
+        },
+        { where: { idutilizador: id }, transaction: t }
+      );
+      await t.commit();
+      res.status(200).send("Ok");
+    } catch (error) {
+      await t.rollback();
+      res.status(400).send(error);
+    }
+  } else {
+    res.status("422").send("Id is not an Integer!");
   }
 };
-controllers.insertEmpregadoLimpeza = async(req, res) => {
+controllers.insertEmpregadoLimpeza = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
-    await sequelize.sync().then(()=>
-       {
-          EmpregadoLimpeza.create(req.body)
-       })
-       res.status(200).send("1")
+    await EmpregadoLimpeza.create(
+      {
+        ncolaborador: req.body.ncolaborador,
+        admin: req.body.admin,
+        nome: req.body.nome,
+        idcentro: req.body.idcentro,
+        telemovel: req.body.telemovel,
+        email: req.body.email,
+        password: req.body.password,
+        estado: req.body.estado,
+        firstlogin: req.body.firstlogin,
+        verificado: req.body.verificado,
+        token: req.body.token,
+        foto: req.body.foto,
+        disponibilidade: req.body.disponibilidade,
+      },
+      { transaction: t }
+    );
+    await t.commit();
+    res.status(200).send("Ok");
   } catch (error) {
-   res.status(400).send(error)
+    await t.rollback();
+    res.status(400).send(error);
   }
 };
 
-controllers.deleteEmpregadoLimpeza = async(req, res) => {
-  const id = req.params.id;
-  const data = await EmpregadoLimpeza.findOne({
-      where:{
-          idutilizador:{
-              [Op.eq]:id
-          }
-      }
-  })
-  try{
-      data.destroy()
-      res.status(200).send("1")
-      
-  }catch{
-      res.status(400).send("Err")
+controllers.deleteEmpregadoLimpeza = async (req, res) => {
+  let id = req.params.id;
+  if (Number.isInteger(+id)) {
+    const t = await sequelize.transaction();
+    try {
+      await EmpregadoLimpeza.destroy({ where: { idutilizador: id } });
+      await t.commit();
+      res.status(200).send("Ok");
+    } catch (error) {
+      await t.rollback();
+      res.status(400).send(error);
+    }
+  } else {
+    res.status("422").send("Id is not an Integer!");
   }
 };
 controllers.getEmpregadoLimpeza = async (req, res) => {
-  const id = req.params.id;
-  const data = await EmpregadoLimpeza.findOne({
-      where:{
-        idutilizador:{
-              [Op.eq]:id
-          }
-      }
-  })
-  res.json(data);
+  let id = req.params.id;
+  if (Number.isInteger(+id)) {
+    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findByPk(id,{include:[{model:Centro}]});
+    res.json({empregadoLimpeza:data});
+  } else {
+    res.status("422").send("Id is not an Integer!");
+  }
 };
-controllers.bulkInsertEmpregadoLimpeza = async(req, res) => {
-    try {
-        await sequelize.sync().then(()=>
-         {
-          EmpregadoLimpeza.bulkCreate(req.body)
-             
-         }).catch((err)=>{
-             res.status(400).send(err)
-         })
-         res.status(200).send("1")
-    } catch (error) {
-     res.status(400).send(error)
-    }
-  };
-  controllers.getEmpregadosLimpezaCentro = async (req, res) => {
-    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findAll({
-        where:{},
-        include:[{
-            model:Centro,
-            required:true,
-            where:{},
-        }]
-    })
-    res.json(data);
-  };
-  controllers.getEmpregadoLimpezaCentro = async (req, res) => {
-    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findOne({
-        where:{
-          idutilizador:{
-          [Op.eq]:req.params.id
-      }},
-        include:[{
-            model:Centro,
-            required:true,
-            where:{},
-        }]
-    })
-    res.json(data);
-  };
+controllers.bulkInsertEmpregadoLimpeza = async (req, res) => {
+  try {
+    await sequelize
+      .sync()
+      .then(() => {
+        EmpregadoLimpeza.bulkCreate(req.body);
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+    res.status(200).send("1");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+};
 module.exports = controllers;
