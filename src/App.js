@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+require('dotenv').config()
 require('./models/associations')
 const centroRouters = require('./routes/centroRoute.js')
 const utilizadorRouters = require('./routes/utilizadorRoute.js')
