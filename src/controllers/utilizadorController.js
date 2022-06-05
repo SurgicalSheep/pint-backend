@@ -5,13 +5,18 @@ const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
 const Reserva = require("../models/Reserva");
 const Sala = require("../models/Sala")
-const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
-  const data = await Utilizador.scope("noPassword").scope("noIdCentro").findAll({
+  const data = await Utilizador.scope("noIdCentro").findAll({
       include:[{
           model:Centro
-      }]
+      }],
+      attributes: {
+        include: [
+           [sequelize.literal("(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"), 'role']
+        ],
+        exclude: ['password']
+    }
   });
   res.json({utilizadores:data});
 };
@@ -79,7 +84,13 @@ controllers.deleteUtilizador = async(req, res) => {
   }
 };
 controllers.getUtilizador = async (req, res) => {
-  const data = await Utilizador.scope("noPassword").findByPk(req.params.id)
+  const data = await Utilizador.scope("noPassword").findByPk(req.params.id,{
+    attributes: {
+      include: [
+         [sequelize.literal("(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"), 'role']
+      ]
+  }
+  })
   res.json({utilizador:data});
 };
 controllers.bulkInsertUtilizador = async(req, res) => {

@@ -4,11 +4,23 @@ var UtilizadorNotificacao = require("../models/UtilizadoresNotificacao");
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Utilizador = require("../models/Utilizador");
-const { request } = require("express");
-const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
   const data = await Notificacao.scope('noIdUtilizador').findAll({
+    where:{},
+    include:[{
+      model:Utilizador.scope("noIdCentro"),as:'utilizador',
+      where:{}
+    },
+    ]
+  });
+  res.json(data);
+};
+
+controllers.getTop10Notificacao = async (req, res) => {
+  const data = await Notificacao.scope('noIdUtilizador').findAll({
+    limit:10,
+    order:[['hora','DESC']],
     where:{},
     include:[{
       model:Utilizador.scope("noIdCentro"),as:'utilizador',
