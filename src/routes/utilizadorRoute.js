@@ -33,6 +33,7 @@ router.get('/list', utilizadorController.list);
 router.get('/:id/reservas',utilizadorController.getUtilizadorReservas)
 router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
+router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
 router.delete('/:id', utilizadorController.deleteUtilizador);
 router.put('/:id', utilizadorController.editUtilizador);

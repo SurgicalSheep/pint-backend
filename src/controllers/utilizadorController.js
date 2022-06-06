@@ -143,6 +143,38 @@ controllers.getUtilizadorReservas = async (req, res) => {
   res.json({ reservas: data });
 };
 
+controllers.insertTestUtilizadores = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+      await Utilizador.bulkCreate([
+        {
+          ncolaborador: "132",
+          admin: false,
+          nome: "Andrioleto",
+          idcentro: 1,
+          telemovel: "931233123",
+          email: "Andrioleto@NotAdmin.com",
+          password: await bcrypt.hash("123123", 10)
+        },
+        {
+          ncolaborador: "133",
+          admin: true,
+          nome: "Consertino",
+          idcentro: 1,
+          telemovel: "931233127",
+          email: "Consertino@Admin.com",
+          password: await bcrypt.hash("123123", 10)
+        }],
+        { transaction: t }
+      );
+      await t.commit();
+      res.status(200).send("Ok");
+  } catch (error) {
+    await t.rollback(); 
+    res.status(400).send(error);
+  }
+};
+
 controllers.login = async (req, res) => {
   if (!(req.body.email && req.body.password)) {
     res.status(400).send("Email or password missing!");
