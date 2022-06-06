@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer')
+const { verifyToken,isAdmin } = require('../middlewares/authJwt');
 
 const storage = multer.diskStorage({
     destination: function(req,file,cb){
@@ -19,7 +20,7 @@ const upload = multer({
         file.mimetype == "image/jpg" ||
         file.mimetype == "image/jpeg"
       ) {
-        cb(null, true);
+        cb(null, true); 
       } else {
         cb(null, false);
         return cb(new Error("Only .png, .jpg and .jpeg format allowed!"));
@@ -32,6 +33,7 @@ router.get('/list', utilizadorController.list);
 router.get('/:id/reservas',utilizadorController.getUtilizadorReservas)
 router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
+router.post('/login', utilizadorController.login);
 router.delete('/:id', utilizadorController.deleteUtilizador);
 router.put('/:id', utilizadorController.editUtilizador);
 router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);
