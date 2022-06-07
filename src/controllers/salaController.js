@@ -7,16 +7,25 @@ const { request } = require("express");
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
+  let limit=req.params.limit;
+  let offset=req.params.offset;
+  if(!req.params.limit || req.params.limit == 0){
+    limit = 5;
+  }
+  if(!req.params.offset){
+    offset = 0;
+  }
   const data = await Sala.findAll({
-    limit: req.body.limit,
-    offset: req.body.offset,
+    limit: limit,
+    offset: offset
   });
   let x = {data};
-  if (req.body.offset == 0 || !req.body.offset) {
+  if (req.params.offset == 0 || !req.params.offset) {
     const count = await Sala.count();   
     x.count = count;
   }
-  res.json(x);
+  
+  res.status(200).json(x);
 };
 
 controllers.count = async (req, res) => {
@@ -28,9 +37,7 @@ controllers.getSala = async (req, res) => {
   const id = req.params.id;
   const data = await Sala.findOne({
     where: {
-      idsala: {
-        [Op.eq]: id,
-      },
+      idsala: id
     },
   });
   res.json({ data: data });
