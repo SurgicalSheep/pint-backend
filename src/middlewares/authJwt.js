@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const db = require("../models/Database");
 const Utilizador = require("../models/Utilizador");
+var redis = require('redis')
+var redisClient = redis.createClient();
 
 const verifyToken = (req, res, next) => {
   const token =
@@ -14,7 +16,7 @@ const verifyToken = (req, res, next) => {
   jwt.verify(token, process.env.TOKEN_KEY, (err, decoded) => {
     if (err) {
       return res.status(401).send({
-        message: "Unauthorized!",
+        message: "Acesso não autorizado!",
       });
     }
     req.idUtilizador = decoded.id;
@@ -28,7 +30,7 @@ const isAdmin = async (req, res, next) => {
     next();
     return;
   } else {
-    res.status(403).send({ message: "Unauthorized!" });
+    res.status(403).send({ message: "Sem permissões!" });
     return;
   }
 };

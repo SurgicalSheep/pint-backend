@@ -27,7 +27,7 @@ controllers.list = async (req, res) => {
       exclude: ["password"],
     },
   });
-  res.json({ utilizadores: data });
+  res.json({ data: data });
 };
 controllers.editUtilizador = async (req, res) => {
   const t = await sequelize.transaction();
@@ -140,7 +140,7 @@ controllers.getUtilizadorReservas = async (req, res) => {
       },
     ],
   });
-  res.json({ reservas: data });
+  res.json({ data: data });
 };
 
 controllers.insertTestUtilizadores = async (req, res) => {
@@ -194,7 +194,7 @@ controllers.login = async (req, res) => {
         expiresIn: "30m",
       }
     );
-    res.json({ token: token });
+    res.json({ data: token });
   } else {
     res.status("400").send("Invalid Credentials!");
   }

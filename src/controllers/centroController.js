@@ -7,7 +7,7 @@ const Sala = require('../models/Sala');
 
 controllers.list = async(req, res) => {
     const data = await Centro.findAll();
-    res.json({centros:data});
+    res.json({data:data});
 
 }
 controllers.getCentro = async (req, res) => {
@@ -18,7 +18,7 @@ controllers.getCentro = async (req, res) => {
                 idcentro:id
             }
         })
-        res.json({centro:data});
+        res.json({data:data});
     }
     else{
         res.status("422").send("Id is not an Integer!")
@@ -95,7 +95,7 @@ controllers.getSalasCentro = async (req, res) => {
             where:{}
         }]
     })
-    res.json({salas:data});
+    res.json({data:data});
     }else{
         res.status("422").send("Id is not an Integer!")
     }
