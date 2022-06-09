@@ -1,6 +1,5 @@
 var Sequelize = require("sequelize");
 var sequelize = require("./database");
-const Centro = require('./Centro')
 
 var Utilizador = sequelize.define(
   "utilizadores",
@@ -20,7 +19,7 @@ var Utilizador = sequelize.define(
     firstlogin:{type:Sequelize.BOOLEAN,allowNull:false,defaultValue:true},
     verificado:{type:Sequelize.BOOLEAN,allowNull:false,defaultValue:false},
     token:{type:Sequelize.STRING,allowNull:true},
-    foto:{type:Sequelize.BLOB,allowNull:true}
+    foto:{type:Sequelize.STRING,allowNull:true}
   },
   {
     freezeTableName: true,

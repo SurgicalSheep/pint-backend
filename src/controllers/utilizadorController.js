@@ -9,7 +9,17 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 controllers.list = async (req, res) => {
+  let limit=req.query.limit;
+  let offset=req.query.offset;
+  if(!req.query.limit || req.query.limit == 0){
+    limit = 5;
+  }
+  if(!req.query.offset){
+    offset = 25;
+  }
   const data = await Utilizador.scope("noIdCentro").findAll({
+    limit: limit,
+    offset: offset,
     include: [
       {
         model: Centro,
@@ -27,7 +37,12 @@ controllers.list = async (req, res) => {
       exclude: ["password"],
     },
   });
-  res.json({ data: data });
+  let x = {data};
+  if (req.query.offset == 0 || !req.query.offset) {
+    const count = await Utilizador.count();   
+    x.count = count;
+  }
+  res.json(x);
 };
 controllers.editUtilizador = async (req, res) => {
   const t = await sequelize.transaction();

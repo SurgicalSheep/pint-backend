@@ -11,7 +11,8 @@ var Sala = sequelize.define('salas', {
     lotacaomax: {type:Sequelize.INTEGER,allowNull: false},
     lotacao: {type:Sequelize.INTEGER,allowNull: true},
     descricao: {type:Sequelize.STRING,allowNull: true},
-    estado: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue:true}
+    estado: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue:true},
+    //justificacaoestado:{type:Sequelize.STRING,allowNull:true}
 }, {
     freezeTableName: true,
     timestamps: false,

@@ -29,7 +29,7 @@ const upload = multer({
   });
 
 const utilizadorController = require('../controllers/utilizadorController')
-router.get('/list', utilizadorController.list);
+router.get('/list:limit?:offset?', utilizadorController.list);
 router.get('/:id/reservas',utilizadorController.getUtilizadorReservas)
 router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);

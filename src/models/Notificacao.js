@@ -14,7 +14,7 @@ var Notificacao = sequelize.define(
     titulo: {type:Sequelize.STRING,allowNull: true},
     descricao: {type:Sequelize.STRING,allowNull: false},
     hora: {type:Sequelize.DATE,allowNull: false,defaultValue: NOW()},
-    recebida: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue: 0}
+    recebida: {type:Sequelize.BOOLEAN,allowNull: false,defaultValue: false}
   },
   {
     freezeTableName: true,
