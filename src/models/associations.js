@@ -48,4 +48,4 @@ utilizador.belongsToMany(notificacao,{through:utilizadorNotificacoes,foreignKey:
 utilizador.belongsToMany(permissao, { through: utilizadorPermissao });
 permissao.belongsToMany(utilizador, { through: utilizadorPermissao });
 
-db.sync();
+db.sync()

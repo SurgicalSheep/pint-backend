@@ -15,7 +15,7 @@ controllers.list = async (req, res) => {
     limit = 5;
   }
   if(!req.query.offset){
-    offset = 25;
+    offset = 0;
   }
   const data = await Utilizador.scope("noIdCentro").findAll({
     limit: limit,
@@ -192,7 +192,7 @@ controllers.insertTestUtilizadores = async (req, res) => {
 
 controllers.login = async (req, res) => {
   if (!(req.body.email && req.body.password)) {
-    res.status(400).send("Email or password missing!");
+    res.status(400).send({data:"Email or password missing!"});
   }
 
   const utilizador = await Utilizador.findOne({
@@ -211,7 +211,7 @@ controllers.login = async (req, res) => {
     );
     res.json({ data: token });
   } else {
-    res.status("400").send("Invalid Credentials!");
+    res.status("401").send({data:"Invalid Credentials!"});
   }
 };
 
