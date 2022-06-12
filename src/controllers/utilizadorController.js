@@ -215,4 +215,20 @@ controllers.login = async (req, res) => {
   }
 };
 
+controllers.getUserByToken = async (req, res) => {
+  const utilizador = await Utilizador.scope("noPassword").findByPk(req.idUser,{
+    include:[
+      {
+        model:Centro
+      }
+    ]
+  });
+  try {
+    res.json({ data: utilizador });
+  } catch (error) {
+    res.status("401").send({data:error});
+  }
+};
+
+
 module.exports = controllers;

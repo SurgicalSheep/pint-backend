@@ -19,13 +19,13 @@ const verifyToken = (req, res, next) => {
         message: "Acesso não autorizado!",
       });
     }
-    req.idUtilizador = decoded.id;
+    req.idUser = decoded.id;
     next();
   });
 };
 
 const isAdmin = async (req, res, next) => {
-  let user = await Utilizador.findByPk(req.idUtilizador);
+  let user = await Utilizador.findByPk(req.idUser);
   if (user.admin == true) {
     next();
     return;
