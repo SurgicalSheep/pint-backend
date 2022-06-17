@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer')
-const { verifyToken,isAdmin } = require('../middlewares/authJwt');
+const {verifyAccessToken} = require("../middlewares/jwt")
+
 
 const storage = multer.diskStorage({
     destination: function(req,file,cb){
@@ -31,11 +32,13 @@ const upload = multer({
 const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list:limit?:offset?', utilizadorController.list);
 router.get('/:id/reservas',utilizadorController.getUtilizadorReservas)
-router.get('/getUserByToken',verifyToken,utilizadorController.getUserByToken)
+router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
 router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
 router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
+router.post('/refreshToken', utilizadorController.refreshToken);
+router.delete('/logout', utilizadorController.logout);
 router.delete('/:id', utilizadorController.deleteUtilizador);
 router.put('/:id', utilizadorController.editUtilizador);
 router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);

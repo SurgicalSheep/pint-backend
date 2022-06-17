@@ -1,7 +1,9 @@
 const express = require('express');
+var cors = require('cors')
 const app = express();
 require('dotenv').config()
 require('./models/associations')
+require('./models/redisDatabase');
 const centroRouters = require('./routes/centroRoute.js')
 const utilizadorRouters = require('./routes/utilizadorRoute.js')
 const salaRouters = require('./routes/salaRoute.js')
@@ -11,16 +13,10 @@ const empregadoLimpezaRouters = require('./routes/empregadoLimpezaRoute.js')
 const feedbackRouters = require('./routes/feedbackRoute.js')
 const pedidoRouters = require('./routes/pedidoRoute')
 const notificacaoRouters = require('./routes/notificacaoRoute')
-const reservaRouters = require('./routes/reservaRoute')
+const reservaRouters = require('./routes/reservaRoute');
+const createError = require('http-errors');
 //Configurações 
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type,Accept, Access-Control-Allow-Request-Method');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
-    next();
-    });
+app.use(cors())
 app.set('port', process.env.PORT || 3000);
 //Middlewares
 app.use(express.json());
@@ -35,9 +31,15 @@ app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters)
 
-app.use('/', (req, res) => { 
-    res.send(":)");
+app.use(async (req,res,next) => {
+    next(createError.NotFound("Route does not exist!"))
 })
+
+app.use((err,req,res,next) =>{
+    const status = err.status || 500;
+    res.status(status).send({data:err.message})
+})
+
 app.listen(app.get('port'), () => {
     console.log("Start server on port " + app.get('port'))
 })

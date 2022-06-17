@@ -8,8 +8,8 @@ const sequelize = new Sequelize(
     port: "5432",
     dialect: "postgres",
   }
-);*/
-
+);
+*/
 var Sequelize = require("sequelize");
-const sequelize = new Sequelize(process.env.DATABASECONNECTIONSTRING); 
+const sequelize = new Sequelize(process.env.DATABASECONNECTIONSTRING);
 module.exports = sequelize;

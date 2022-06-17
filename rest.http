@@ -1,0 +1,36 @@
+GET http://localhost:3000/utilizador/list
+
+###
+GET http://localhost:3000/utilizador/:id/reservas
+
+###
+GET http://localhost:3000/utilizador/getUserByToken
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU0NzUyNDQsImV4cCI6MTY1NTQ3NTU0NCwic3ViIjoiMTIifQ.NiXKeYzCjKb4d_XYHvWClpl7E97NxW4RB7ZrbmsJgt0
+
+###
+GET http://localhost:3000/utilizador/:id
+
+###
+POST http://localhost:3000/utilizador/login
+Content-Type: application/json
+
+{
+    "email": "Consertino@Admin.com",
+    "password": "123123"
+}
+
+###
+POST http://localhost:3000/utilizador/refreshToken
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU0NzQwNDAsImV4cCI6MTY1NTQ3NDA3MCwic3ViIjoiMTIifQ.4hhoKdXRxDpk0rI7OiHPBPf3HaICveFUTi_TwPYR4wI"
+}
+
+###
+DELETE  http://localhost:3000/utilizador/logout
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU0NzQ2NzAsImV4cCI6MTY1NjA3OTQ3MCwic3ViIjoiMTIifQ.6bA0QVVP4LDPATvLu6ouoKjC0hZej2Fv3SCCgebiTXA"
+}

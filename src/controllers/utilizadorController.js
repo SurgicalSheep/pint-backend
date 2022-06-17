@@ -7,6 +7,10 @@ const Reserva = require("../models/Reserva");
 const Sala = require("../models/Sala");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const client = require("../models/redisDatabase")
+
+const {signAccessToken,signRefreshToken,verifyRefreshToken} = require("../middlewares/jwt");
+const createError = require("http-errors");
 
 controllers.list = async (req, res) => {
   let limit=req.query.limit;
@@ -190,7 +194,7 @@ controllers.insertTestUtilizadores = async (req, res) => {
   }
 };
 
-controllers.login = async (req, res) => {
+controllers.login = async (req, res,next) => {
   if (!(req.body.email && req.body.password)) {
     res.status(400).send({data:"Email or password missing!"});
   }
@@ -202,14 +206,17 @@ controllers.login = async (req, res) => {
     utilizador &&
     (await bcrypt.compare(req.body.password, utilizador.password))
   ) {
-    const token = jwt.sign(
-      { id: utilizador.idutilizador},
-      process.env.TOKEN_KEY,
-      {
-        expiresIn: "30m",
-      }
-    );
-    res.json({ data: token });
+    let accessToken;
+    let refreshToken;
+    try {
+      accessToken = await signAccessToken(utilizador.idutilizador)
+      refreshToken = await signRefreshToken(utilizador.idutilizador)
+    } catch (error) {
+      next(createError.InternalServerError())   
+      return;
+    }
+    
+    res.send({ data: {accessToken,refreshToken} });
   } else {
     res.status("401").send({data:"Invalid Credentials!"});
   }
@@ -223,10 +230,37 @@ controllers.getUserByToken = async (req, res) => {
       }
     ]
   });
+ 
   try {
     res.json({ data: utilizador });
   } catch (error) {
     res.status("401").send({data:error});
+  }
+};
+
+controllers.refreshToken = async (req, res, next) => {
+  try {
+    const {refreshToken} = req.body
+    if(!refreshToken) throw createError.BadRequest()
+    const userId = await verifyRefreshToken(refreshToken);
+    const accessToken = await signAccessToken(userId);
+    const refToken = await signRefreshToken(userId);
+    res.send({data:{accessToken,refreshToken:refToken}})
+  } catch (error) {
+    next(error)
+  }
+};
+
+controllers.logout = async (req, res, next) => {
+  try {
+    const {refreshToken} = req.body;
+    if(!refreshToken) throw createError.BadRequest()
+    const id = await verifyRefreshToken(refreshToken)
+    await client.DEL(id)
+    res.sendStatus(204)
+  } catch (err) {
+    console.log(err.message)
+    next(err)
   }
 };
 
