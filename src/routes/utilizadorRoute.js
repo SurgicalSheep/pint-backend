@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer')
-const {verifyAccessToken} = require("../middlewares/jwt")
+const {verifyAccessToken, isAdmin} = require("../middlewares/jwt")
 
 
 const storage = multer.diskStorage({
@@ -37,6 +37,7 @@ router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
 router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
+router.post('/loginWeb',isAdmin, utilizadorController.login);
 router.post('/refreshToken', utilizadorController.refreshToken);
 router.delete('/logout', utilizadorController.logout);
 router.delete('/:id', utilizadorController.deleteUtilizador);

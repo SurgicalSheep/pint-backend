@@ -1,6 +1,4 @@
 const redis = require("redis");
-//let port = 6379;
-//let host = "pint.72wvxo.clustercfg.euw3.cache.amazonaws.com"
 const client = redis.createClient({url:process.env.REDIS_URL});
 
 (async()=>{

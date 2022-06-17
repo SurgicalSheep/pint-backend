@@ -8,12 +8,12 @@ const Sala = require("../models/Sala");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const client = require("../models/redisDatabase")
-
 const {signAccessToken,signRefreshToken,verifyRefreshToken} = require("../middlewares/jwt");
 const createError = require("http-errors");
 
-controllers.list = async (req, res) => {
-  let limit=req.query.limit;
+controllers.list = async (req, res, next) => {
+  try {
+    let limit=req.query.limit;
   let offset=req.query.offset;
   if(!req.query.limit || req.query.limit == 0){
     limit = 5;
@@ -46,9 +46,13 @@ controllers.list = async (req, res) => {
     const count = await Utilizador.count();   
     x.count = count;
   }
-  res.json(x);
+    res.send(x);
+  } catch (error) {
+    next(error)
+  }
+  
 };
-controllers.editUtilizador = async (req, res) => {
+controllers.editUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Utilizador.update(
@@ -69,17 +73,17 @@ controllers.editUtilizador = async (req, res) => {
       { where: { idutilizador: req.params.id }, transaction: t }
     );
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204)
   } catch (err) {
     await t.rollback();
-    res.status(400).send("Err");
+    next(err)
   }
 };
-controllers.insertUtilizador = async (req, res) => {
+controllers.insertUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     bcrypt.hash(req.body.password, 10, async function (err, hash) {
-      await Utilizador.create(
+      const user = await Utilizador.create(
         {
           ncolaborador: req.body.ncolaborador,
           admin: req.body.admin,
@@ -96,13 +100,12 @@ controllers.insertUtilizador = async (req, res) => {
         },
         { transaction: t }
       );
-      console.log(hash);
       await t.commit();
-      res.status(200).send("1");
+      res.send({data:user});
     });
   } catch (error) {
     await t.rollback();
-    res.status(400).send(error);
+    next(error)
   }
 };
 
@@ -114,14 +117,15 @@ controllers.deleteUtilizador = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send("1");
-  } catch {
+    res.sendStatus(204);
+  } catch(error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
-controllers.getUtilizador = async (req, res) => {
-  const data = await Utilizador.scope("noPassword").findByPk(req.params.id, {
+controllers.getUtilizador = async (req, res, next) => {
+  try {
+    const data = await Utilizador.scope("noPassword").findByPk(req.params.id, {
     attributes: {
       include: [
         [
@@ -133,7 +137,11 @@ controllers.getUtilizador = async (req, res) => {
       ],
     },
   });
-  res.json({ utilizador: data });
+  res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.bulkInsertUtilizador = async (req, res) => {
   const t = await sequelize.transaction();
@@ -146,8 +154,9 @@ controllers.bulkInsertUtilizador = async (req, res) => {
     res.status(400).send(error);
   }
 };
-controllers.getUtilizadorReservas = async (req, res) => {
-  const data = await Reserva.scope("noIdSala").findAll({
+controllers.getUtilizadorReservas = async (req, res, next) => {
+  try {
+    const data = await Reserva.scope("noIdSala").findAll({
     where: [
       {
         idutilizador: req.params.id,
@@ -159,10 +168,14 @@ controllers.getUtilizadorReservas = async (req, res) => {
       },
     ],
   });
-  res.json({ data: data });
+  res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 
-controllers.insertTestUtilizadores = async (req, res) => {
+controllers.insertTestUtilizadores = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
       await Utilizador.bulkCreate([
@@ -187,16 +200,16 @@ controllers.insertTestUtilizadores = async (req, res) => {
         { transaction: t }
       );
       await t.commit();
-      res.status(200).send("Ok");
+      res.sendStatus(204);
   } catch (error) {
     await t.rollback(); 
-    res.status(400).send(error);
+    next(error);
   }
 };
 
 controllers.login = async (req, res,next) => {
   if (!(req.body.email && req.body.password)) {
-    res.status(400).send({data:"Email or password missing!"});
+    return next((createError.BadRequest("Email or password missing!")))
   }
 
   const utilizador = await Utilizador.findOne({
@@ -218,23 +231,22 @@ controllers.login = async (req, res,next) => {
     
     res.send({ data: {accessToken,refreshToken} });
   } else {
-    res.status("401").send({data:"Invalid Credentials!"});
+    return next((createError.BadRequest("Invalid Credentials!")))
   }
 };
 
-controllers.getUserByToken = async (req, res) => {
-  const utilizador = await Utilizador.scope("noPassword").findByPk(req.idUser,{
-    include:[
-      {
-        model:Centro
-      }
-    ]
-  });
- 
+controllers.getUserByToken = async (req, res, next) => {
   try {
-    res.json({ data: utilizador });
+    const utilizador = await Utilizador.scope("noPassword").findByPk(req.idUser,{
+      include:[
+        {
+          model:Centro
+        }
+      ]
+    });
+    res.send({ data: utilizador });
   } catch (error) {
-    res.status("401").send({data:error});
+    return next(error)
   }
 };
 
