@@ -40,6 +40,7 @@ reserva.belongsToMany(equipamento, { through: reservaEquipamento });
 equipamento.belongsToMany(reserva, { through: reservaEquipamento });
 
 sala.hasMany(equipamento,{foreignKey:'idsala',onDelete: 'SET NULL'});
+sala.hasMany(reserva,{foreignKey:'idsala',onDelete: 'CASCADE'});
 equipamento.belongsTo(sala,{foreignKey:'idsala'});
 
 notificacao.belongsToMany(utilizador,{through:utilizadorNotificacoes,foreignKey:'idnotificacao',onDelete: 'CASCADE'});

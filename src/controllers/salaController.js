@@ -2,8 +2,9 @@ const controllers = {};
 var Centro = require("../models/Centro");
 var Sala = require("../models/Sala");
 var sequelize = require("../models/Database");
+const Reserva = require("../models/Reserva")
 const Sequelize = require("sequelize");
-const { request } = require("express");
+const createError = require("http-errors")
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
@@ -32,6 +33,32 @@ controllers.count = async (req, res) => {
   const data = await Sala.Count();
   res.json({ data: data });
 };
+
+controllers.getSalaReservas = async(req,res,next) => {
+  let {limit,offset} = req.body
+  let {id} = req.params
+  if(!req.query.limit || req.query.limit == 0){
+    limit = 5;
+  }
+  if(!req.query.offset){
+    offset = 0;
+  }
+  try {
+    const data = await Sala.findAll({
+      where:{idsala:id},
+      include:[{model:Reserva}]
+    })
+    let aux = {data}
+    if (req.query.offset == 0 || !req.query.offset) {
+      const count = await Reserva.count({where:{idsala:id}});   
+      aux.count = count;
+    }
+    res.send(aux)
+  } catch (error) {
+    next(error)
+  }
+  
+}
 
 controllers.getSala = async (req, res) => {
   const id = req.params.id;
