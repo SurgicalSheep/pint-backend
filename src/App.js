@@ -17,7 +17,7 @@ const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
 //Configurações 
 app.use(cors())
-app.set('port', process.env.PORT || 3000);
+app.set('port', (process.env.PORT || 3000));
 //Middlewares
 app.use(express.json());
 app.use('/centro', centroRouters)

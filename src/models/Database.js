@@ -11,5 +11,5 @@ const sequelize = new Sequelize(
 );
 */
 var Sequelize = require("sequelize");
-const sequelize = new Sequelize(process.env.DATABASECONNECTIONSTRING);
+const sequelize = new Sequelize(process.env.DATABASECONNECTIONSTRING,{dialect:"postgres"});
 module.exports = sequelize;
