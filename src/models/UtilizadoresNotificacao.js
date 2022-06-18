@@ -1,7 +1,7 @@
 var Sequelize = require("sequelize");
 var sequelize = require("./database");
-const Utilizador = require("./Utilizador")
-const Notificacao = require("./Notificacao")
+const Utilizador = require("./utilizador")
+const Notificacao = require("./notificacao")
 
 var Utilizadores_Notificaco = sequelize.define(
   "utilizadores_notificacoes",

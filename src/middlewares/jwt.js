@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const createError = require("http-errors");
 const client = require("../models/redisDatabase");
-const Utilizador = require("../models/Utilizador");
+const Utilizador = require("../models/utilizador");
 
 const signAccessToken = (id) => {
   return new Promise((resolve, reject) => {

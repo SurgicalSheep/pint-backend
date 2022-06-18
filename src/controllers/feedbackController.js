@@ -1,10 +1,10 @@
 const controllers = {}
-var Feedback = require('../models/Feedback');
-var sequelize = require('../models/Database');
+var Feedback = require('../models/feedback');
+var sequelize = require('../models/database');
 const Sequelize = require("sequelize");
-const Utilizador = require('../models/Utilizador')
-const Sala = require('../models/Sala')
-const Centro = require('../models/Centro')
+const Utilizador = require('../models/utilizador')
+const Sala = require('../models/sala')
+const Centro = require('../models/centro')
 const { request } = require('express');
 const Op = Sequelize.Op;
 

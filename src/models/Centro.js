@@ -1,8 +1,8 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
-var Utilizador = require('./Utilizador')
-var empregadoLimpeza = require('./EmpregadoLimpeza')
-const Sala = require('./Sala');
+var Utilizador = require('./utilizador')
+var empregadoLimpeza = require('./empregadoLimpeza')
+const Sala = require('./sala');
 
 var Centro = sequelize.define('centros', {
     idcentro: {
@@ -19,5 +19,6 @@ var Centro = sequelize.define('centros', {
 }, {
     freezeTableName: true,
     timestamps: false,
+    logging:false
 });
 module.exports = Centro

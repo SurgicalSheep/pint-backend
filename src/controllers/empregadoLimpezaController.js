@@ -1,9 +1,9 @@
 const controllers = {};
-var EmpregadoLimpeza = require("../models/EmpregadoLimpeza");
-var Utilizador = require("../models/Utilizador");
-var sequelize = require("../models/Database");
+var EmpregadoLimpeza = require("../models/empregadoLimpeza");
+var Utilizador = require("../models/utilizador");
+var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
-const Centro = require("../models/Centro");
+const Centro = require("../models/centro");
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {

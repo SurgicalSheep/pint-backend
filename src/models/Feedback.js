@@ -1,8 +1,8 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
-var Utilizador = require('./Utilizador')
-var Sala = require('./Sala')
-var Reserva = require('./Reserva');
+var Utilizador = require('./utilizador')
+var Sala = require('./sala')
+var Reserva = require('./reserva');
 const {NOW } = require("sequelize");
 
 var Feedback = sequelize.define('feedbacks', {

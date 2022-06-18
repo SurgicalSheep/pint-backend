@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
-const Reserva = require('./Reserva')
-const Equipamento = require('./Equipamento')
+const Reserva = require('./reserva')
+const Equipamento = require('./equipamento')
 
 var ReservaEquipamento = sequelize.define('reservas_equipamentos', {}, 
 {

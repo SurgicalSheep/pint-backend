@@ -1,6 +1,6 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
-const Utilizador = require('./Utilizador');
+const Utilizador = require('./utilizador');
 
 var EmpregadoManutencao = sequelize.define('empregados_manutencoes', {
     idutilizador: {

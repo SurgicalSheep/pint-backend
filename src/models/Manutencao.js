@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 var sequelize = require('./database');
 const EmpregadoManutencao = require('./EmpregadoManutencao');
-const Sala = require('./Sala');
+const Sala = require('./sala');
 
 var Manutencao = sequelize.define('manutencoes', {
     idmanutencao: {

@@ -1,6 +1,6 @@
 const controllers = {};
-var Pedido = require("../models/Pedido");
-var sequelize = require("../models/Database");
+var Pedido = require("../models/pedido");
+var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 

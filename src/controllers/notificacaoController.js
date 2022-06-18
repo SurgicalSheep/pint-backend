@@ -1,9 +1,9 @@
 const controllers = {};
-var Notificacao = require("../models/Notificacao");
-var UtilizadorNotificacao = require("../models/UtilizadoresNotificacao");
-var sequelize = require("../models/Database");
+var Notificacao = require("../models/notificacao");
+var UtilizadorNotificacao = require("../models/utilizadoresNotificacao");
+var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
-const Utilizador = require("../models/Utilizador");
+const Utilizador = require("../models/utilizador");
 
 controllers.list = async (req, res) => {
   const data = await Notificacao.scope('noIdUtilizador').findAll({

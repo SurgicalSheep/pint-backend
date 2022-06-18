@@ -1,9 +1,9 @@
 const controllers = {}
-var Centro = require('../models/Centro');
-var sequelize = require('../models/Database');
+var Centro = require('../models/centro');
+var sequelize = require('../models/database');
 const Sequelize = require("sequelize");
-const Utilizador = require('../models/Utilizador');
-const Sala = require('../models/Sala');
+const Utilizador = require('../models/utilizador');
+const Sala = require('../models/sala');
 
 controllers.list = async(req, res) => {
     const data = await Centro.findAll();

@@ -1,17 +1,17 @@
-var db = require('./Database')
-var centro = require('./Centro')
-var empregadoLimpeza = require('./EmpregadoLimpeza')
-var equipamento = require('./Equipamento')
-var feedback = require('./Feedback')
-var notificacao = require('./Notificacao')
-var pedido = require('./Pedido')
-var permissao = require('./Permissao')
-var reserva = require('./Reserva')
-var reservaEquipamento = require('./ReservaEquipamento')
-var sala = require('./Sala')
-var utilizador = require('./Utilizador')
-var utilizadorNotificacoes = require('./UtilizadoresNotificacao')
-var utilizadorPermissao = require('./UtilizadorPermissao')
+var db = require('./database')
+var centro = require('./centro')
+var empregadoLimpeza = require('./empregadoLimpeza')
+var equipamento = require('./equipamento')
+var feedback = require('./feedback')
+var notificacao = require('./notificacao')
+var pedido = require('./pedido')
+var permissao = require('./permissao')
+var reserva = require('./reserva')
+var reservaEquipamento = require('./reservaEquipamento')
+var sala = require('./sala')
+var utilizador = require('./utilizador')
+var utilizadorNotificacoes = require('./utilizadoresNotificacao')
+var utilizadorPermissao = require('./utilizadorPermissao')
 
 centro.hasMany(sala,{foreignKey:'idcentro', onDelete: 'cascade'});
 centro.hasMany(utilizador,{foreignKey:'idcentro'});
@@ -49,4 +49,4 @@ utilizador.belongsToMany(notificacao,{through:utilizadorNotificacoes,foreignKey:
 utilizador.belongsToMany(permissao, { through: utilizadorPermissao });
 permissao.belongsToMany(utilizador, { through: utilizadorPermissao });
 
-db.sync()
+db.sync({logging:false})
