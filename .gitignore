@@ -128,6 +128,4 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-src/models/Database.js
-rest.http
 rest.http
