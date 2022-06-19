@@ -238,6 +238,40 @@ controllers.login = async (req, res, next) => {
   }
 };
 
+controllers.loginWeb = async (req, res, next) => {
+  if (!(req.body.email && req.body.password)) {
+    return next(createError.BadRequest("Email or password missing!"));
+  }
+
+  const utilizador = await Utilizador.findOne({
+    where: { email: req.body.email },
+  });
+  if (
+    utilizador &&
+    (await bcrypt.compare(req.body.password, utilizador.password)) 
+  ) {
+    if(utilizador.admin == true){
+      let accessToken;
+    let refreshToken;
+    try {
+      accessToken = await signAccessToken(utilizador.idutilizador);
+      refreshToken = await signRefreshToken(utilizador.idutilizador);
+    } catch (error) {
+      next(createError.InternalServerError());
+      return;
+    }
+    res.send({ data: { accessToken, refreshToken } });
+    }
+    else{
+      return next(createError.BadRequest("Not enough permissions!"));
+    }
+
+   
+  } else {
+    return next(createError.BadRequest("Invalid Credentials!"));
+  }
+};
+
 controllers.getUserByToken = async (req, res, next) => {
   try {
     const utilizador = await Utilizador.scope("noPassword").findByPk(

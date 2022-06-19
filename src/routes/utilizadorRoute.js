@@ -37,7 +37,7 @@ router.get('/:id', utilizadorController.getUtilizador);
 router.post('/add', utilizadorController.insertUtilizador);
 router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
-router.post('/loginWeb',isAdmin, utilizadorController.login);
+router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);
 router.delete('/logout', utilizadorController.logout);
 router.delete('/:id', utilizadorController.deleteUtilizador);

@@ -15,7 +15,7 @@ var EmpregadoLimpeza = sequelize.define(
     admin: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false },
     nome: { type: Sequelize.STRING, allowNull: false },
     telemovel: { type: Sequelize.STRING, allowNull: false },
-    email: { type: Sequelize.STRING, allowNull: false },
+    email: { type: Sequelize.STRING, allowNull: false , unique: true},
     password: { type: Sequelize.STRING, allowNull: false },
     estado: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false },
     firstlogin: {
