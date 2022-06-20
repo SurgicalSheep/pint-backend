@@ -1,6 +1,6 @@
 const controllers = {};
 var EmpregadoManutencao = require("../models/EmpregadoManutencao");
-var Utilizador = require("../models/Utilizador")
+var Utilizador = require("../models/utilizador")
 var sequelize = require("../models/Database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/Centro");
