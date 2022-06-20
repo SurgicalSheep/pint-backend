@@ -82,10 +82,11 @@ controllers.deleteUtilizador = async (req, res,next) => {
 
 controllers.getUtilizador = async (req, res, next) => {
   try {
+    const {id} = req.params
     if(!Number.isInteger(+id)){
       throw createError.BadRequest("Id is not a Integer");
     }
-    const data = await Utilizador.scope("noPassword").findByPk(req.params.id, {
+    const data = await Utilizador.scope("noPassword").findByPk(id, {
       attributes: {
         include: [
           [
