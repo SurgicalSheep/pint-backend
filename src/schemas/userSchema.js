@@ -29,11 +29,7 @@ const utilizadorSchema = Joi.object({
   idcentro:Joi.number().integer().required()
 });
 
-const utilizadorSchema2 = Joi.object({
-    ncolaborador: Joi.number().integer().required(),
-  
-    admin: Joi.boolean(),
-  
+const editUtilizador = Joi.object({
     nome: Joi.string().alphanum().min(3).max(30).required(),
   
     telemovel: Joi.string()
@@ -41,9 +37,25 @@ const utilizadorSchema2 = Joi.object({
       .required()
       .messages({ "string.pattern.base": `telemovel must be 9 digit number` }),
   
-    email: Joi.string().email().lowercase().required(),
-  
     password: Joi.string().min(3).required(),
+  
+    foto:Joi.string().allow(null,'')
+  });
+
+  const editUtilizadorAdmin = Joi.object({
+    ncolaborador: Joi.number().integer(),
+  
+    admin: Joi.boolean(),
+  
+    nome: Joi.string().alphanum().min(3).max(30),
+  
+    telemovel: Joi.string()
+      .regex(/^[0-9]{9}$/)
+      .messages({ "string.pattern.base": `telemovel must be 9 digit number` }),
+  
+    email: Joi.string().email().lowercase(),
+  
+    password: Joi.string().min(3),
   
     estado: Joi.boolean(),
   
@@ -55,7 +67,11 @@ const utilizadorSchema2 = Joi.object({
   
     foto:Joi.string().allow(null,''),
   
-    idcentro:Joi.number().integer().required()
+    idcentro:Joi.number().integer()
   });
 
-module.exports = utilizadorSchema;
+module.exports = {
+    utilizadorSchema:utilizadorSchema,
+    editUtilizador:editUtilizador,
+    editUtilizadorAdmin:editUtilizadorAdmin
+};

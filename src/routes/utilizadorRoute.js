@@ -31,18 +31,18 @@ const upload = multer({
   });
 
 const utilizadorController = require('../controllers/utilizadorController')
-router.get('/list:limit?:offset?', utilizadorController.list);
-router.get('/:id/reservas',utilizadorController.getUtilizadorReservas)
+router.get('/list:limit?:offset?',verifyAccessToken,isAdmin, utilizadorController.list);
+router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
-router.get('/:id/foto',utilizadorController.getUtilizadorFoto)
-router.get('/:id', utilizadorController.getUtilizador);
-router.post('/add',  upload.single('foto'), utilizadorController.insertUtilizador);
+router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
+router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
+router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
 router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);
 router.delete('/logout', utilizadorController.logout);
-router.delete('/:id', utilizadorController.deleteUtilizador);
-router.put('/:id', verifyAccessToken,upload.single('foto'), utilizadorController.editUtilizadorTest);
+router.delete('/:id',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizador);
+router.put('/:id', verifyAccessToken,upload.single('foto'), utilizadorController.editUtilizador);
 router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);
 module.exports = router;

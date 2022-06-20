@@ -7,7 +7,7 @@ const signAccessToken = (id) => {
   return new Promise((resolve, reject) => {
     const payload = {};
     const options = {
-      expiresIn: "5m",
+      expiresIn: "30m",
       subject: String(id),
     };
     jwt.sign(payload, process.env.TOKEN_KEY, options, (err, token) => {

@@ -6,14 +6,14 @@ const Reserva = require("../models/reserva");
 const Sala = require("../models/sala");
 const bcrypt = require("bcrypt");
 const client = require("../models/redisDatabase");
-const handleImage = require('../helpers/imageHandler')
-const fs = require('fs')
+const handleImage = require("../helpers/imageHandler");
+const fs = require("fs");
 const {
   signAccessToken,
   signRefreshToken,
   verifyRefreshToken,
 } = require("../middlewares/jwt");
-const utilizadorSchema = require('../schemas/userSchema')
+const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schemas/userSchema");
 const createError = require("http-errors");
 
 controllers.list = async (req, res, next) => {
@@ -56,41 +56,22 @@ controllers.list = async (req, res, next) => {
     next(error);
   }
 };
-controllers.editUtilizador = async (req, res, next) => {
-  const t = await sequelize.transaction();
-  try {
-    await Utilizador.update(
-      {
-        ncolaborador: req.body.ncolaborador,
-        admin: req.body.admin,
-        nome: req.body.nome,
-        idcentro: req.body.idcentro,
-        telemovel: req.body.telemovel,
-        email: req.body.email,
-        password: req.body.password,
-        estado: req.body.estado,
-        firstlogin: req.body.firstlogin,
-        verificado: req.body.verificado,
-        token: req.body.token,
-        foto: req.body.foto,
-      },
-      { where: { idutilizador: req.params.id }, transaction: t }
-    );
-    await t.commit();
-    res.sendStatus(204);
-  } catch (err) {
-    await t.rollback();
-    next(err);
-  }
-};
 
-controllers.deleteUtilizador = async (req, res) => {
+controllers.deleteUtilizador = async (req, res,next) => {
   const t = await sequelize.transaction();
   try {
-    await Utilizador.destroy(
-      { where: { idutilizador: req.params.id } },
-      { transaction: t }
-    );
+    const { id } = req.params;
+    
+    if(!Number.isInteger(+id)){
+      throw createError.BadRequest("Id is not a Integer");
+    }
+    const user = await Utilizador.findByPk(id);
+    if(user.foto){
+      fs.unlink(user.foto, (err, result) => {
+        if (err) throw err;
+      });
+    }
+    await user.destroy({transaction:t})
     await t.commit();
     res.sendStatus(204);
   } catch (error) {
@@ -101,6 +82,9 @@ controllers.deleteUtilizador = async (req, res) => {
 
 controllers.getUtilizador = async (req, res, next) => {
   try {
+    if(!Number.isInteger(+id)){
+      throw createError.BadRequest("Id is not a Integer");
+    }
     const data = await Utilizador.scope("noPassword").findByPk(req.params.id, {
       attributes: {
         include: [
@@ -209,7 +193,7 @@ controllers.login = async (req, res, next) => {
 
     res.send({ data: { accessToken, refreshToken } });
   } else {
-    return next(createError.BadRequest("Invalid Credentials!"));
+    return next(createError.Unauthorized("Invalid Credentials!"));
   }
 };
 
@@ -223,25 +207,22 @@ controllers.loginWeb = async (req, res, next) => {
   });
   if (
     utilizador &&
-    (await bcrypt.compare(req.body.password, utilizador.password)) 
+    (await bcrypt.compare(req.body.password, utilizador.password))
   ) {
-    if(utilizador.admin == true){
+    if (utilizador.admin == true) {
       let accessToken;
-    let refreshToken;
-    try {
-      accessToken = await signAccessToken(utilizador.idutilizador);
-      refreshToken = await signRefreshToken(utilizador.idutilizador);
-    } catch (error) {
-      next(createError.InternalServerError());
-      return;
-    }
-    res.send({ data: { accessToken, refreshToken } });
-    }
-    else{
+      let refreshToken;
+      try {
+        accessToken = await signAccessToken(utilizador.idutilizador);
+        refreshToken = await signRefreshToken(utilizador.idutilizador);
+      } catch (error) {
+        next(createError.InternalServerError());
+        return;
+      }
+      res.send({ data: { accessToken, refreshToken } });
+    } else {
       return next(createError.Forbidden("Not enough permissions!"));
     }
-
-   
   } else {
     return next(createError.Unauthorized("Invalid Credentials!"));
   }
@@ -295,120 +276,171 @@ controllers.insertUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const result = await utilizadorSchema.validateAsync(req.body);
-    const emailExists = await Utilizador.findOne({where:{email : result.email}});
-    const nColaboradorExists = await Utilizador.findOne({where:{ncolaborador : result.ncolaborador}})
+    const emailExists = await Utilizador.findOne({
+      where: { email: result.email },
+    });
+    const nColaboradorExists = await Utilizador.findOne({
+      where: { ncolaborador: result.ncolaborador },
+    });
 
-    if(emailExists){
-      if(req.file){
-        fs.unlink(req.file.path,(err,result)=>{
-          if(err)
-            next (err);
-        })
+    if (emailExists) {
+      if (req.file) {
+        fs.unlink(req.file.path, (err, result) => {
+          if (err) throw err;
+        });
       }
-      return next(createError.Conflict(`${result.email} has already been registered`))
-    } 
-    if(nColaboradorExists){
-      if(req.file){
-        fs.unlink(req.file.path,(err,result)=>{
-          if(err)
-            next (err);
-        })
+      throw createError.Conflict(`${result.email} has already been registered`)
+    }
+    if (nColaboradorExists) {
+      if (req.file) {
+        fs.unlink(req.file.path, (err, result) => {
+          if (err) throw err;
+        });
       }
-      return next(createError.Conflict(`${result.ncolaborador} has already been registered`))
-    } 
+      throw createError.Conflict(`${result.ncolaborador} has already been registered`
+      );
+    }
     bcrypt.hash(result.password, 10, async function (err, hash) {
-      result.password = hash
-      const user = await Utilizador.create(result,{ transaction: t });
-      if(req.file){
-        let x = await handleImage(req.file.path,user.idutilizador,'public/imgs/utilizadores/') 
-        let path ='public/imgs/utilizadores/' + x;
+      result.password = hash;
+      const user = await Utilizador.create(result, { transaction: t });
+      if (req.file) {
+        let x = await handleImage(
+          req.file.path,
+          user.idutilizador,
+          "public/imgs/utilizadores/"
+        );
+        let path = "public/imgs/utilizadores/" + x;
         await t.commit();
-        await user.update({foto:path})
-      }else{
-        await user.save()
-        await t.commit()
+        await user.update({ foto: path });
+      } else {
+        await user.save();
+        await t.commit();
       }
-      
+
       res.send({ data: user });
     });
   } catch (error) {
-    if(req.file){
-      fs.unlink(req.file.path,(err,result)=>{
-        if(err)
-          next (err);
-      })
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) throw err;
+      });
     }
-    if(error.isJoi === true) error.status = 422
+    if (error.isJoi === true) error.status = 422;
     await t.rollback();
     next(error);
   }
 };
 
-controllers.editUtilizadorTest = async (req, res, next) => {
+controllers.editUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const {id} = req.params;
-    if(!id){
-      next(createError.BadRequest())
-    }
-    const result = await utilizadorSchema.validateAsync(req.body);
-    const utilizador = await Utilizador.scope("noPassword").findByPk(req.idUser)
-    if(utilizador.admin){
-      const emailExists = await Utilizador.findOne({where:{email : result.email}});
-      const nColaboradorExists = await Utilizador.findOne({where:{ncolaborador : result.ncolaborador}})
-
-      if(emailExists){
-        if(req.file){
-          fs.unlink(req.file.path,(err,result)=>{
-            if(err)
-              next (err);
-          })
-        }
-        return next(createError.Conflict(`${result.email} has already been registered`))
-      } 
-      if(nColaboradorExists){
-        if(req.file){
-          fs.unlink(req.file.path,(err,result)=>{
-            if(err)
-              next (err);
-          })
-        }
-        return next(createError.Conflict(`${result.ncolaborador} has already been registered`))
-      } 
-      bcrypt.hash(result.password, 10, async function (err, hash) {
-        result.password = hash
-        const user = await Utilizador.update(result,{where:{idutilizador:req.params.id}},{ transaction: t });
-        if(req.file){
-          let x = await handleImage(req.file.path,user.idutilizador,'public/imgs/utilizadores/') 
-          let path ='public/imgs/utilizadores/' + x;
-          await t.commit();
-          await user.update({foto:path})
-        }else{
-          await t.commit()
-        }
-        
-        res.send({ data: user });
-      });
-    }else{
-      if(req.body.password){
-        bcrypt.hash(result.password, 10, async function (err, hash) {
-          result.password = hash
-          const user = await Utilizador.create({nome:result.nome,telemovel:result.telemovel},{where:{}},{ transaction: t });
-          if(req.file){
-            let x = await handleImage(req.file.path,user.idutilizador,'public/imgs/utilizadores/') 
-            let path ='public/imgs/utilizadores/' + x;
-            await t.commit();
-            await user.update({foto:path})
-          }else{
-            await user.save()
-            await t.commit()
-          }
-          
-          res.send({ data: user });
+    const { id } = req.params;
+    
+    if(!Number.isInteger(+id)){
+      if (req.file) {
+        fs.unlink(req.file.path, (err, result) => {
+          if (err) throw err;
         });
       }
+      throw createError.BadRequest("Id is not a Integer");
     }
-    res.sendStatus(204);
+    const utilizador = await Utilizador.scope("noPassword").findByPk(
+      req.idUser
+    );
+    let user;
+    if (utilizador.admin) {
+      const result = await editUtilizadorAdmin.validateAsync(req.body);
+      let emailExists;
+      let nColaboradorExists;
+      if(result.email){
+          emailExists = await Utilizador.findOne({
+        where: { email: result.email },
+      });
+      }
+      if(result.ncolaborador){
+          nColaboradorExists = await Utilizador.findOne({
+        where: { ncolaborador: result.ncolaborador },
+      });
+      }
+      
+
+      if (emailExists) {
+        if (req.file) {
+          fs.unlink(req.file.path, (err, result) => {
+            if (err) throw err;
+          });
+        }
+        throw createError.Conflict(`${result.email} has already been registered`)
+      }
+      if (nColaboradorExists) {
+        if (req.file) {
+          fs.unlink(req.file.path, (err, result) => {
+            if (err) throw err;
+          });
+        }
+        throw createError.Conflict(`${result.ncolaborador} has already been registered` 
+        );
+      }
+      bcrypt.hash(result.password, 10, async function (err, hash) {
+        result.password = hash;
+        await Utilizador.update(
+          result,
+          { where: { idutilizador: req.params.id } },
+          { transaction: t }
+        );
+        if (req.file) {
+          let x = await handleImage(
+            req.file.path,
+            req.params.id,
+            "public/imgs/utilizadores/"
+          );
+          let path = "public/imgs/utilizadores/" + x;
+          await t.commit();
+          user = await utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
+        } else {
+          await t.commit();
+        }
+
+        
+      });
+    } else {
+      if (req.idUser == req.params.id) {
+        console.log(req.idUser)
+        if (req.body.password) {
+          const result = await editUtilizador.validateAsync(req.body);
+          bcrypt.hash(result.password, 10, async function (err, hash) {
+            result.password = hash;
+              await Utilizador.update(
+              result,
+              { where: {idutilizador:req.idUser} },
+              { transaction: t }
+            );
+            if (req.file) {
+              let x = await handleImage(
+                req.file.path,
+                req.params.id,
+                "public/imgs/utilizadores/"
+              );
+              let path = "public/imgs/utilizadores/" + x;
+              await utilizador.update({ foto: path },{ where: { idutilizador: req.idUser }},{transaction:t});
+              await t.commit();
+            } else {
+              await t.commit();
+            }
+
+            
+          });
+        }
+      }else{
+        if (req.file) {
+          fs.unlink(req.file.path, (err, result) => {
+            if (err) throw err;
+          });
+        }
+        throw createError.Unauthorized()
+      }
+    }
+    res.send({ data: user });
   } catch (err) {
     await t.rollback();
     next(err);
@@ -418,15 +450,14 @@ controllers.editUtilizadorTest = async (req, res, next) => {
 controllers.getUtilizadorFoto = async (req, res, next) => {
   try {
     const user = await Utilizador.findByPk(req.params.id);
-    if(!user.foto)
-    return next(createError.NotFound("Utilizador has no foto"))
-    const readStream = fs.createReadStream(user.foto)
+    if (!user.foto) return next(createError.NotFound("Utilizador has no foto"));
+    const readStream = fs.createReadStream(user.foto);
 
-    readStream.on('open', function () {
-    readStream.pipe(res);
-  });
-  } catch(err) {
-    next(err)
+    readStream.on("open", function () {
+      readStream.pipe(res);
+    });
+  } catch (err) {
+    next(err);
   }
 };
 
