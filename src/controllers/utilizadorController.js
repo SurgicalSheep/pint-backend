@@ -7,6 +7,7 @@ const Sala = require("../models/sala");
 const bcrypt = require("bcrypt");
 const client = require("../models/redisDatabase");
 const handleImage = require("../helpers/imageHandler");
+const { Op } = require("sequelize");
 const fs = require("fs");
 const {
   signAccessToken,
@@ -29,6 +30,9 @@ controllers.list = async (req, res, next) => {
     const data = await Utilizador.scope("noIdCentro").findAll({
       limit: limit,
       offset: offset,
+      where:{
+        idutilizador:{[Op.not]:req.idUser}
+      },
       include: [
         {
           model: Centro,
@@ -48,7 +52,7 @@ controllers.list = async (req, res, next) => {
     });
     let x = { data };
     if (req.query.offset == 0 || !req.query.offset) {
-      const count = await Utilizador.count();
+      const count = await Utilizador.count()-1;
       x.count = count;
     }
     res.send(x);
