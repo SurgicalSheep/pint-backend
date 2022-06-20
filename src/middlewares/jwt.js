@@ -7,7 +7,7 @@ const signAccessToken = (id) => {
   return new Promise((resolve, reject) => {
     const payload = {};
     const options = {
-      expiresIn: "30m",
+      expiresIn: "5m",
       subject: String(id),
     };
     jwt.sign(payload, process.env.TOKEN_KEY, options, (err, token) => {
@@ -53,6 +53,9 @@ const signRefreshToken = async (id) => {
 };
 
 const verifyAccessToken = (req, res, next) => {
+  if(!req.headers.authorization){
+    return next(createError.Unauthorized())
+  }
   const token =
     req.body.token ||
     req.query.token ||
