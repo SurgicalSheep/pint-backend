@@ -238,12 +238,12 @@ controllers.loginWeb = async (req, res, next) => {
     res.send({ data: { accessToken, refreshToken } });
     }
     else{
-      return next(createError.BadRequest("Not enough permissions!"));
+      return next(createError.Forbidden("Not enough permissions!"));
     }
 
    
   } else {
-    return next(createError.BadRequest("Invalid Credentials!"));
+    return next(createError.Unauthorized("Invalid Credentials!"));
   }
 };
 
@@ -347,6 +347,10 @@ controllers.insertUtilizador = async (req, res, next) => {
 controllers.editUtilizadorTest = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
+    const {id} = req.params;
+    if(!id){
+      next(createError.BadRequest())
+    }
     const result = await utilizadorSchema.validateAsync(req.body);
     const utilizador = await Utilizador.scope("noPassword").findByPk(req.idUser)
     if(utilizador.admin){
@@ -373,21 +377,36 @@ controllers.editUtilizadorTest = async (req, res, next) => {
       } 
       bcrypt.hash(result.password, 10, async function (err, hash) {
         result.password = hash
-        const user = await Utilizador.create(result,{ transaction: t });
+        const user = await Utilizador.update(result,{where:{idutilizador:req.params.id}},{ transaction: t });
         if(req.file){
           let x = await handleImage(req.file.path,user.idutilizador,'public/imgs/utilizadores/') 
           let path ='public/imgs/utilizadores/' + x;
           await t.commit();
           await user.update({foto:path})
         }else{
-          await user.save()
           await t.commit()
         }
         
         res.send({ data: user });
       });
     }else{
-
+      if(req.body.password){
+        bcrypt.hash(result.password, 10, async function (err, hash) {
+          result.password = hash
+          const user = await Utilizador.create({nome:result.nome,telemovel:result.telemovel},{where:{}},{ transaction: t });
+          if(req.file){
+            let x = await handleImage(req.file.path,user.idutilizador,'public/imgs/utilizadores/') 
+            let path ='public/imgs/utilizadores/' + x;
+            await t.commit();
+            await user.update({foto:path})
+          }else{
+            await user.save()
+            await t.commit()
+          }
+          
+          res.send({ data: user });
+        });
+      }
     }
     res.sendStatus(204);
   } catch (err) {
