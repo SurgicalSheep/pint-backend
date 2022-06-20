@@ -219,7 +219,7 @@ controllers.loginWeb = async (req, res, next) => {
   }
 
   const utilizador = await Utilizador.findOne({
-    where: { email: req.body.email },
+    where: { email: req.body.email.toLowerCase() },
   });
   if (
     utilizador &&
