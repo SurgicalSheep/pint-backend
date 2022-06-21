@@ -97,5 +97,22 @@ controllers.getSalasCentro = async (req, res, next) => {
         return next(createError.BadRequest("Id is not a Integer"));
     }
 
+};
+controllers.getCentroFoto = async (req, res, next) => {
+    try {
+      const {id} = req.params
+      if(!Number.isInteger(+id)){
+        throw createError.BadRequest("Id is not a Integer");
+      }
+      const centro = await Centro.findByPk(id);
+      if (!centro.foto) return next(createError.NotFound("Centro has no foto"));
+      const readStream = fs.createReadStream(centro.imagem);
+  
+      readStream.on("open", function () {
+        readStream.pipe(res);
+      });
+    } catch (err) {
+      next(err);
+    }
   };
 module.exports = controllers;
