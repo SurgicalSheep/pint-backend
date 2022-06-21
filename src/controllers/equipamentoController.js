@@ -13,7 +13,7 @@ controllers.list = async (req, res) => {
       },
     ],
   });
-  res.json({ equipamentos: data });
+  res.json({ data: data });
 };
 controllers.getEquipamento = async (req, res) => {
   let id = req.params.id;
@@ -25,7 +25,7 @@ controllers.getEquipamento = async (req, res) => {
         },
       ],
     });
-    res.status(200).json({ equipamento: data });
+    res.status(200).json({ data: data });
   } else {
     res.status("422").send("Id is not an Integer!");
   }
@@ -57,7 +57,7 @@ controllers.editEquipamento = async (req, res) => {
 controllers.insertEquipamento = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    await Equipamento.create(
+    const data = await Equipamento.create(
       {
         tipo: req.body.tipo,
         estado: req.body.estado,
@@ -66,7 +66,7 @@ controllers.insertEquipamento = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send("Ok");
+    res.status(200).send({data:data});
   } catch (error) {
     await t.rollback;
     res.status(400).send(error);

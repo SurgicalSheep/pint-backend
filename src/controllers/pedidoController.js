@@ -6,12 +6,12 @@ const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
   const data = await Pedido.findAll();
-  res.json(data);
+  res.json({data:data});
 };
 controllers.getPedido = async (req, res) => {
   try {
     const data = await Pedido.findByPk(req.params.id);
-    res.status(200).json(data);
+    res.status(200).json({data:data});
   } catch {
     res.status(400).send("Err");
   }
@@ -29,7 +29,7 @@ controllers.insertPedido = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).json(pedido.idpedido);
+    res.status(200).json({data:pedido});
   } catch {
     await t.rollback();
     res.status(400).send("Err");

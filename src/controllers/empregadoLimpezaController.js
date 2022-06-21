@@ -8,7 +8,7 @@ const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
   const data = await EmpregadoLimpeza.findAll();
-  res.json({empregadosLimpeza:data});
+  res.json({data:data});
 };
 controllers.editEmpregadoLimpeza = async (req, res) => {
   let id = req.params.id;
@@ -46,7 +46,7 @@ controllers.editEmpregadoLimpeza = async (req, res) => {
 controllers.insertEmpregadoLimpeza = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    await EmpregadoLimpeza.create(
+    const data = await EmpregadoLimpeza.create(
       {
         ncolaborador: req.body.ncolaborador,
         admin: req.body.admin,
@@ -65,7 +65,7 @@ controllers.insertEmpregadoLimpeza = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send("Ok");
+    res.status(200).send({data:data});
   } catch (error) {
     await t.rollback();
     res.status(400).send(error);
@@ -92,7 +92,7 @@ controllers.getEmpregadoLimpeza = async (req, res) => {
   let id = req.params.id;
   if (Number.isInteger(+id)) {
     const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findByPk(id,{include:[{model:Centro}]});
-    res.json({empregadoLimpeza:data});
+    res.send({data:data});
   } else {
     res.status("422").send("Id is not an Integer!");
   }

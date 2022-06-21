@@ -15,7 +15,7 @@ controllers.list = async(req, res) => {
           { model: Sala},
         ],
     });
-    res.json(data)
+    res.json({data:data})
 }
 controllers.getFeedback = async (req, res) => {
     const id = req.params.id;
@@ -26,12 +26,12 @@ controllers.getFeedback = async (req, res) => {
             }
         }
     })
-    res.json(data);
+    res.json({data:data});
 };
 controllers.insertFeedback = async(req, res) => {
     const t = await sequelize.transaction();
     try{
-        await Feedback.create({
+        const data = await Feedback.create({
         idsala:req.body.idsala,
         idutilizador:req.body.idutilizador,
         classificacao:req.body.classificacao,
@@ -40,7 +40,7 @@ controllers.insertFeedback = async(req, res) => {
         criado_em:req.body.criado_em
     },{transaction:t});
          await t.commit()
-         res.status(200).send("1")
+         res.status(200).send({data:data})
     }catch{
         await t.rollback()
         res.status(400).send(err)

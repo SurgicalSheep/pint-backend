@@ -11,18 +11,18 @@ controllers.list = async(req, res) => {
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findAll({
         include:[{model:Sala},{model:Utilizador}]
     });
-    res.json({reservas:data})
+    res.json({data:data})
 }
 controllers.getReserva = async (req, res) => {
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findByPk(req.params.id,{
         include:[{model:Sala},{model:Utilizador}],
     })
-    res.json(data);
+    res.json({data:data});
 };
 controllers.insertReserva = async(req, res) => {
     const t = await sequelize.transaction();
     try{
-        await Reserva.create({
+        const data = await Reserva.create({
         data:req.body.data,
         horainicio:req.body.horainicio,
         horafinal:req.body.horafinal,
@@ -31,7 +31,7 @@ controllers.insertReserva = async(req, res) => {
         idsala:req.body.idsala
     },{transaction:t});
          await t.commit()
-         res.status(200).send("1")
+         res.status(200).send({data:data})
     }catch(err){
         await t.rollback()
         res.status(400).send(err)
