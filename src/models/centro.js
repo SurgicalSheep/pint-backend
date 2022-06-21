@@ -15,7 +15,6 @@ var Centro = sequelize.define('centros', {
     estado:{type:Sequelize.BOOLEAN,allowNull: true},
 }, {
     freezeTableName: true,
-    timestamps: false,
-    logging:false
+    timestamps: false
 });
 module.exports = Centro

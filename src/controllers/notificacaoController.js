@@ -14,7 +14,7 @@ controllers.list = async (req, res) => {
     },
     ]
   });
-  res.json(data);
+  res.send({data:data});
 };
 
 controllers.getTop10Notificacao = async (req, res) => {
@@ -28,12 +28,12 @@ controllers.getTop10Notificacao = async (req, res) => {
     },
     ]
   });
-  res.json(data);
+  res.send({data:data});
 };
 
 controllers.getNotificacao = async (req, res) => {
   const data = await Notificacao.findByPk(req.params.id);
-  res.json(data);
+  res.send({data:data});
 };
 
 controllers.insertNotificacao = async (req, res) => {
@@ -50,7 +50,7 @@ controllers.insertNotificacao = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).json(not.idnotificacao);
+    res.send({data:not});
   } catch {
     await t.rollback();
     res.status(400).send("Err");
@@ -64,7 +64,7 @@ controllers.insertUtilizadorNotificacao = async (req, res) => {
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204);
   } catch {
     await t.rollback();
     res.status(400).send("Err");
@@ -79,7 +79,7 @@ controllers.deleteNotificacao = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204);
   } catch {
     await t.rollback();
     res.status(400).send("Err");
@@ -102,7 +102,7 @@ controllers.getNotificacoesUtilizador = async (req, res) => {
       ],
     });
     
-    res.status(200).json(data);
+    res.send({data:data});
   } catch {
     res.status(400).send("Err");
   }

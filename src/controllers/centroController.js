@@ -1,16 +1,27 @@
 const controllers = {}
 var Centro = require('../models/centro');
 var sequelize = require('../models/database');
-const Sequelize = require("sequelize");
-const Utilizador = require('../models/utilizador');
 const Sala = require('../models/sala');
+const {centroSchema, editcentroSchema} = require('../schemas/centroSchema')
+const createError = require('http-errors')
 
-controllers.list = async(req, res) => {
+controllers.list = async(req, res,next) => {
+    let {limit,offset} = req.body
+    if(!req.query.limit || req.query.limit == 0){
+        limit = 5;
+    }
+    if(!req.query.offset){
+        offset = 0;
+    }
     const data = await Centro.findAll();
-    res.json({data:data});
-
+    let x = { data };
+    if (req.query.offset == 0 || !req.query.offset) {
+      const count = await Centro.count();
+      x.count = count;
+    }
+    res.send(x);
 }
-controllers.getCentro = async (req, res) => {
+controllers.getCentro = async (req, res,next) => {
     let id = req.params.id
     if(Number.isInteger(+id)){
         const data = await Centro.findOne({
@@ -21,72 +32,58 @@ controllers.getCentro = async (req, res) => {
         res.json({data:data});
     }
     else{
-        res.status("422").send("Id is not an Integer!")
+        return next(createError.BadRequest("Id is not a Integer"));
     }
-    
 };  
-controllers.editCentro = async(req, res) => {
-    let id = req.params.id
+controllers.editCentro = async(req, res,next) => {
+    const {id} = req.params
     if(Number.isInteger(+id)){
         const t = await sequelize.transaction();
         try {
-            await Centro.update({
-                nome:req.body.nome,
-                cidade:req.body.cidade,
-                endereco:req.body.endereco,
-                imagem:req.body.imagem,
-                descricao:req.body.descricao,
-                estado:req.body.estado
-            },
-            { where: { idcentro: req.params.id },transaction:t})
-            await t.commit()
-            res.status(200).send("Ok")
+            const result = await editcentroSchema.validateAsync(req.body);
+            await Centro.update(result,{ where: { idcentro: id }},{transaction:t});
+            await t.commit();
+            res.send({data:"Centro updated!"});
         } catch (error) {
-            await t.rollback()
-            res.status(400).send(error)
+            await t.rollback();
+            return next(error);
         } 
     }else{
-        res.status("422").send("Id is not an Integer!")
+        return next(createError.BadRequest("Id is not a Integer"));
     }
 };
-controllers.insertCentro = async(req, res) => {
+controllers.insertCentro = async(req, res, next) => {
     const t = await sequelize.transaction();
     try {
-        await Centro.create({
-            nome:req.body.nome,
-            cidade:req.body.cidade,
-            endereco:req.body.endereco,
-            imagem:req.body.imagem,
-            descricao:req.body.descricao,
-            estado:req.body.estado
-        },{transaction:t})
-        await t.commit()
-        res.status(200).send("Ok")
+        const result = await centroSchema.validateAsync(req.body);
+        const centro = await Centro.create(result,{transaction:t});
+        await t.commit();
+        res.send({data:centro});
     } catch (error) {
-        await t.rollback()
-        res.status(400).send(error)
+        await t.rollback();
+        return next(error);
     }
 
 };
-controllers.deleteCentro = async(req, res) => {
-    let id = req.params.id;
+controllers.deleteCentro = async(req, res, next) => {
+    const {id} = req.params
     if(Number.isInteger(+id)){
         const t = await sequelize.transaction();
         try {
             await Centro.destroy({
             where:{idcentro:id}},{transaction:t})
             await t.commit()
-            res.status(200).send("Ok")
+            res.sendStatus(204)
         } catch (error) {
-            res.status(400).send(error)
+            next(error)
         }  
     }else{
-        res.status("422").send("Id is not an Integer!")
+        return next(createError.BadRequest("Id is not a Integer"));
     }
 
 };
-controllers.getSalasCentro = async (req, res) => {
-    let id = req.params.id;
+controllers.getSalasCentro = async (req, res, next) => {
+    const {id} = req.params;
     if(Number.isInteger(+id)){
     const data = await Centro.findAll({
         where:{idcentro:id},
@@ -95,9 +92,9 @@ controllers.getSalasCentro = async (req, res) => {
             where:{}
         }]
     })
-    res.json({data:data});
+    res.send({data:data});
     }else{
-        res.status("422").send("Id is not an Integer!")
+        return next(createError.BadRequest("Id is not a Integer"));
     }
 
   };

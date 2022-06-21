@@ -19,7 +19,8 @@ const createError = require('http-errors');
 app.use(cors())
 app.set('port', (process.env.PORT || 3000));
 //Middlewares
-app.use(express.json());
+//app.use(express.json());
+app.use(express.urlencoded({ extended: false }))
 app.use('/centro', centroRouters)
 app.use('/feedback', feedbackRouters)
 app.use('/utilizador', utilizadorRouters)

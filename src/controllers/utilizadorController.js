@@ -108,24 +108,28 @@ controllers.getUtilizador = async (req, res, next) => {
   }
 };
 
-controllers.bulkInsertUtilizador = async (req, res) => {
+controllers.bulkInsertUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Utilizador.bulkCreate(req.body, { transaction: t });
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204)
   } catch (error) {
     await t.rollback();
-    res.status(400).send(error);
+    next(createError.InternalServerError())
   }
 };
 
 controllers.getUtilizadorReservas = async (req, res, next) => {
   try {
+    const {id} = req.params
+    if(!Number.isInteger(+id)){
+      throw createError.BadRequest("Id is not a Integer");
+    }
     const data = await Reserva.scope("noIdSala").findAll({
       where: [
         {
-          idutilizador: req.params.id,
+          idutilizador: id,
         },
       ],
       include: [
@@ -352,7 +356,6 @@ controllers.editUtilizador = async (req, res, next) => {
     const utilizador = await Utilizador.scope("noPassword").findByPk(
       req.idUser
     );
-    let user;
     if (utilizador.admin) {
       const result = await editUtilizadorAdmin.validateAsync(req.body);
       let emailExists;
@@ -401,12 +404,10 @@ controllers.editUtilizador = async (req, res, next) => {
           );
           let path = "public/imgs/utilizadores/" + x;
           await t.commit();
-          user = await utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
+          await utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
         } else {
           await t.commit();
         }
-
-        
       });
     } else {
       if (req.idUser == req.params.id) {
@@ -445,7 +446,7 @@ controllers.editUtilizador = async (req, res, next) => {
         throw createError.Unauthorized()
       }
     }
-    res.send({ data: user });
+    res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();
     next(err);
@@ -454,7 +455,11 @@ controllers.editUtilizador = async (req, res, next) => {
 
 controllers.getUtilizadorFoto = async (req, res, next) => {
   try {
-    const user = await Utilizador.findByPk(req.params.id);
+    const {id} = req.params
+    if(!Number.isInteger(+id)){
+      throw createError.BadRequest("Id is not a Integer");
+    }
+    const user = await Utilizador.findByPk(id);
     if (!user.foto) return next(createError.NotFound("Utilizador has no foto"));
     const readStream = fs.createReadStream(user.foto);
 
