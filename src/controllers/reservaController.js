@@ -4,8 +4,8 @@ var Sala = require('../models/sala');
 var Reserva = require('../models/reserva');
 var sequelize = require('../models/database');
 const Sequelize = require("sequelize");
-const { request } = require('express');
 const Op = Sequelize.Op;
+const {searchNotificacaoSchema} = require('../schemas/reservaSchema')
 
 controllers.list = async(req, res) => {
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findAll({
@@ -67,6 +67,21 @@ controllers.editReserva = async(req, res) => {
     } catch (error) {
         await t.rollback()
         res.status(400).send(error)
+    }
+};
+
+controllers.searchReservas = async(req, res, next) => {
+    try {
+        const result = await searchNotificacaoSchema.validateAsync(req.query);
+        console.log(result)
+        const data = await Reserva.findAll({
+            where:{
+                [Op.and]:[{data:result.data},{idsala:result.idsala}]
+            }
+        })
+        res.send({data:data})
+    } catch (error) {
+        next(error)
     }
 };
 

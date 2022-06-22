@@ -9,7 +9,7 @@ var Reserva = sequelize.define('reservas', {
         primaryKey: true,
         autoIncrement: true,
     },
-    data: {type:Sequelize.DATE,allowNull: false},
+    data: {type:Sequelize.DATEONLY,allowNull: false},
     horainicio: {type:Sequelize.TIME,allowNull: false},
     horafinal: {type:Sequelize.TIME,allowNull: false},
     observacoes: Sequelize.TEXT
