@@ -2,38 +2,42 @@ const controllers = {};
 var Notificacao = require("../models/notificacao");
 var UtilizadorNotificacao = require("../models/utilizadoresNotificacao");
 var sequelize = require("../models/database");
-const Sequelize = require("sequelize");
 const Utilizador = require("../models/utilizador");
+const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
 
 controllers.list = async (req, res) => {
-  const data = await Notificacao.scope('noIdUtilizador').findAll({
-    where:{},
-    include:[{
-      model:Utilizador.scope("noIdCentro"),as:'utilizador',
-      where:{}
-    },
-    ]
+  const data = await Notificacao.scope("noIdUtilizador").findAll({
+    where: {},
+    include: [
+      {
+        model: Utilizador.scope("noIdCentro"),
+        as: "utilizador",
+        where: {},
+      },
+    ],
   });
-  res.send({data:data});
+  res.send({ data: data });
 };
 
 controllers.getTop10Notificacao = async (req, res) => {
-  const data = await Notificacao.scope('noIdUtilizador').findAll({
-    limit:10,
-    order:[['hora','DESC']],
-    where:{},
-    include:[{
-      model:Utilizador.scope("noIdCentro"),as:'utilizador',
-      where:{}
-    },
-    ]
+  const data = await Notificacao.scope("noIdUtilizador").findAll({
+    limit: 10,
+    order: [["hora", "DESC"]],
+    where: {},
+    include: [
+      {
+        model: Utilizador.scope("noIdCentro"),
+        as: "utilizador",
+        where: {},
+      },
+    ],
   });
-  res.send({data:data});
+  res.send({ data: data });
 };
 
 controllers.getNotificacao = async (req, res) => {
   const data = await Notificacao.findByPk(req.params.id);
-  res.send({data:data});
+  res.send({ data: data });
 };
 
 controllers.insertNotificacao = async (req, res) => {
@@ -50,7 +54,7 @@ controllers.insertNotificacao = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.send({data:not});
+    res.send({ data: not });
   } catch {
     await t.rollback();
     res.status(400).send("Err");
@@ -101,10 +105,32 @@ controllers.getNotificacoesUtilizador = async (req, res) => {
         },
       ],
     });
-    
-    res.send({data:data});
+
+    res.send({ data: data });
   } catch {
     res.status(400).send("Err");
+  }
+};
+
+controllers.editNotificacao = async (req, res, next) => {
+  const { id } = req.params;
+  if (Number.isInteger(+id)) {
+    const t = await sequelize.transaction();
+    try {
+      const result = await editNotificacaoSchema.validateAsync(req.body);
+      await Notificacao.update(
+        result,
+        { where: { idnotificacao: id } },
+        { transaction: t }
+      );
+      await t.commit();
+      res.send({ data: "Notificacao updated!" });
+    } catch (error) {
+      await t.rollback();
+      return next(error);
+    }
+  } else {
+    next(createError.BadRequest("Id is not a Integer"));
   }
 };
 

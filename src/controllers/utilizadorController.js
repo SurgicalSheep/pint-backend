@@ -404,7 +404,7 @@ controllers.editUtilizador = async (req, res, next) => {
           );
           let path = "public/imgs/utilizadores/" + x;
           await t.commit();
-          await utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
+          await Utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
         } else {
           await t.commit();
         }
@@ -470,5 +470,24 @@ controllers.getUtilizadorFoto = async (req, res, next) => {
     next(err);
   }
 };
+
+controllers.deleteUtilizadorFoto = async(req,res,next) => {
+  const t = await sequelize.transaction()
+  const {id} = req.params;
+  try {
+      if(!Number.isInteger(+id)) throw createError.BadRequest("Id is not a Integer");
+      const user = await Utilizador.findByPk(id);
+      if(!(user && user.foto)) throw createError.NotFound("This utilizador has no image");
+          fs.unlink("public\\imgs\\utilizadores\\" + id + ".jpeg", (err, result) => {
+            if (err) return next(err);
+          });
+      await user.update({foto:""},{transaction:t})
+      await t.commit()
+      res.sendStatus(204)
+  } catch (error) {
+      await t.rollback()
+      next(error)
+  }
+}
 
 module.exports = controllers;

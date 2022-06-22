@@ -5,7 +5,7 @@ GET http://localhost:3000/utilizador/2/reservas
 
 ###
 GET http://localhost:3000/utilizador/getUserByToken
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU0NzUyNDQsImV4cCI6MTY1NTQ3NTU0NCwic3ViIjoiMTIifQ.NiXKeYzCjKb4d_XYHvWClpl7E97NxW4RB7ZrbmsJgt0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU4MjczMjUsImV4cCI6MTY1NTgyNzYyNSwic3ViIjoiMjMifQ.22fDpO3U48hQM9QaoAHARWqJuyE6-hJYyMBAE6XNnJU
 
 ###
 GET http://localhost:3000/utilizador/3
@@ -15,7 +15,7 @@ POST http://localhost:3000/utilizador/login
 Content-Type: application/json
 
 {
-    "email": "Consertino@Admin.com",
+    "email": "consertino@admin.com",
     "password": "123123"
 }
 

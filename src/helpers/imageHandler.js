@@ -15,4 +15,17 @@ async function handleImage(path,id,dest) {
     }
 }
 
-module.exports = handleImage
+async function handleImageCentro(path,id,dest) {
+    try {
+        await sharp(path).resize({width:250,height:250}).toFormat("jpeg",{mozjpeg:true}).toFile(dest+id+".jpeg");
+        await fs.unlink(path,(err,result)=>{
+            if(err)
+            return err;
+        })
+        return (id+".jpeg")
+    } catch (error) {
+        return error;
+    }
+}
+
+module.exports = {handleImage:handleImage,handleImageCentro:handleImageCentro}

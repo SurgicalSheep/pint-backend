@@ -39,7 +39,7 @@ const editUtilizador = Joi.object({
   
     password: Joi.string().min(3).required(),
   
-    foto:Joi.string().allow(null,'')
+    foto:Joi.string().allow(null)
   });
 
   const editUtilizadorAdmin = Joi.object({
@@ -65,7 +65,7 @@ const editUtilizador = Joi.object({
   
     token: Joi.string(),
   
-    foto:Joi.string().allow(null,''),
+    foto:Joi.string().allow(null),
   
     idcentro:Joi.number().integer()
   });

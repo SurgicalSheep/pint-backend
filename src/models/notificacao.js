@@ -1,7 +1,6 @@
 const {NOW } = require("sequelize");
 var Sequelize = require("sequelize");
 var sequelize = require("./database");
-const Utilizador = require("./utilizador")
 
 var Notificacao = sequelize.define(
   "notificacoes",
