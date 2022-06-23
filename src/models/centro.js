@@ -10,7 +10,7 @@ var Centro = sequelize.define('centros', {
     nome: Sequelize.STRING,
     cidade: {type:Sequelize.STRING,allowNull: false},
     endereco: {type:Sequelize.STRING,allowNull: false},
-    imagem: {type:Sequelize.STRING,allowNull: false},
+    imagem: {type:Sequelize.STRING},
     descricao: Sequelize.STRING,
     estado:{type:Sequelize.BOOLEAN,allowNull: true},
 }, {

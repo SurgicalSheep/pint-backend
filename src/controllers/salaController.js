@@ -21,10 +21,8 @@ controllers.list = async (req, res) => {
     offset: offset
   });
   let x = {data};
-  if (req.query.offset == 0 || !req.query.offset) {
-    const count = await Sala.count();   
-    x.count = count;
-  }
+  const count = await Sala.count();   
+  x.count = count;
   
   res.status(200).json(x);
 };

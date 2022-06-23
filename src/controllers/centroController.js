@@ -4,6 +4,8 @@ var sequelize = require('../models/database');
 const Sala = require('../models/sala');
 const {centroSchema, editcentroSchema} = require('../schemas/centroSchema')
 const createError = require('http-errors')
+const {handleImageCentro} = require("../helpers/imageHandler");
+const fs = require('fs')
 
 controllers.list = async(req, res,next) => {
     let {limit,offset} = req.body
@@ -15,10 +17,8 @@ controllers.list = async(req, res,next) => {
     }
     const data = await Centro.findAll();
     let x = { data };
-    if (req.query.offset == 0 || !req.query.offset) {
-      const count = await Centro.count();
-      x.count = count;
-    }
+    const count = await Centro.count();
+    x.count = count;
     res.send(x);
 }
 controllers.getCentro = async (req, res,next) => {
@@ -42,25 +42,59 @@ controllers.editCentro = async(req, res,next) => {
         try {
             const result = await editcentroSchema.validateAsync(req.body);
             await Centro.update(result,{ where: { idcentro: id }},{transaction:t});
+            if(req.file){
+                let x = await handleImageCentro(
+                    req.file.path,
+                    id,
+                    "public/imgs/centros/"
+                );
+                let path = "public/imgs/centros/" + x;
+                await Centro.update({ imagem: path },{ where: { idcentro: id }},{transaction:t});
+            }
             await t.commit();
             res.send({data:"Centro updated!"});
         } catch (error) {
             await t.rollback();
+            if (req.file) {
+                fs.unlink(req.file.path, (err, result) => {
+                  if (err) return err;
+                });
+              }
             return next(error);
         } 
     }else{
+        if (req.file) {
+            fs.unlink(req.file.path, (err, result) => {
+              if (err) return err;
+            });
+          }
         return next(createError.BadRequest("Id is not a Integer"));
     }
 };
 controllers.insertCentro = async(req, res, next) => {
     const t = await sequelize.transaction();
     try {
+        if(!req.file){
+            throw createError.BadRequest("Image is required");
+        }
         const result = await centroSchema.validateAsync(req.body);
         const centro = await Centro.create(result,{transaction:t});
+        let x = await handleImageCentro(
+            req.file.path,
+            centro.idcentro,
+            "public/imgs/centros/"
+        );
+        let path = "public/imgs/centros/" + x;
+        await centro.update({ imagem: path },{transaction:t});
         await t.commit();
         res.send({data:centro});
     } catch (error) {
         await t.rollback();
+        if (req.file) {
+            fs.unlink(req.file.path, (err, result) => {
+              if (err) return err;
+            });
+          }
         return next(error);
     }
 
@@ -70,11 +104,17 @@ controllers.deleteCentro = async(req, res, next) => {
     if(Number.isInteger(+id)){
         const t = await sequelize.transaction();
         try {
-            await Centro.destroy({
-            where:{idcentro:id}},{transaction:t})
+            const centro = await Centro.findByPk(id);
+            if(centro.imagem){
+                fs.unlink(centro.imagem, (err, result) => {
+                  if (err) return err;
+                });
+            }
+            await centro.destroy({transaction:t})
             await t.commit()
             res.sendStatus(204)
         } catch (error) {
+            await t.rollback()
             next(error)
         }  
     }else{
@@ -98,14 +138,14 @@ controllers.getSalasCentro = async (req, res, next) => {
     }
 
 };
-controllers.getCentroFoto = async (req, res, next) => {
+controllers.getCentroImagem = async (req, res, next) => {
     try {
       const {id} = req.params
       if(!Number.isInteger(+id)){
         throw createError.BadRequest("Id is not a Integer");
       }
       const centro = await Centro.findByPk(id);
-      if (!centro.foto) return next(createError.NotFound("Centro has no foto"));
+      if (!centro || !centro.imagem) return next(createError.NotFound("This centro has no image"));
       const readStream = fs.createReadStream(centro.imagem);
   
       readStream.on("open", function () {
@@ -114,5 +154,23 @@ controllers.getCentroFoto = async (req, res, next) => {
     } catch (err) {
       next(err);
     }
-  };
+};
+controllers.deleteCentroImagem = async(req,res,next) => {
+    const t = await sequelize.transaction()
+    const {id} = req.params;
+    try {
+        if(!Number.isInteger(+id)) throw createError.BadRequest("Id is not a Integer");
+        const centro = await Centro.findByPk(id);
+        if(!(centro && centro.imagem)) throw createError.NotFound("This centro has no image");
+            fs.unlink("public\\imgs\\centros\\" + id + ".jpeg", (err, result) => {
+              if (err) return err;
+            });
+        await centro.update({imagem:""},{transaction:t})
+        await t.commit()
+        res.sendStatus(204)
+    } catch (error) {
+        await t.rollback()
+        next(error)
+    }
+}
 module.exports = controllers;

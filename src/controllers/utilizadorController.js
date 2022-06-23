@@ -51,10 +51,8 @@ controllers.list = async (req, res, next) => {
       },
     });
     let x = { data };
-    if (req.query.offset == 0 || !req.query.offset) {
-      const count = await Utilizador.count()-1;
-      x.count = count;
-    }
+    const count = await Utilizador.count()-1;
+    x.count = count;
     res.send(x);
   } catch (error) {
     next(error);
@@ -72,7 +70,7 @@ controllers.deleteUtilizador = async (req, res,next) => {
     const user = await Utilizador.findByPk(id);
     if(user.foto){
       fs.unlink(user.foto, (err, result) => {
-        if (err) throw err;
+        if (err) return err;
       });
     }
     await user.destroy({transaction:t})
