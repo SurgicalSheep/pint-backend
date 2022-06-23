@@ -147,8 +147,11 @@ controllers.getCentroImagem = async (req, res, next) => {
       const centro = await Centro.findByPk(id);
       if (!centro || !centro.imagem) return next(createError.NotFound("This centro has no image"));
       const readStream = fs.createReadStream(centro.imagem);
+      readStream.on('error', function(err) {
+         return next(err);
+      });
   
-      readStream.on("open", function () {
+    readStream.on("open", function () {
         readStream.pipe(res);
       });
     } catch (err) {

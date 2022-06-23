@@ -460,6 +460,9 @@ controllers.getUtilizadorFoto = async (req, res, next) => {
     const user = await Utilizador.findByPk(id);
     if (!user.foto) return next(createError.NotFound("Utilizador has no foto"));
     const readStream = fs.createReadStream(user.foto);
+    readStream.on('error', function(err) {
+      return next(err);
+   });
 
     readStream.on("open", function () {
       readStream.pipe(res);

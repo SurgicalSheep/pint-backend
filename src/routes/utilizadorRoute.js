@@ -42,7 +42,7 @@ router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);
 router.delete('/logout', utilizadorController.logout);
-router.delete('/:id/foto', utilizadorController.deleteUtilizadorFoto);
+router.delete('/:id/foto',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizadorFoto);
 router.delete('/:id',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizador);
 router.put('/:id', verifyAccessToken,upload.single('foto'), utilizadorController.editUtilizador);
 router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);
