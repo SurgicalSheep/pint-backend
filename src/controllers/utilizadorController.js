@@ -177,12 +177,9 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
 };
 
 controllers.login = async (req, res, next) => {
-  const {email,password,env} = req.body;
+  const {email,password} = req.body;
   if (!(email && password)) {
     return next(createError.BadRequest("Email or password missing!"));
-  }
-  if(!env || env != "web" && env != "mobile"){
-    return next(createError.BadRequest("Invalid environment"));
   }
 
   const utilizador = await Utilizador.findOne({
@@ -196,7 +193,7 @@ controllers.login = async (req, res, next) => {
     let refreshToken;
     try {
       accessToken = await signAccessToken(utilizador.idutilizador);
-      refreshToken = await signRefreshToken(utilizador.idutilizador,env);
+      refreshToken = await signRefreshToken(utilizador.idutilizador,"mobile");
     } catch (error) {
       next(createError.InternalServerError());
       return;
@@ -209,23 +206,24 @@ controllers.login = async (req, res, next) => {
 };
 
 controllers.loginWeb = async (req, res, next) => {
-  if (!(req.body.email && req.body.password)) {
+  const {email,password} = req.body;
+  if (!(email && password)) {
     return next(createError.BadRequest("Email or password missing!"));
   }
 
   const utilizador = await Utilizador.findOne({
-    where: { email: req.body.email.toLowerCase() },
+    where: { email: email.toLowerCase() },
   });
   if (
     utilizador &&
-    (await bcrypt.compare(req.body.password, utilizador.password))
+    (await bcrypt.compare(password, utilizador.password))
   ) {
     if (utilizador.admin == true) {
       let accessToken;
       let refreshToken;
       try {
         accessToken = await signAccessToken(utilizador.idutilizador);
-        refreshToken = await signRefreshToken(utilizador.idutilizador);
+        refreshToken = await signRefreshToken(utilizador.idutilizador,"web");
       } catch (error) {
         next(createError.InternalServerError());
         return;
