@@ -21,7 +21,7 @@ const signAccessToken = (id) => {
   });
 };
 
-const signRefreshToken = async (id) => {
+const signRefreshToken = async (id,env) => {
   return new Promise((resolve, reject) => {
     const payload = {};
     const options = {
@@ -39,7 +39,7 @@ const signRefreshToken = async (id) => {
         }
 
         try {
-          await client.SET(String(id), token);
+          await client.hSet(String(id), env, token);
           await client.EXPIRE(String(id),7*24*60*60)
           resolve(token);
         } catch (err) {
@@ -82,13 +82,13 @@ const verifyRefreshToken = (refreshToken) => {
       const userId = payload.sub;
       let token;
       try {
-        token = await client.get(userId)
+        token = await client.hGetAll(userId)
       } catch (err) {
         console.log(err.message)
         reject(createError.InternalServerError())
         return;
       }
-      if(refreshToken === token) return resolve(userId)
+      if(refreshToken === token.web || refreshToken === token.mobile) return resolve(userId)
       reject(createError.Unauthorized())
     });
   });

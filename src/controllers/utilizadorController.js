@@ -177,22 +177,26 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
 };
 
 controllers.login = async (req, res, next) => {
-  if (!(req.body.email && req.body.password)) {
+  const {email,password,env} = req.body;
+  if (!(email && password)) {
     return next(createError.BadRequest("Email or password missing!"));
+  }
+  if(!env || env != "web" && env != "mobile"){
+    return next(createError.BadRequest("Invalid environment"));
   }
 
   const utilizador = await Utilizador.findOne({
-    where: { email: req.body.email.toLowerCase() },
+    where: { email: email.toLowerCase() },
   });
   if (
     utilizador &&
-    (await bcrypt.compare(req.body.password, utilizador.password))
+    (await bcrypt.compare(password, utilizador.password))
   ) {
     let accessToken;
     let refreshToken;
     try {
       accessToken = await signAccessToken(utilizador.idutilizador);
-      refreshToken = await signRefreshToken(utilizador.idutilizador);
+      refreshToken = await signRefreshToken(utilizador.idutilizador,env);
     } catch (error) {
       next(createError.InternalServerError());
       return;
@@ -255,11 +259,11 @@ controllers.getUserByToken = async (req, res, next) => {
 
 controllers.refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) throw createError.BadRequest();
+    const { refreshToken,env } = req.body;
+    if (!refreshToken || !env || env != "web" && env != "mobile") throw createError.BadRequest();
     const userId = await verifyRefreshToken(refreshToken);
     const accessToken = await signAccessToken(userId);
-    const refToken = await signRefreshToken(userId);
+    const refToken = await signRefreshToken(userId,env);
     res.send({ data: { accessToken, refreshToken: refToken } });
   } catch (error) {
     next(error);

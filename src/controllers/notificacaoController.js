@@ -40,9 +40,10 @@ controllers.getNotificacao = async (req, res) => {
   res.send({ data: data });
 };
 
-controllers.insertNotificacao = async (req, res) => {
+controllers.insertNotificacao = async (req, res,next) => {
   const t = await sequelize.transaction();
   try {
+    console.log(req.body)
     const not = await Notificacao.create(
       {
         titulo: req.body.titulo,
@@ -55,9 +56,9 @@ controllers.insertNotificacao = async (req, res) => {
     );
     await t.commit();
     res.send({ data: not });
-  } catch {
+  } catch(error){
     await t.rollback();
-    res.status(400).send("Err");
+    return next(error)
   }
 };
 
