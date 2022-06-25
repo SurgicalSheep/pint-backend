@@ -4,6 +4,7 @@ var UtilizadorNotificacao = require("../models/utilizadoresNotificacao");
 var sequelize = require("../models/database");
 const Utilizador = require("../models/utilizador");
 const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
+const fs = require("fs");
 
 controllers.list = async (req, res) => {
   const data = await Notificacao.scope("noIdUtilizador").findAll({
@@ -40,10 +41,10 @@ controllers.getNotificacao = async (req, res) => {
   res.send({ data: data });
 };
 
-controllers.insertNotificacao = async (req, res,next) => {
+controllers.insertNotificacao = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    console.log(req.body)
+    console.log(req.body);
     const not = await Notificacao.create(
       {
         titulo: req.body.titulo,
@@ -56,9 +57,9 @@ controllers.insertNotificacao = async (req, res,next) => {
     );
     await t.commit();
     res.send({ data: not });
-  } catch(error){
+  } catch (error) {
     await t.rollback();
-    return next(error)
+    return next(error);
   }
 };
 
@@ -91,13 +92,17 @@ controllers.deleteNotificacao = async (req, res) => {
   }
 };
 
-controllers.getNotificacoesUtilizador = async (req, res) => {
+controllers.getNotificacoesUtilizador = async (req, res, next) => {
   try {
     const data = await Utilizador.findAll({
+      attributes: [],
       where: {},
       include: [
         {
           model: Notificacao,
+          include: [
+            { model: Utilizador.scope("noPassword"), as: "utilizador" },
+          ],
           through: {
             attributes: [],
             where: { idutilizador: req.params.id },
@@ -106,10 +111,28 @@ controllers.getNotificacoesUtilizador = async (req, res) => {
         },
       ],
     });
+    const copy = { ...data}
 
+    data[0].dataValues.notificacoes.forEach((x,i) => {
+      if (x.dataValues.utilizador) {
+        if (x.dataValues.utilizador.dataValues.foto) {
+          let idk = fs.readFileSync(
+            x.dataValues.utilizador.dataValues.foto,
+            "base64",
+            (err, val) => {
+              if (err) return err;
+              return val;
+            }
+          );
+          console.log(idk)
+          x.dataValues.utilizador.dataValues.fotoConv = idk;
+          
+        }
+      }
+    });
     res.send({ data: data });
-  } catch {
-    res.status(400).send("Err");
+  } catch (error) {
+    next(error);
   }
 };
 

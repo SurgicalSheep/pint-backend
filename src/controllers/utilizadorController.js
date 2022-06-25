@@ -6,7 +6,7 @@ const Reserva = require("../models/reserva");
 const Sala = require("../models/sala");
 const bcrypt = require("bcrypt");
 const client = require("../models/redisDatabase");
-const handleImage = require("../helpers/imageHandler");
+const {handleImage} = require("../helpers/imageHandler");
 const { Op } = require("sequelize");
 const fs = require("fs");
 const {

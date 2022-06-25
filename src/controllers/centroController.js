@@ -150,10 +150,10 @@ controllers.getCentroImagem = async (req, res, next) => {
       readStream.on('error', function(err) {
          return next(err);
       });
-  
     readStream.on("open", function () {
         readStream.pipe(res);
       });
+      
     } catch (err) {
       next(err);
     }
