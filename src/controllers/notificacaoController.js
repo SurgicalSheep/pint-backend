@@ -36,9 +36,29 @@ controllers.getTop10Notificacao = async (req, res) => {
   res.send({ data: data });
 };
 
-controllers.getNotificacao = async (req, res) => {
-  const data = await Notificacao.findByPk(req.params.id);
+controllers.getNotificacao = async (req, res, next) => {
+  try {
+    const data = await Notificacao.findByPk(req.params.id,{
+    include:[
+      {model:Utilizador, as: "utilizador",}
+    ]
+  });
+  if (data.dataValues.utilizador.dataValues.foto) {
+    let idk = fs.readFileSync(
+      data.dataValues.utilizador.dataValues.foto,
+      "base64",
+      (err, val) => {
+        if (err) return err;
+        return val;
+      }
+    );
+    data.dataValues.utilizador.dataValues.fotoConv = idk;
+  }
   res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 
 controllers.insertNotificacao = async (req, res, next) => {
@@ -111,9 +131,8 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
         },
       ],
     });
-    const copy = { ...data}
 
-    data[0].dataValues.notificacoes.forEach((x,i) => {
+    data[0].dataValues.notificacoes.forEach((x, i) => {
       if (x.dataValues.utilizador) {
         if (x.dataValues.utilizador.dataValues.foto) {
           let idk = fs.readFileSync(
@@ -124,9 +143,7 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
               return val;
             }
           );
-          console.log(idk)
           x.dataValues.utilizador.dataValues.fotoConv = idk;
-          
         }
       }
     });
@@ -157,5 +174,23 @@ controllers.editNotificacao = async (req, res, next) => {
     next(createError.BadRequest("Id is not a Integer"));
   }
 };
+
+function fotoConv(data) {
+  data[0].dataValues.notificacoes.forEach((x,i) => {
+    if (x.dataValues.utilizador) {
+      if (x.dataValues.utilizador.dataValues.foto) {
+        let idk = fs.readFileSync(
+          x.dataValues.utilizador.dataValues.foto,
+          "base64",
+          (err, val) => {
+            if (err) return err;
+            return val;
+          }
+        );
+        x.dataValues.utilizador.dataValues.fotoConv = idk;
+      }
+    }
+  });
+}
 
 module.exports = controllers;

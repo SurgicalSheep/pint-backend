@@ -11,7 +11,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU4MjczM
 GET http://localhost:3000/utilizador/3
 
 ###
-POST http://localhost:3000/utilizador/login
+POST http://localhost:3000/utilizador/loginWeb
 Content-Type: application/json
 
 {
@@ -24,7 +24,8 @@ POST http://localhost:3000/utilizador/refreshToken
 Content-Type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU0ODAwNzcsImV4cCI6MTY1NjA4NDg3Nywic3ViIjoiMTQifQ.mytpJUuqcMqMqUdUSGmJ7gRKxP1ujiRFWjAaQrXHpCc"
+    "env":"web",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsIn5cCI6IkpXVCJ9.eyJpYXQiOjE2NTYxMDAwODksImV4cCI6MTY1NjcwNDg4OSwic3ViIjoiMjYifQ.0x9n_blXlsKTC_hLI5vlBSRJtsUFRciuGfZeOotyohk"
 }
 
 ###
@@ -32,5 +33,5 @@ DELETE  http://localhost:3000/utilizador/logout
 Content-Type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU1NTI5NTUsImV4cCI6MTY1NjE1Nzc1NSwic3ViIjoiMTQifQ.011obmBo5f8vtGUKGSj9w4h70_fja2T1ON5yl6pfhJw"
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU5OTU1NDEsImV4cCI6MTY1NjYwMDM0MSwic3ViIjoiMjYifQ.aPkL4l-WCk492GqUdK_4U-Z6nSAmYwOLWHn2221zHkc"
 }

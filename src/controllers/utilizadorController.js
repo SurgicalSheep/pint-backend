@@ -50,6 +50,23 @@ controllers.list = async (req, res, next) => {
         exclude: ["password"],
       },
     });
+    data.forEach((x, i) => {
+      if (x.dataValues.foto) {
+        try {
+          let idk = fs.readFileSync(
+            x.dataValues.foto,
+            "base64",
+            (err, val) => {
+              if (err) return err;
+              return val;
+            }
+          );
+          x.dataValues.fotoConv = idk;
+        } catch (error) {
+        }
+        
+      }
+  });
     let x = { data };
     const count = await Utilizador.count()-1;
     x.count = count;
@@ -100,6 +117,17 @@ controllers.getUtilizador = async (req, res, next) => {
         ],
       },
     });
+    if (data.dataValues.foto) {
+      let idk = fs.readFileSync(
+        data.dataValues.foto,
+        "base64",
+        (err, val) => {
+          if (err) return err;
+          return val;
+        }
+      );
+      data.dataValues.fotoConv = idk;
+    }
     res.send({ data: data });
   } catch (error) {
     next(error);
@@ -133,7 +161,10 @@ controllers.getUtilizadorReservas = async (req, res, next) => {
       include: [
         {
           model: Sala,
-        },
+        },  
+        {
+          model: Utilizador.scope("noPassword")
+        }
       ],
     });
     res.send({ data: data });
@@ -249,6 +280,17 @@ controllers.getUserByToken = async (req, res, next) => {
         ],
       }
     );
+    if (utilizador.dataValues.foto) {
+      let idk = fs.readFileSync(
+        utilizador.dataValues.foto,
+        "base64",
+        (err, val) => {
+          if (err) return err;
+          return val;
+        }
+      );
+      utilizador.dataValues.fotoConv = idk;
+    }
     res.send({ data: utilizador });
   } catch (error) {
     return next(error);
