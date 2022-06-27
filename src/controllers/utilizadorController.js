@@ -118,15 +118,20 @@ controllers.getUtilizador = async (req, res, next) => {
       },
     });
     if (data.dataValues.foto) {
-      let idk = fs.readFileSync(
-        data.dataValues.foto,
-        "base64",
-        (err, val) => {
-          if (err) return err;
-          return val;
-        }
-      );
-      data.dataValues.fotoConv = idk;
+      try {
+        let idk = fs.readFileSync(
+          data.dataValues.foto,
+          "base64",
+          (err, val) => {
+            if (err) return err;
+            return val;
+          }
+        );
+        data.dataValues.fotoConv = idk;
+      } catch (error) {
+        data.dataValues.fotoConv = "";
+      }
+      
     }
     res.send({ data: data });
   } catch (error) {

@@ -49,8 +49,8 @@ controllers.getCentro = async (req, res, next) => {
         idcentro: id,
       },
     });
-    try {
         if (data.dataValues.imagem) {
+          try {
             let idk = fs.readFileSync(
               data.dataValues.imagem,
               "base64",
@@ -60,10 +60,10 @@ controllers.getCentro = async (req, res, next) => {
               }
             );
             data.dataValues.fotoConv = idk;
+          } catch (error) {
+            data.dataValues.fotoConv = ""
+          } 
           }
-    } catch (error) {
-        return next(error)
-    }
     res.json({ data: data });
   } else {
     return next(createError.BadRequest("Id is not a Integer"));

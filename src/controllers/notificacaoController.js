@@ -44,15 +44,20 @@ controllers.getNotificacao = async (req, res, next) => {
     ]
   });
   if (data.dataValues.utilizador.dataValues.foto) {
-    let idk = fs.readFileSync(
-      data.dataValues.utilizador.dataValues.foto,
-      "base64",
-      (err, val) => {
-        if (err) return err;
-        return val;
-      }
-    );
-    data.dataValues.utilizador.dataValues.fotoConv = idk;
+    try {
+      let idk = fs.readFileSync(
+        data.dataValues.utilizador.dataValues.foto,
+        "base64",
+        (err, val) => {
+          if (err) return err;
+          return val;
+        }
+      );
+      data.dataValues.utilizador.dataValues.fotoConv = idk;
+    } catch (error) {
+      data.dataValues.utilizador.dataValues.fotoConv = "";
+    }
+    
   }
   res.send({ data: data });
   } catch (error) {
