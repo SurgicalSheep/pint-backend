@@ -16,6 +16,7 @@ const {
 } = require("../middlewares/jwt");
 const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schemas/userSchema");
 const createError = require("http-errors");
+const e = require("express");
 
 controllers.list = async (req, res, next) => {
   try {
@@ -423,21 +424,24 @@ controllers.editUtilizador = async (req, res, next) => {
       
 
       if (emailExists) {
-        if (req.file) {
-          fs.unlink(req.file.path, (err, result) => {
-            if (err) throw err;
-          });
+        if(emailExists.idutilizador != id){
+          if (req.file) {
+            fs.unlink(req.file.path, (err, result) => {
+              if (err) throw err;
+            });
+          }
         }
         throw createError.Conflict(`${result.email} has already been registered`)
       }
       if (nColaboradorExists) {
-        if (req.file) {
-          fs.unlink(req.file.path, (err, result) => {
-            if (err) throw err;
-          });
+        if(nColaboradorExists.idutilizador != id){
+          if (req.file) {
+            fs.unlink(req.file.path, (err, result) => {
+              if (err) throw err;
+            });
+          }
+          throw createError.Conflict(`${result.ncolaborador} has already been registered`);
         }
-        throw createError.Conflict(`${result.ncolaborador} has already been registered` 
-        );
       }
       bcrypt.hash(result.password, 10, async function (err, hash) {
         result.password = hash;
