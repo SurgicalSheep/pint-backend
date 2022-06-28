@@ -430,8 +430,8 @@ controllers.editUtilizador = async (req, res, next) => {
               if (err) throw err;
             });
           }
+          throw createError.Conflict(`${result.email} has already been registered`)
         }
-        throw createError.Conflict(`${result.email} has already been registered`)
       }
       if (nColaboradorExists) {
         if(nColaboradorExists.idutilizador != id){
