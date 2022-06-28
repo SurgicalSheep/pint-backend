@@ -499,7 +499,6 @@ controllers.editUtilizador = async (req, res, next) => {
     res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();
-    console.log(err)
     next(err);
   }
 };
