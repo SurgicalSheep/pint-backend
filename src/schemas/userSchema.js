@@ -5,7 +5,7 @@ const utilizadorSchema = Joi.object({
 
   admin: Joi.boolean(),
 
-  nome: Joi.string().alphanum().min(3).max(30).required(),
+  nome: Joi.string().min(3).max(30).required(),
 
   telemovel: Joi.string()
     .regex(/^[0-9]{9}$/)
