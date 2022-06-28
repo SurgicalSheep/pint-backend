@@ -49,6 +49,9 @@ controllers.list = async (req, res, next) => {
         ],
         exclude: ["password"],
       },
+      order: [
+        ['idutilizador', 'DESC']
+    ]
     });
     data.forEach((x, i) => {
       if (x.dataValues.foto) {
@@ -496,6 +499,7 @@ controllers.editUtilizador = async (req, res, next) => {
     res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();
+    console.log(err)
     next(err);
   }
 };
