@@ -18,23 +18,26 @@ controllers.list = async (req, res) => {
   }
   const data = await Sala.findAll({
     limit: limit,
-    offset: offset
+    offset: offset,
+    include:[{model:Centro}]
   });
   let x = {data};
   const count = await Sala.count();   
   x.count = count;
   
-  res.status(200).json(x);
+  res.send(x);
 };
-
 controllers.count = async (req, res) => {
   const data = await Sala.Count();
-  res.json({ data: data });
+  res.send({ data: data });
 };
-
 controllers.getSalaReservas = async(req,res,next) => {
   let {limit,offset} = req.body
-  let {id} = req.params
+  const {id} = req.params;
+    
+  if(!Number.isInteger(+id)){
+    return next(createError.BadRequest("Id is not a Integer"));
+  }
   if(!req.query.limit || req.query.limit == 0){
     limit = 5;
   }
@@ -43,53 +46,54 @@ controllers.getSalaReservas = async(req,res,next) => {
   }
   try {
     const data = await Sala.findAll({
+      limit: limit,
+      offset: offset,
       where:{idsala:id},
       include:[{model:Reserva}]
     })
     let aux = {data}
-    if (req.query.offset == 0 || !req.query.offset) {
-      const count = await Reserva.count({where:{idsala:id}});   
-      aux.count = count;
-    }
+    const count = await Reserva.count({where:{idsala:id}});   
+    aux.count = count;
     res.send(aux)
   } catch (error) {
     next(error)
   }
   
 }
-
-controllers.getSala = async (req, res) => {
-  const id = req.params.id;
+controllers.getSala = async (req, res, next) => {
+  const {id} = req.params;
+    
+    if(!Number.isInteger(+id)){
+      return next(createError.BadRequest("Id is not a Integer"));
+    }
   const data = await Sala.findOne({
     where: {
       idsala: id
     },
+    include:[{model:Centro}]
   });
-  res.json({ data: data });
+  res.send({ data: data });
 };
-controllers.editSala = async (req, res) => {
+controllers.editSala = async (req, res, next) => {
   try {
-    const id = req.params.id;
+    const {id} = req.params;
+
+    if(!Number.isInteger(+id)){
+      return next(createError.BadRequest("Id is not a Integer"));
+    }
 
     const result = await Sala.update(req.body, { where: { idsala: id } });
-    res.status(200).send("1");
+    res.sendStatus(204);
   } catch (error) {
-    res.status(400).send(error);
+    next(error)
   }
 };
-controllers.insertSala = async (req, res) => {
+controllers.insertSala = async (req, res, next) => {
   try {
-    await sequelize
-      .sync()
-      .then(() => {
-        Sala.create(req.body);
-      })
-      .catch((err) => {
-        res.status(400).send(err);
-      });
-    res.status(200).send("1");
+    const sala = await Sala.create(req.body)
+    res.status(200).send(sala);
   } catch (error) {
-    res.status(400).send(error);
+    next(error);
   }
 };
 controllers.deleteSala = async (req, res) => {

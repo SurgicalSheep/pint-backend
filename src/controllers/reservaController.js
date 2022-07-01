@@ -8,10 +8,22 @@ const Op = Sequelize.Op;
 const {searchNotificacaoSchema} = require('../schemas/reservaSchema')
 
 controllers.list = async(req, res) => {
+    let {limit,offset} = req,query;
+  if(!req.query.limit || req.query.limit == 0){
+    limit = 5;
+  }
+  if(!req.query.offset){
+    offset = 0;
+  }
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findAll({
-        include:[{model:Sala},{model:Utilizador}]
+        limit:limit,
+        offset:offset,
+        include:[{model:Sala},{model:Utilizador.scope("noPassword")}]
     });
-    res.json({data:data})
+    let x = {data};
+    const count = await Reserva.count();   
+    x.count = count;
+    res.send(x)
 }
 controllers.getReserva = async (req, res) => {
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findByPk(req.params.id,{

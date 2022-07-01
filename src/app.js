@@ -30,7 +30,7 @@ app.use('/equipamento',equipamentoRouters)
 app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 //app.use('/empregadoManutencao',empregadoManutencaoRouters)
 app.use('/pedido',pedidoRouters)
-app.use('/notificacao',notificacaoRouters)
+app.use('/notificacao',notificacaoRouters);
 
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
