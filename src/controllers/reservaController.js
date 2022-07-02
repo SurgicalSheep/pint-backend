@@ -8,7 +8,7 @@ const Op = Sequelize.Op;
 const {searchNotificacaoSchema} = require('../schemas/reservaSchema')
 
 controllers.list = async(req, res) => {
-    let {limit,offset} = req,query;
+    let {limit,offset} = req.query;
   if(!req.query.limit || req.query.limit == 0){
     limit = 5;
   }
