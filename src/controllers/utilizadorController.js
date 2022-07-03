@@ -19,6 +19,7 @@ const createError = require("http-errors");
 
 controllers.list = async (req, res, next) => {
   try {
+    
     let {centro,nome,email,ncolaborador,limit,offset} = req.query
     if(!nome)
       nome = ""
@@ -26,18 +27,27 @@ controllers.list = async (req, res, next) => {
       email = ""
     if(!ncolaborador)
     ncolaborador=""
-    let centroInt = JSON.parse(centro).map((x)=>{return Number(x)})
     if (!req.query.limit || req.query.limit == 0) {
       limit = 5;
     }
     if (!req.query.offset) {
       offset = 0;
     }
+    if(!centro){
+      centro = new Array(0)
+      const centros = await Centro.findAll({attributes:["idcentro"]});
+      centros.map((x,i)=>{
+        centro[i] = x.dataValues.idcentro
+      })
+    }else{
+      centro = JSON.parse(centro)
+    }
+    let centroInt = centro.map((x)=>{return Number(x)})
     const data = await Utilizador.scope("noIdCentro").findAll({
       limit: limit,
       offset: offset,
       where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.iLike]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}}]
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.like]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}}]
       },
       include: [
         {
