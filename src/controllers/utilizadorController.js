@@ -19,18 +19,13 @@ const createError = require("http-errors");
 
 controllers.list = async (req, res, next) => {
   try {
-    
-    let {centro,nome,email,ncolaborador,limit,offset} = req.query
-    if(!nome)
-      nome = ""
-    if(!email)
-      email = ""
-    if(!ncolaborador)
-    ncolaborador=""
-    if (!req.query.limit || req.query.limit == 0) {
+    let {centro,pesquisa,limit,offset} = req.query
+    if(!pesquisa)
+    pesquisa = ""
+    if (limit || limit == 0) {
       limit = 5;
     }
-    if (!req.query.offset) {
+    if (!offset) {
       offset = 0;
     }
     if(!centro){
@@ -45,7 +40,7 @@ controllers.list = async (req, res, next) => {
       limit: limit,
       offset: offset,
       where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.like]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}}]
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:{[Op.like]: '%' + pesquisa + '%'}}]}]
       },
       include: [
         {
@@ -86,8 +81,8 @@ controllers.list = async (req, res, next) => {
   });
     let x = { data };
     const count = await Utilizador.count({where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.iLike]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}},{idutilizador:{[Op.not]:req.idUser}}]
-      }});
+      [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:{[Op.like]: '%' + pesquisa + '%'}}]}]
+    }});
     x.count = count;
     res.send(x);
   } catch (error) {
