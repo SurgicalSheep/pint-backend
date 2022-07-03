@@ -39,8 +39,6 @@ controllers.list = async (req, res, next) => {
       centros.map((x,i)=>{
         centro[i] = x.dataValues.idcentro
       })
-    }else{
-      centro = JSON.parse(centro)
     }
     let centroInt = centro.map((x)=>{return Number(x)})
     const data = await Utilizador.scope("noIdCentro").findAll({
