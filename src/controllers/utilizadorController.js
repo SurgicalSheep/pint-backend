@@ -24,9 +24,9 @@ controllers.list = async (req, res, next) => {
       nome = ""
     if(!email)
       email = ""
-    if(!ncolab)
+    if(!ncolaborador)
     ncolaborador=""
-    let centroInt = centro.map((x)=>{return Number(x)})
+    let centroInt = JSON.parse(centro).map((x)=>{return Number(x)})
     if (!req.query.limit || req.query.limit == 0) {
       limit = 5;
     }
