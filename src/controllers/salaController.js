@@ -5,6 +5,7 @@ var sequelize = require("../models/database");
 const Reserva = require("../models/reserva")
 const Sequelize = require("sequelize");
 const createError = require("http-errors")
+const {createSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
@@ -75,6 +76,7 @@ controllers.getSala = async (req, res, next) => {
   res.send({ data: data });
 };
 controllers.editSala = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
     const {id} = req.params;
 
@@ -83,28 +85,31 @@ controllers.editSala = async (req, res, next) => {
     }
 
     const result = await Sala.update(req.body, { where: { idsala: id } });
+    await t.commit();
     res.sendStatus(204);
   } catch (error) {
+    await t.rollback();
     next(error)
   }
 };
 controllers.insertSala = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
-    const sala = await Sala.create(req.body)
+    const result = createSalaSchema.validate(req.body)
+    const sala = await Sala.create(result,{transaction:t})
+    await t.commit();
     res.status(200).send(sala);
   } catch (error) {
+    await t.rollback();
     next(error);
   }
 };
 controllers.deleteSala = async (req, res) => {
-  const id = req.params.id;
+  const t = await sequelize.transaction();
+  const {id} = req.params;
   const data = await Sala.findOne({
-    where: {
-      idsala: {
-        [Op.eq]: id,
-      },
-    },
-  });
+    where: {idsala: id},
+  },{transaction:t});
   try {
     data.destroy();
     res.status(200).send("1");

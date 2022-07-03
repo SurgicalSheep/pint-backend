@@ -15,7 +15,7 @@ controllers.list = async (req, res, next) => {
   if (!req.query.offset) {
     offset = 0;
   }
-  const data = await Centro.findAll();
+   const data = await Centro.findAll();
   console.log(data[0].dataValues.imagem);
   data.forEach((x, i) => {
     if (x.dataValues) {
@@ -26,7 +26,6 @@ controllers.list = async (req, res, next) => {
             "base64",
             (err, val) => {
               if (err) return err;
-              console.log("lul");
               return val;
             }
           );

@@ -18,7 +18,10 @@ controllers.list = async(req, res) => {
     const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findAll({
         limit:limit,
         offset:offset,
-        include:[{model:Sala},{model:Utilizador.scope("noPassword")}]
+        include:[{model:Sala},{model:Utilizador.scope("noPassword")}],
+        order: [
+            ['data', 'DESC'],
+        ],
     });
     let x = {data};
     const count = await Reserva.count();   

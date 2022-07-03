@@ -16,12 +16,17 @@ const {
 } = require("../middlewares/jwt");
 const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schemas/userSchema");
 const createError = require("http-errors");
-const e = require("express");
 
 controllers.list = async (req, res, next) => {
   try {
-    let limit = req.query.limit;
-    let offset = req.query.offset;
+    let {centro,nome,email,ncolaborador,limit,offset} = req.query
+    if(!nome)
+      nome = ""
+    if(!email)
+      email = ""
+    if(!ncolab)
+    ncolaborador=""
+    let centroInt = centro.map((x)=>{return Number(x)})
     if (!req.query.limit || req.query.limit == 0) {
       limit = 5;
     }
@@ -32,7 +37,7 @@ controllers.list = async (req, res, next) => {
       limit: limit,
       offset: offset,
       where:{
-        idutilizador:{[Op.not]:req.idUser}
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.iLike]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}}]
       },
       include: [
         {
@@ -72,7 +77,9 @@ controllers.list = async (req, res, next) => {
       }
   });
     let x = { data };
-    const count = await Utilizador.count()-1;
+    const count = await Utilizador.count({where:{
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{nome:{[Op.like]: '%'+nome+'%'}},{email:{[Op.like]: '%'+email+'%'}},{ncolaborador:{[Op.iLike]: ncolaborador+'%'}},{idcentro:{[Op.in]:centroInt}},{idutilizador:{[Op.not]:req.idUser}}]
+      }});
     x.count = count;
     res.send(x);
   } catch (error) {

@@ -15,7 +15,9 @@ const pedidoRouters = require('./routes/pedidoRoute')
 const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
+const db = require('./models/database')
 //Configurações 
+
 app.use(cors())
 app.set('port', (process.env.PORT || 3000));
 //Middlewares
@@ -31,7 +33,6 @@ app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 //app.use('/empregadoManutencao',empregadoManutencaoRouters)
 app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters);
-
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
 })
