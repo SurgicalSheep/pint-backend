@@ -89,7 +89,7 @@ const verifyRefreshToken = (refreshToken) => {
         return;
       }
       if(refreshToken === token.web || refreshToken === token.mobile) return resolve(userId)
-      reject(createError.Unauthorized())
+      reject(createError.Unauthorized("Invalid refresh token"))
     });
   });
 };
