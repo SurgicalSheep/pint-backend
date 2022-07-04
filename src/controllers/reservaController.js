@@ -5,6 +5,7 @@ var Reserva = require('../models/reserva');
 var sequelize = require('../models/database');
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const createError = require('http-errors')
 const {searchNotificacaoSchema} = require('../schemas/reservaSchema')
 
 controllers.list = async(req, res) => {
@@ -99,5 +100,25 @@ controllers.searchReservas = async(req, res, next) => {
         next(error)
     }
 };
+
+controllers.rangeReservas = async(req,res,next) => {
+    try {
+        const {start,end} = req.query
+        if(!(start && end)){
+            return next(createError.BadRequest("Date missing"))
+        }
+        const dateStart = new Date(req.query.start)
+        const dateEnd = new Date(req.query.end)
+        const data = await Reserva.count({
+            where:{
+                data:{[Op.between]: [dateStart, dateEnd]}
+            }
+        })
+        res.send({data:data})
+    } catch (error) {
+        next(error)
+        //createError.BadRequest("Bad date format")
+    }
+}
 
 module.exports = controllers;

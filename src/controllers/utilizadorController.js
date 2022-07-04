@@ -90,6 +90,11 @@ controllers.list = async (req, res, next) => {
   }
 };
 
+controllers.count = async (req, res, next) => {
+  const data = await Utilizador.count();
+  res.send({data:data})
+}
+
 controllers.deleteUtilizador = async (req, res,next) => {
   const t = await sequelize.transaction();
   try {

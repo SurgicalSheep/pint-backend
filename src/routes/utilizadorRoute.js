@@ -34,6 +34,7 @@ const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list',verifyAccessToken,isAdmin, utilizadorController.list);
 router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
+router.get('/count',verifyAccessToken,isAdmin,utilizadorController.count)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
