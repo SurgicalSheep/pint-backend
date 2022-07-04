@@ -78,7 +78,7 @@ const verifyAccessToken = (req, res, next) => {
 const verifyRefreshToken = (refreshToken) => {
   return new Promise((resolve, reject) => {
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_KEY, async(err, payload) => {
-      if (err) return reject(createError.Unauthorized());
+      if (err) return reject(createError.Unauthorized("Invalid refresh token"));
       const userId = payload.sub;
       let token;
       try {

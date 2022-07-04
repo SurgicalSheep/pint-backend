@@ -136,7 +136,7 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
         },
       ],
     });
-
+    
     data[0].dataValues.notificacoes.forEach((x, i) => {
       if (x.dataValues.utilizador) {
         if (x.dataValues.utilizador.dataValues.foto) {
