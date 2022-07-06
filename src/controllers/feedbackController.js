@@ -9,7 +9,15 @@ const { request } = require('express');
 const Op = Sequelize.Op;
 
 controllers.list = async(req, res) => {
+    if (!limit || limit == 0) {
+        limit = 5;
+      }
+      if (!offset) {
+        offset = 0;
+      }
     const data = await Feedback.scope("noIdUtilizador").scope("noIdSala").findAll({
+        limit,
+        offset,
         include: [
           { model: Utilizador,as:'utilizadores'},
           { model: Sala},

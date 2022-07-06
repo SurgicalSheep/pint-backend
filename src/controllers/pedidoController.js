@@ -5,7 +5,17 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
-  const data = await Pedido.findAll();
+  let {limit,offset} = req.query;
+  if (!limit || limit == 0) {
+    limit = 5;
+  }
+  if (!offset) {
+    offset = 0;
+  }
+  const data = await Pedido.findAll({
+    limit:limit,
+    offset:offset
+  });
   res.json({data:data});
 };
 controllers.getPedido = async (req, res) => {

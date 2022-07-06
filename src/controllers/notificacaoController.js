@@ -7,8 +7,17 @@ const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
 const fs = require("fs");
 
 controllers.list = async (req, res) => {
+  let {limit,offset} = req.query;
+  if (!limit || limit == 0) {
+    limit = 5;
+  }
+  if (!offset) {
+    offset = 0;
+  }
   const data = await Notificacao.scope("noIdUtilizador").findAll({
     where: {},
+    limit:limit,
+    offset:offset,
     include: [
       {
         model: Utilizador.scope("noIdCentro"),
@@ -119,7 +128,16 @@ controllers.deleteNotificacao = async (req, res) => {
 
 controllers.getNotificacoesUtilizador = async (req, res, next) => {
   try {
+    let {limit,offset} = req.query;
+    if (!limit || limit == 0) {
+      limit = 5;
+    }
+    if (!offset) {
+      offset = 0;
+    }
     const data = await Utilizador.findAll({
+      limit:limit,
+      offset:offset,
       attributes: [],
       where: {},
       include: [

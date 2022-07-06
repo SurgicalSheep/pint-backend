@@ -107,18 +107,26 @@ controllers.rangeReservas = async(req,res,next) => {
         if(!(start && end)){
             return next(createError.BadRequest("Date missing"))
         }
-        const dateStart = new Date(req.query.start)
-        const dateEnd = new Date(req.query.end)
-        const data = await Reserva.count({
-            where:{
-                data:{[Op.between]: [dateStart, dateEnd]}
-            }
+        let days = getDaysArray(start,end)
+        let info=[];
+        await Promise.all(days.map(async(day,i)=>{
+            let data = await Reserva.count({
+                where:{
+                    data:day
+                }
         })
-        res.send({data:data})
+            info.push({day:day,value:data})
+        }))
+        res.send({data:info})
     } catch (error) {
         next(error)
-        //createError.BadRequest("Bad date format")
     }
 }
 
+var getDaysArray = function(start, end) {
+    for(var arr=[],dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
+        arr.push(new Date(dt).toISOString().split('T')[0]);
+    }
+    return arr;
+};
 module.exports = controllers;

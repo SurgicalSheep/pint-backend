@@ -22,7 +22,7 @@ controllers.list = async (req, res, next) => {
     let {centro,pesquisa,limit,offset} = req.query
     if(!pesquisa)
     pesquisa = ""
-    if (limit || limit == 0) {
+    if (!limit || limit == 0) {
       limit = 5;
     }
     if (!offset) {
