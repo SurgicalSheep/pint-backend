@@ -149,7 +149,7 @@ controllers.daysWithReserva = async (req, res, next) => {
   try {
     const { start, end, sala } = req.query;
     if (!(start && end && sala))
-      return next(createError.BadRequest("Something missing!"));
+      return next(createError.BadRequest("Something missing"));
     const data = await Reserva.findAll({
       where: {
         [Op.or]: [
@@ -206,6 +206,7 @@ function Returnsalas(Array) {
 controllers.freeSalas = async (req, res, next) => {
   try {
     const { data, horainicio, horafinal, centro } = req.query;
+    if(!(data && horainicio && horafinal && centro)) return createError.BadRequest("Something missing")
     const salasRemove = await Sala.findAll({
         attributes: ['idsala'],
         include: [{model: Reserva,
