@@ -129,4 +129,33 @@ var getDaysArray = function(start, end) {
     }
     return arr;
 };
+
+controllers.daysWithReserva = async(req,res,next)=>{
+    try {
+        const {start,end,sala} = req.query
+        if(!(start && end && sala)) return next(createError.BadRequest("Something missing!"))
+        const data = await Reserva.findAll({
+            where:{
+                [Op.and]:[{
+                    horafinal: {
+                        [Op.lte]: end 
+                    },
+                    horainicio: {
+                        [Op.gte]: start
+                    }
+                }]
+            },
+            include:[{
+                attributes:[],
+                model:Sala,
+                where:{
+                    idsala:sala
+                }
+            }]
+        })
+        res.send({data})
+    } catch (error) {
+        next(error)
+    }
+}
 module.exports = controllers;
