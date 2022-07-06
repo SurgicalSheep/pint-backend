@@ -206,7 +206,7 @@ function Returnsalas(Array) {
 controllers.freeSalas = async (req, res, next) => {
   try {
     const { data, horainicio, horafinal, centro } = req.query;
-    if(!(data && horainicio && horafinal && centro)) return createError.BadRequest("Something missing")
+    if(!(data && horainicio && horafinal && centro)) return next(createError.BadRequest("Something missing"))
     const salasRemove = await Sala.findAll({
         attributes: ['idsala'],
         include: [{model: Reserva,
