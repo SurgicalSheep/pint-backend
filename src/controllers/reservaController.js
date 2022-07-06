@@ -135,6 +135,7 @@ controllers.daysWithReserva = async(req,res,next)=>{
         const {start,end,sala} = req.query
         if(!(start && end && sala)) return next(createError.BadRequest("Something missing!"))
         const data = await Reserva.findAll({
+            attributes:["data"],
             where:{
                 [Op.and]:[{
                     horafinal: {
