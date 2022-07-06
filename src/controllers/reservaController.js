@@ -1,162 +1,236 @@
-const controllers = {}
-var Utilizador = require('../models/utilizador');
-var Sala = require('../models/sala');
-var Reserva = require('../models/reserva');
-var sequelize = require('../models/database');
+const controllers = {};
+var Utilizador = require("../models/utilizador");
+var Sala = require("../models/sala");
+var Reserva = require("../models/reserva");
+var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const createError = require('http-errors')
-const {searchNotificacaoSchema} = require('../schemas/reservaSchema')
+const createError = require("http-errors");
+const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
+const Centro = require("../models/centro");
 
-controllers.list = async(req, res) => {
-    let {limit,offset} = req.query;
-  if(!req.query.limit || req.query.limit == 0){
+controllers.list = async (req, res) => {
+  let { limit, offset } = req.query;
+  if (!req.query.limit || req.query.limit == 0) {
     limit = 5;
   }
-  if(!req.query.offset){
+  if (!req.query.offset) {
     offset = 0;
   }
-    const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findAll({
-        limit:limit,
-        offset:offset,
-        include:[{model:Sala},{model:Utilizador.scope("noPassword")}],
-        order: [
-            ['data', 'DESC'],
-        ],
+  const data = await Reserva.scope("noIdSala")
+    .scope("noIdUtilizador")
+    .findAll({
+      limit: limit,
+      offset: offset,
+      include: [{ model: Sala }, { model: Utilizador.scope("noPassword") }],
+      order: [["data", "DESC"]],
     });
-    let x = {data};
-    const count = await Reserva.count();   
-    x.count = count;
-    res.send(x)
-}
+  let x = { data };
+  const count = await Reserva.count();
+  x.count = count;
+  res.send(x);
+};
 controllers.getReserva = async (req, res) => {
-    const data = await Reserva.scope("noIdSala").scope("noIdUtilizador").findByPk(req.params.id,{
-        include:[{model:Sala},{model:Utilizador}],
-    })
-    res.json({data:data});
+  const data = await Reserva.scope("noIdSala")
+    .scope("noIdUtilizador")
+    .findByPk(req.params.id, {
+      include: [{ model: Sala }, { model: Utilizador }],
+    });
+  res.json({ data: data });
 };
-controllers.insertReserva = async(req, res) => {
-    const t = await sequelize.transaction();
-    try{
-        const data = await Reserva.create({
-        data:req.body.data,
-        horainicio:req.body.horainicio,
-        horafinal:req.body.horafinal,
-        observacoes:req.body.observacoes,
-        idutilizador:req.body.idutilizador,
-        idsala:req.body.idsala
-    },{transaction:t});
-         await t.commit()
-         res.status(200).send({data:data})
-    }catch(err){
-        await t.rollback()
-        res.status(400).send(err)
-    }
+controllers.insertReserva = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const data = await Reserva.create(
+      {
+        data: req.body.data,
+        horainicio: req.body.horainicio,
+        horafinal: req.body.horafinal,
+        observacoes: req.body.observacoes,
+        idutilizador: req.body.idutilizador,
+        idsala: req.body.idsala,
+      },
+      { transaction: t }
+    );
+    await t.commit();
+    res.status(200).send({ data: data });
+  } catch (err) {
+    await t.rollback();
+    res.status(400).send(err);
+  }
 };
-controllers.deleteReserva = async(req, res) => {
-    const t = await sequelize.transaction();
-    try{
-        const reserva = await Reserva.findByPk(req.params.id);
-        await reserva.destroy({transaction:t})
+controllers.deleteReserva = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const reserva = await Reserva.findByPk(req.params.id);
+    await reserva.destroy({ transaction: t });
 
-        await t.commit();
-        res.status(200).send("1")
-    }catch(err){
-        await t.rollback();
-        res.status(400).send(err)
-    }
-};
-
-controllers.editReserva = async(req, res) => {
-    const t = await sequelize.transaction();
-    try {
-        await Reserva.update({
-            data:req.body.data,
-            horainicio:req.body.horainicio,
-            horafinal:req.body.horafinal,
-            observacoes:req.body.observacoes,
-            idutilizador:req.body.idutilizador,
-            idsala:req.body.idsala
-        },{ where: { idreserva: req.params.id },transaction:t})
-        await t.commit()
-        res.status(200).send("1")
-    } catch (error) {
-        await t.rollback()
-        res.status(400).send(error)
-    }
+    await t.commit();
+    res.status(200).send("1");
+  } catch (err) {
+    await t.rollback();
+    res.status(400).send(err);
+  }
 };
 
-controllers.searchReservas = async(req, res, next) => {
-    try {
-        const result = await searchNotificacaoSchema.validateAsync(req.query);
-        console.log(result)
-        const data = await Reserva.findAll({
-            where:{
-                [Op.and]:[{data:result.data},{idsala:result.idsala}]
-            }
-        })
-        res.send({data:data})
-    } catch (error) {
-        next(error)
-    }
+controllers.editReserva = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    await Reserva.update(
+      {
+        data: req.body.data,
+        horainicio: req.body.horainicio,
+        horafinal: req.body.horafinal,
+        observacoes: req.body.observacoes,
+        idutilizador: req.body.idutilizador,
+        idsala: req.body.idsala,
+      },
+      { where: { idreserva: req.params.id }, transaction: t }
+    );
+    await t.commit();
+    res.status(200).send("1");
+  } catch (error) {
+    await t.rollback();
+    res.status(400).send(error);
+  }
 };
 
-controllers.rangeReservas = async(req,res,next) => {
-    try {
-        const {start,end} = req.query
-        if(!(start && end)){
-            return next(createError.BadRequest("Date missing"))
-        }
-        let days = getDaysArray(start,end)
-        let info=[];
-        await Promise.all(days.map(async(day,i)=>{
-            let data = await Reserva.count({
-                where:{
-                    data:day
-                }
-        })
-            info.push({day:day,value:data})
-        }))
-        res.send({data:info})
-    } catch (error) {
-        next(error)
-    }
-}
-
-var getDaysArray = function(start, end) {
-    for(var arr=[],dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
-        arr.push(new Date(dt).toISOString().split('T')[0]);
-    }
-    return arr;
+controllers.searchReservas = async (req, res, next) => {
+  try {
+    const result = await searchNotificacaoSchema.validateAsync(req.query);
+    console.log(result);
+    const data = await Reserva.findAll({
+      where: {
+        [Op.and]: [{ data: result.data }, { idsala: result.idsala }],
+      },
+    });
+    res.send({ data: data });
+  } catch (error) {
+    next(error);
+  }
 };
 
-controllers.daysWithReserva = async(req,res,next)=>{
-    try {
-        const {start,end,sala} = req.query
-        if(!(start && end && sala)) return next(createError.BadRequest("Something missing!"))
-        const data = await Reserva.findAll({
-            attributes:["data"],
-            where:{
-                [Op.and]:[{
+controllers.rangeReservas = async (req, res, next) => {
+  try {
+    const { start, end } = req.query;
+    if (!(start && end)) {
+      return next(createError.BadRequest("Date missing"));
+    }
+    let days = getDaysArray(start, end);
+    let info = [];
+    await Promise.all(
+      days.map(async (day, i) => {
+        let data = await Reserva.count({
+          where: {
+            data: day,
+          },
+        });
+        info.push({ day: day, value: data });
+      })
+    );
+    res.send({ data: info });
+  } catch (error) {
+    next(error);
+  }
+};
+
+var getDaysArray = function (start, end) {
+  for (
+    var arr = [], dt = new Date(start);
+    dt <= new Date(end);
+    dt.setDate(dt.getDate() + 1)
+  ) {
+    arr.push(new Date(dt).toISOString().split("T")[0]);
+  }
+  return arr;
+};
+
+controllers.daysWithReserva = async (req, res, next) => {
+  try {
+    const { start, end, sala } = req.query;
+    if (!(start && end && sala))
+      return next(createError.BadRequest("Something missing!"));
+    const data = await Reserva.findAll({
+      where: {
+        [Op.or]: [
+          {
+            [Op.and]: [
+              {
+                horafinal: {
+                  [Op.lte]: end,
+                }},{
+                horafinal: {
+                  [Op.gte]: start,
+                },
+              },
+            ],
+          },
+          {
+            [Op.and]: [
+              {
+                horainicio: {
+                  [Op.lte]: end,
+                }},{
+                horainicio: {
+                  [Op.gte]: start,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      include: [
+        {
+          model: Sala,
+          where: {
+            idsala: sala,
+          },
+        },
+      ],
+    });
+    res.send({ data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+controllers.freeSalas = async (req, res, next) => {
+  try {
+    const { data, horainicio, horafinal, centro } = req.query;
+    const salas = await Sala.findAll({
+      include: [
+        {
+          attributes: [],
+          model: Centro,
+          where: { idcentro: centro },
+        },
+        {
+          model: Reserva,
+          where: {
+            data: data,
+            [Op.not]: [
+              {
+                [Op.and]: [
+                  {
                     horafinal: {
-                        [Op.lte]: end 
+                      [Op.lte]: horainicio,
                     },
                     horainicio: {
-                        [Op.gte]: start
-                    }
-                }]
-            },
-            include:[{
-                attributes:[],
-                model:Sala,
-                where:{
-                    idsala:sala
-                }
-            }]
-        })
-        res.send({data})
-    } catch (error) {
-        next(error)
-    }
-}
+                      [Op.gte]: horafinal,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+    });
+    res.send({ data: salas });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//data + hora inicio + hora final + centro = salas disponiveis
 module.exports = controllers;

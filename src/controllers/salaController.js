@@ -9,13 +9,19 @@ const {createSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
-  let limit=req.query.limit;
-  let offset=req.query.offset;
-  if(!req.query.limit || req.query.limit == 0){
+  let {limit,offset,centro,pesquisa} = req.query
+  if(!limit || offset == 0){
     limit = 5;
   }
   if(!req.query.offset){
     offset = 0;
+  }
+  if(!centro){
+    centro = new Array(0)
+    const centros = await Centro.findAll({attributes:["idcentro"]});
+    centros.map((x,i)=>{
+      centro[i] = x.dataValues.idcentro
+    })
   }
   const data = await Sala.findAll({
     limit: limit,
@@ -95,8 +101,8 @@ controllers.editSala = async (req, res, next) => {
 controllers.insertSala = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const result = createSalaSchema.validate(req.body)
-    const sala = await Sala.create(result,{transaction:t})
+    //const result = createSalaSchema.validate(req.body)
+    const sala = await Sala.create(req.body,{transaction:t})
     await t.commit();
     res.status(200).send(sala);
   } catch (error) {
