@@ -15,7 +15,6 @@ const pedidoRouters = require('./routes/pedidoRoute')
 const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
-const db = require('./models/database')
 //Configurações 
 
 app.use(cors())

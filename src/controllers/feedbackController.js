@@ -9,6 +9,7 @@ const { request } = require('express');
 const Op = Sequelize.Op;
 
 controllers.list = async(req, res) => {
+    let {limit,offset} = req.query
     if (!limit || limit == 0) {
         limit = 5;
       }
