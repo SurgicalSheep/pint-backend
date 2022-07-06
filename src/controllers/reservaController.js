@@ -194,38 +194,60 @@ controllers.daysWithReserva = async (req, res, next) => {
   }
 };
 
+function Returnsalas(Array) {
+    let array_sala = [-1]
+    Array.map((x, i) => {
+        array_sala[i] = x.dataValues.idsala
+    })
+    return array_sala
+}
+
+
 controllers.freeSalas = async (req, res, next) => {
   try {
     const { data, horainicio, horafinal, centro } = req.query;
-    const salas = await Sala.findAll({
-      include: [
-        {
-          attributes: [],
-          model: Centro,
-          where: { idcentro: centro },
-        },
-        {
-          model: Reserva,
-          where: {
-            data: data,
-            [Op.not]: [
-              {
-                [Op.and]: [
-                  {
-                    horafinal: {
-                      [Op.lte]: horainicio,
+    const salasRemove = await Sala.findAll({
+        attributes: ['idsala'],
+        include: [{model: Reserva,
+            attributes: [],
+            where: {
+                data: data,
+                [Op.or]: [
+                    {
+                      [Op.and]: [
+                        {
+                          horafinal: {
+                            [Op.lte]: horafinal,
+                          }},{
+                          horafinal: {
+                            [Op.gte]: horainicio,
+                          },
+                        },
+                      ],
                     },
-                    horainicio: {
-                      [Op.gte]: horafinal,
+                    {
+                      [Op.and]: [
+                        {
+                          horainicio: {
+                            [Op.lte]: horafinal,
+                          }},{
+                          horainicio: {
+                            [Op.gte]: horainicio,
+                          },
+                        },
+                      ],
                     },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
+                  ],
+            }
+        }]
     });
+
+    const salas = await Sala.findAll({
+        where:{
+            idsala:{[Op.notIn]:[Returnsalas(salasRemove)]},
+            idcentro:centro
+        }
+    })
     res.send({ data: salas });
   } catch (error) {
     next(error);

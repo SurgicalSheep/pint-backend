@@ -86,9 +86,7 @@ controllers.editSala = async (req, res, next) => {
   try {
     const {id} = req.params;
 
-    if(!Number.isInteger(+id)){
-      return next(createError.BadRequest("Id is not a Integer"));
-    }
+    if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
 
     const result = await Sala.update(req.body, { where: { idsala: id } });
     await t.commit();
