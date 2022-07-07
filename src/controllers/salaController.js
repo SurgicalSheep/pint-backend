@@ -5,7 +5,7 @@ var sequelize = require("../models/database");
 const Reserva = require("../models/reserva")
 const Sequelize = require("sequelize");
 const createError = require("http-errors")
-const {createSalaSchema} = require('../schemas/salaSchema')
+const {createSalaSchema,editSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
 
 controllers.list = async (req, res) => {
@@ -70,9 +70,7 @@ controllers.getSalaReservas = async(req,res,next) => {
 controllers.getSala = async (req, res, next) => {
   const {id} = req.params;
     
-    if(!Number.isInteger(+id)){
-      return next(createError.BadRequest("Id is not a Integer"));
-    }
+    if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
   const data = await Sala.findOne({
     where: {
       idsala: id
@@ -85,10 +83,9 @@ controllers.editSala = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const {id} = req.params;
-
     if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
-
-    const result = await Sala.update(req.body, { where: { idsala: id } });
+    const result = await editSalaSchema.validateAsync(req.body)
+    await Sala.update(result, { where: { idsala: id },transaction:t });
     await t.commit();
     res.sendStatus(204);
   } catch (error) {
@@ -99,26 +96,28 @@ controllers.editSala = async (req, res, next) => {
 controllers.insertSala = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    //const result = createSalaSchema.validate(req.body)
-    const sala = await Sala.create(req.body,{transaction:t})
+    const result = await createSalaSchema.validateAsync(req.body)
+    const sala = await Sala.create(result,{transaction:t})
     await t.commit();
-    res.status(200).send(sala);
+    res.send({data:sala});
   } catch (error) {
     await t.rollback();
     next(error);
   }
 };
-controllers.deleteSala = async (req, res) => {
+controllers.deleteSala = async (req, res, next) => {
   const t = await sequelize.transaction();
-  const {id} = req.params;
-  const data = await Sala.findOne({
-    where: {idsala: id},
-  },{transaction:t});
   try {
-    data.destroy();
-    res.status(200).send("1");
-  } catch {
-    res.status(400).send("Err");
+    const {id} = req.params;
+    if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
+     await Sala.destroy({
+      where: {idsala: id},
+    },{transaction:t});
+    await t.commit();
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback();
+    next(error)
   }
 };
 
