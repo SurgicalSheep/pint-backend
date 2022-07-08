@@ -62,6 +62,7 @@ io.use(function(socket, next){
 
     socket.on('disconnect',()=>{
         console.log("Disconnected")
+        socket.disconnect();
         socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
     })
 
