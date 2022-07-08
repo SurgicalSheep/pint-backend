@@ -18,7 +18,10 @@ const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken')
 //Sockets
-const io = require('socket.io')(server)
+const io = require('socket.io')(server,{
+    cors: {
+      origin: '*',
+    }})
 let socketsConnected = new Array()
 //authenticate socket
 io.use(function(socket, next){
@@ -50,6 +53,7 @@ io.use(function(socket, next){
   
     return next()
   });
+  //on connect
   io.on('connection', function(socket) {
     console.log("chegou")
     socketsConnected.push(socket)
