@@ -105,14 +105,13 @@ controllers.insertUtilizadorNotificacao = async (req, res) => {
     await noti.addUtilizadores(user, { transaction: t });
     const io = req.app.get('socketio');
     let socketsConnected = req.app.get('socketsConnected')
-    let userSocket = socketsConnected.map((x)=>{
+    socketsConnected.map((x)=>{
       if(x.idUser === id && x.env === env){
         x.emit('newNotificacao',{data:noti})
-        return x;
       }
     })
       await t.commit();
-        io.emit('feedbackUpdated',"feedbackUpdated")
+        io.emit('newNotificacao',"newNotificacao")
     res.sendStatus(204);
   } catch {
     await t.rollback();

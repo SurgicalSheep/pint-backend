@@ -53,7 +53,7 @@ controllers.insertFeedback = async(req, res) => {
     },{transaction:t});
          await t.commit()
          const io = req.app.get('socketio');
-        io.emit('newFeedback',{data:data})
+        io.emit('newFeedback',"newFeedback")
          res.status(200).send({data:data})
     }catch{
         await t.rollback()
