@@ -336,13 +336,22 @@ controllers.refreshToken = async (req, res, next) => {
 
 controllers.logout = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) throw createError.BadRequest();
+    const { refreshToken,env } = req.body;
+    if (!(refreshToken && env && (env === "web" || env === "mobile"))) throw createError.BadRequest();
     const id = await verifyRefreshToken(refreshToken);
-    await client.DEL(id);
+    const io = req.app.get('socketio');
+    const socketsConnected = req.app.get('socketsConnected');
+    //disconnect socket
+    let disconnectedSocket = socketsConnected.map((x)=>{
+      if(x.idUser === id && x.env === env){
+        x.disconnect()
+        return x;
+      }
+    })
+    socketsConnected = socketsConnected.filter(obj => obj.socket != disconnectedSocket.id);
+    await client.HDEL(id,env);
     res.sendStatus(204);
   } catch (err) {
-    console.log(err.message);
     next(err);
   }
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 var cors = require('cors')
 const app = express();
+const server = require('http').createServer(app)
 require('dotenv').config()
 require('./models/associations')
 require('./models/redisDatabase');
@@ -15,7 +16,65 @@ const pedidoRouters = require('./routes/pedidoRoute')
 const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
-//Configurações 
+const jwt = require('jsonwebtoken')
+//Sockets
+const io = require('socket.io')(server)
+let socketsConnected = new Array()
+//authenticate socket
+io.use(function(socket, next){
+    if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
+      jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
+        if (err) return next(createError.Unauthorized("Authentication error"));
+        if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)) return next(createError.Conflict("Already Connected"));
+        socket.idUser = payload.sub;
+        socket.decodedToken = payload;
+        socket.env = socket.handshake.query.env;
+        next();
+      });
+    }
+    else {
+        next(createError.Unauthorized("Something missing"));
+    }    
+  })
+  //disconnect socket on jwt expire
+  io.use((socket, next) => {
+    const decodedToken = socket.decodedToken
+
+    if (!decodedToken.exp) {
+      return next(createError.Unauthorized());
+    }
+    const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
+    const timeout = setTimeout(() => socket.disconnect(true), expiresIn)
+  
+    socket.on('disconnect', () => clearTimeout(timeout))
+  
+    return next()
+  });
+  io.on('connection', function(socket) {
+    console.log("chegou")
+    socketsConnected.push(socket)
+
+    socket.emit("Connected","Connected")
+
+    socket.on('disconnect',()=>{
+        console.log("Disconnected")
+        socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+    })
+
+    socket.on("error", (err) => {
+        if (err && err.message === "unauthorized event") {
+          socket.disconnect();
+        }
+    })
+
+    socket.on('test',()=>{
+        socketsConnected.map((x)=>{
+            console.log("id:"+x.id + " env" + x.env)
+        })
+    })
+  });
+app.set('socketio', io);
+app.set('socketsConnected',socketsConnected)
 
 app.use(cors())
 app.set('port', (process.env.PORT || 3000));
@@ -42,6 +101,6 @@ app.use((err,req,res,next) =>{
     res.status(status).send({data:err.message})
 })
 
-app.listen(app.get('port'), () => {
+server.listen(app.get('port'), () => {
     console.log("Start server on port " + app.get('port'))
 })
