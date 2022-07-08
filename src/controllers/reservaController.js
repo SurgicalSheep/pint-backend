@@ -255,5 +255,28 @@ controllers.freeSalas = async (req, res, next) => {
   }
 };
 
-//data + hora inicio + hora final + centro = salas disponiveis
+controllers.rangeReservasBySala = async (req, res, next) => {
+  try {
+    const { start, end, sala } = req.query;
+    if (!(start && end && sala)) {
+      return next(createError.BadRequest("Something missing"));
+    }
+    const val = await Reserva.findAll({
+      where:{
+        data:{[Op.between]: [new Date(start),new Date(end)]} 
+      },
+      include:[{
+        model:Sala,
+        where:{
+          idsala:sala
+        },
+        attributes:[]
+      }]
+    })
+    res.send({ data: val });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = controllers;

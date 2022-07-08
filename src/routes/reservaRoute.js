@@ -6,6 +6,7 @@ router.get('/list', reservaController.list);
 router.get('/search', reservaController.searchReservas);
 router.get('/range',reservaController.rangeReservas)
 router.get('/daysReserva',reservaController.daysWithReserva)
+router.get('/rangeReservasBySala',reservaController.rangeReservasBySala)
 router.get('/freeSalas',reservaController.freeSalas)
 router.get('/:id', reservaController.getReserva);
 router.post('/add', reservaController.insertReserva);
