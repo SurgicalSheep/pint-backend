@@ -49,6 +49,8 @@ controllers.insertFeedback = async(req, res) => {
         criado_em:req.body.criado_em
     },{transaction:t});
          await t.commit()
+         const io = req.app.get('socketio');
+        io.emit('newFeedback',{data:data})
          res.status(200).send({data:data})
     }catch{
         await t.rollback()
@@ -83,6 +85,8 @@ controllers.editFeedback = async(req, res) => {
             criado_em:req.body.criado_em
         },{ where: { idfeedback: req.params.id },transaction:t})
         await t.commit()
+        const io = req.app.get('socketio');
+        io.emit('feedbackUpdated',"feedbackUpdated")
         res.status(200).send("1")
     } catch (error) {
         await t.rollback()

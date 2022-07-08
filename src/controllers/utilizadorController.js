@@ -400,7 +400,8 @@ controllers.insertUtilizador = async (req, res, next) => {
         await user.save();
         await t.commit();
       }
-
+      const io = req.app.get('socketio');
+      io.emit('newUser',{data:user})
       res.send({ data: user });
     });
   } catch (error) {
@@ -524,6 +525,8 @@ controllers.editUtilizador = async (req, res, next) => {
         throw createError.Unauthorized()
       }
     }
+    const io = req.app.get('socketio');
+      io.emit('userUpdated',"userUpdated")
     res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();

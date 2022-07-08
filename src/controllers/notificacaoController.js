@@ -103,7 +103,16 @@ controllers.insertUtilizadorNotificacao = async (req, res) => {
     const user = await Utilizador.findByPk(req.body.idutilizador);
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
-    await t.commit();
+    const io = req.app.get('socketio');
+    let socketsConnected = req.app.get('socketsConnected')
+    let userSocket = socketsConnected.map((x)=>{
+      if(x.idUser === id && x.env === env){
+        x.emit('newNotificacao',{data:noti})
+        return x;
+      }
+    })
+      await t.commit();
+        io.emit('feedbackUpdated',"feedbackUpdated")
     res.sendStatus(204);
   } catch {
     await t.rollback();

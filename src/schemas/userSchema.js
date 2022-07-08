@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 const utilizadorSchema = Joi.object({
-  ncolaborador: Joi.number().integer().required(),
+  ncolaborador: Joi.string().required(),
 
   admin: Joi.boolean(),
 
