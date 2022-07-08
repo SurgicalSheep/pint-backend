@@ -72,9 +72,7 @@ io.use(function(socket, next){
     })
 
     socket.on('test',()=>{
-        socketsConnected.map((x)=>{
-            console.log("id:"+x.id + " env" + x.env)
-        })
+        socket.emit('newUser',"Nada")
     })
   });
 app.set('socketio', io);
