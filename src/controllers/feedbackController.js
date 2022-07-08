@@ -24,7 +24,10 @@ controllers.list = async(req, res) => {
           { model: Sala},
         ],
     });
-    res.json({data:data})
+    let x = { data };
+    const count = await Feedback.count();
+    x.count = count;
+    res.send(x);
 }
 controllers.getFeedback = async (req, res) => {
     const id = req.params.id;
