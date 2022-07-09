@@ -345,10 +345,11 @@ controllers.logout = async (req, res, next) => {
     let disconnectedSocket = socketsConnected.map((x)=>{
       if(x.idUser === id && x.env === env){
         x.disconnect()
+        socketsConnected = socketsConnected.filter(obj => obj.socket != disconnectedSocket.id);
         return x;
       }
     })
-    socketsConnected = socketsConnected.filter(obj => obj.socket != disconnectedSocket.id);
+
     await client.HDEL(id,env);
     res.sendStatus(204);
   } catch (err) {
