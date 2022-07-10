@@ -18,4 +18,9 @@ const sequelize = new Sequelize(process.env.DATABASECONNECTIONSTRING,{dialect:"p
   idle: 10000
 }});
 sequelize.authenticate();
+process.on('SIGINT', async() => {
+  console.log('Closing with cntrl c');
+  await sequelize.close();
+});
+
 module.exports = sequelize;

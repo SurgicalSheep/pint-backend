@@ -9,7 +9,7 @@ var Utilizador = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    ncolaborador: {type:Sequelize.STRING,allowNull: false, unique: true},
+    ncolaborador: {type:Sequelize.INTEGER,allowNull: false, unique: true},
     admin:{type:Sequelize.BOOLEAN,allowNull: false, defaultValue:false},
     nome: {type:Sequelize.STRING,allowNull: false},
     telemovel: {type:Sequelize.STRING,allowNull: false},

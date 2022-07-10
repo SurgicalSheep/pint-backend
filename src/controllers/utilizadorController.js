@@ -40,7 +40,7 @@ controllers.list = async (req, res, next) => {
       limit: limit,
       offset: offset,
       where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:{[Op.like]: '%' + pesquisa + '%'}}]}]
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
       },
       include: [
         {
@@ -81,7 +81,7 @@ controllers.list = async (req, res, next) => {
   });
     let x = { data };
     const count = await Utilizador.count({where:{
-      [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:{[Op.like]: '%' + pesquisa + '%'}}]}]
+      [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
     }});
     x.count = count;
     res.send(x);
