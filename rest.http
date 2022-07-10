@@ -5,7 +5,7 @@ GET http://localhost:3000/utilizador/2/reservas
 
 ###
 GET http://localhost:3000/utilizador/getUserByToken
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU4MjczMjUsImV4cCI6MTY1NTgyNzYyNSwic3ViIjoiMjMifQ.22fDpO3U48hQM9QaoAHARWqJuyE6-hJYyMBAE6XNnJU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTcyODM2MzUsImV4cCI6MTY1NzI4MzkzNSwic3ViIjoiMjYifQ.ALWuMee1ypV0t8jlx7xkNOXHsvBZtITTaKaVj3zF2qg
 
 ###
 GET http://localhost:3000/utilizador/3
@@ -25,13 +25,14 @@ Content-Type: application/json
 
 {
     "env":"web",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsIn5cCI6IkpXVCJ9.eyJpYXQiOjE2NTYxMDAwODksImV4cCI6MTY1NjcwNDg4OSwic3ViIjoiMjYifQ.0x9n_blXlsKTC_hLI5vlBSRJtsUFRciuGfZeOotyohk"
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTc0NDUyOTcsImV4cCI6MTY1ODA1MDA5Nywic3ViIjoiMjYifQ.lx25mu8c6u0HmqZnkwOnmrFMaoSCNRpASfo-P-0JaMs"
 }
 
 ###
-DELETE  http://localhost:3000/utilizador/logout
+POST  http://localhost:3000/utilizador/logout
 Content-Type: application/json
 
 {
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTU5OTU1NDEsImV4cCI6MTY1NjYwMDM0MSwic3ViIjoiMjYifQ.aPkL4l-WCk492GqUdK_4U-Z6nSAmYwOLWHn2221zHkc"
+    "env":"web",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTc0NDc2MjUsImV4cCI6MTY1ODA1MjQyNSwic3ViIjoiMjYifQ.00aU9Q2Kfk14Jm6kZUP4UAuPHgI_dtynySoW4dUlyPo"
 }

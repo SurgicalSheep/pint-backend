@@ -202,8 +202,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
   try {
     await Utilizador.bulkCreate(
       [
-        {
-          ncolaborador: "132",
+        /*{
           admin: false,
           nome: "Andrioleto",
           idcentro: 1,
@@ -212,7 +211,6 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           password: await bcrypt.hash("123123", 10),
         },
         {
-          ncolaborador: "133",
           admin: true,
           nome: "Consertino",
           idcentro: 1,
@@ -220,6 +218,22 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           email: "consertino@admin.com",
           password: await bcrypt.hash("123123", 10),
         },
+        {
+          admin: true,
+          nome: "Alex",
+          idcentro: 1,
+          telemovel: "931233127",
+          email: "alex@gmail.com",
+          password: await bcrypt.hash("321321", 10),
+        },
+        {
+          admin: false,
+          nome: "Rodrigo Rodrigues",
+          idcentro: 1,
+          telemovel: "931233123",
+          email: "rodrigorodrigues@softinsa.com",
+          password: await bcrypt.hash("123123", 10),
+        }*/
       ],
       { transaction: t }
     );

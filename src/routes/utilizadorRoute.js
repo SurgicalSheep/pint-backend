@@ -38,7 +38,7 @@ router.get('/count',verifyAccessToken,isAdmin,utilizadorController.count)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
-router.post('/addTestUsers',verifyAccessToken,isAdmin, utilizadorController.insertTestUtilizadores);
+//router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);
