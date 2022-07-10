@@ -1,10 +1,12 @@
 const controllers = {};
 var Notificacao = require("../models/notificacao");
-var UtilizadorNotificacao = require("../models/utilizadoresNotificacao");
 var sequelize = require("../models/database");
 const Utilizador = require("../models/utilizador");
+const UtilizadoresNotificaco = require('../models/utilizadoresNotificacao')
 const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
 const fs = require("fs");
+const { Op } = require("sequelize");
+const createError = require('http-errors')
 
 controllers.list = async (req, res) => {
   let {limit,offset} = req.query;
@@ -84,7 +86,6 @@ controllers.insertNotificacao = async (req, res, next) => {
         titulo: req.body.titulo,
         descricao: req.body.descricao,
         hora: req.body.hora,
-        recebida: req.body.recebida,
         idutilizador: req.body.idutilizador,
       },
       { transaction: t }
@@ -155,7 +156,8 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
             { model: Utilizador.scope("noPassword"), as: "utilizador" },
           ],
           through: {
-            attributes: [],
+            as:"estadoNotificacao",
+            attributes: ["recebida"],
             where: { idutilizador: req.params.id },
           },
           where: {},
@@ -163,21 +165,25 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
       ],
     });
     
-    data[0].dataValues.notificacoes.forEach((x, i) => {
-      if (x.dataValues.utilizador) {
-        if (x.dataValues.utilizador.dataValues.foto) {
-          let idk = fs.readFileSync(
-            x.dataValues.utilizador.dataValues.foto,
-            "base64",
-            (err, val) => {
-              if (err) return err;
-              return val;
-            }
-          );
-          x.dataValues.utilizador.dataValues.fotoConv = idk;
+    if(data.length > 0){
+      data[0].dataValues.notificacoes.forEach((x, i) => {
+        if (x.dataValues.utilizador) {
+          if (x.dataValues.utilizador.dataValues.foto) {
+            let idk = fs.readFileSync(
+              x.dataValues.utilizador.dataValues.foto,
+              "base64",
+              (err, val) => {
+                if (err) return err;
+                return val;
+              }
+            );
+            x.dataValues.utilizador.dataValues.fotoConv = idk;
+          }
         }
-      }
-    });
+      });
+    }
+
+    
     res.send({ data: data });
   } catch (error) {
     next(error);
@@ -186,7 +192,7 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
 
 controllers.editNotificacao = async (req, res, next) => {
   const { id } = req.params;
-  if (Number.isInteger(+id)) {
+  if (isNaN(id)) next(createError.BadRequest("Id is not a Integer"));
     const t = await sequelize.transaction();
     try {
       const result = await editNotificacaoSchema.validateAsync(req.body);
@@ -201,27 +207,20 @@ controllers.editNotificacao = async (req, res, next) => {
       await t.rollback();
       return next(error);
     }
-  } else {
-    next(createError.BadRequest("Id is not a Integer"));
-  }
 };
 
-function fotoConv(data) {
-  data[0].dataValues.notificacoes.forEach((x,i) => {
-    if (x.dataValues.utilizador) {
-      if (x.dataValues.utilizador.dataValues.foto) {
-        let idk = fs.readFileSync(
-          x.dataValues.utilizador.dataValues.foto,
-          "base64",
-          (err, val) => {
-            if (err) return err;
-            return val;
-          }
-        );
-        x.dataValues.utilizador.dataValues.fotoConv = idk;
-      }
-    }
-  });
-}
+controllers.notificationReceived = async (req, res, next) => {
+  const { idutilizador,idnotificacao } = req.body;
+  if (isNaN(idutilizador) || isNaN(idnotificacao)) return next(createError.BadRequest("Ids must be integer"));
+  const t = await sequelize.transaction()
+  try {
+    await UtilizadoresNotificaco.update({recebida:true},{where:{[Op.and]:[{idnotificacao:idnotificacao},{idutilizador:idutilizador}]},transaction:t})
+    await t.commit()
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback()
+    next(error)
+  }
+};
 
 module.exports = controllers;
