@@ -46,5 +46,5 @@ router.post('/logout', utilizadorController.logout);
 router.delete('/:id/foto',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizadorFoto);
 router.delete('/:id',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizador);
 router.put('/:id', verifyAccessToken,upload.single('foto'), utilizadorController.editUtilizador);
-router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);
+router.post('/bulkAdd',verifyAccessToken,isAdmin, utilizadorController.bulkInsertUtilizador);
 module.exports = router;

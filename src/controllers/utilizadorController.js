@@ -202,7 +202,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
   try {
     await Utilizador.bulkCreate(
       [
-        /*{
+        {
           admin: false,
           nome: "Andrioleto",
           idcentro: 1,
@@ -233,7 +233,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           telemovel: "931233123",
           email: "rodrigorodrigues@softinsa.com",
           password: await bcrypt.hash("123123", 10),
-        }*/
+        }
       ],
       { transaction: t }
     );

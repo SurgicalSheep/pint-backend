@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const {verifyAccessToken, isAdmin} = require("../middlewares/jwt")
 
 const reservaController = require('../controllers/reservaController')
-router.get('/list', reservaController.list);
-router.get('/search', reservaController.searchReservas);
-router.get('/range',reservaController.rangeReservas)
-router.get('/daysReserva',reservaController.daysWithReserva)
-router.get('/rangeReservasBySala',reservaController.rangeReservasBySala)
-router.get('/freeSalas',reservaController.freeSalas)
-router.get('/:id', reservaController.getReserva);
-router.post('/add', reservaController.insertReserva);
-router.delete('/:id', reservaController.deleteReserva);
-router.put('/:id', reservaController.editReserva);
+router.get('/list',verifyAccessToken, reservaController.list);
+router.get('/search',verifyAccessToken, reservaController.searchReservas);
+router.get('/range',verifyAccessToken,reservaController.rangeReservas)
+router.get('/daysReserva',verifyAccessToken,reservaController.daysWithReserva)
+router.get('/rangeReservasBySala',verifyAccessToken,reservaController.rangeReservasBySala)
+router.get('/freeSalas',verifyAccessToken,reservaController.freeSalas)
+router.get('/:id',verifyAccessToken, reservaController.getReserva);
+router.post('/add',verifyAccessToken, reservaController.insertReserva);
+router.delete('/:id',verifyAccessToken.apply, reservaController.deleteReserva);
+router.put('/:id',verifyAccessToken, reservaController.editReserva);
 module.exports = router;

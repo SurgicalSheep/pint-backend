@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const {verifyAccessToken, isAdmin} = require("../middlewares/jwt")
 
 const salaController = require('../controllers/salaController')
-router.get('/list:limit?:offset?', salaController.list);
-router.get('/:id', salaController.getSala);
-router.get('/:id/reservas',salaController.getSalaReservas)
-router.post('/add', salaController.insertSala);
-router.delete('/:id', salaController.deleteSala);
-router.put('/:id', salaController.editSala);
+router.get('/list:limit?:offset?',verifyAccessToken, salaController.list);
+router.get('/:id',verifyAccessToken, salaController.getSala);
+router.get('/:id/reservas',verifyAccessToken,salaController.getSalaReservas)
+router.post('/add',verifyAccessToken, isAdmin, salaController.insertSala);
+router.delete('/:id',verifyAccessToken, isAdmin, salaController.deleteSala);
+router.put('/:id',verifyAccessToken, isAdmin, salaController.editSala);
 module.exports = router;
