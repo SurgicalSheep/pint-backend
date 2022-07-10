@@ -339,13 +339,12 @@ controllers.logout = async (req, res, next) => {
     const { refreshToken,env } = req.body;
     if (!(refreshToken && env && (env === "web" || env === "mobile"))) throw createError.BadRequest();
     const id = await verifyRefreshToken(refreshToken);
-    const io = req.app.get('socketio');
-    const socketsConnected = req.app.get('socketsConnected');
+    let socketsConnected = req.app.get('socketsConnected');
     //disconnect socket
-    let disconnectedSocket = socketsConnected.map((x)=>{
+    await socketsConnected.map((x)=>{
       if(x.idUser === id && x.env === env){
         x.disconnect()
-        socketsConnected = socketsConnected.filter(obj => obj.socket != disconnectedSocket.id);
+        socketsConnected = socketsConnected.filter(obj => obj.socket != x.id);
         return x;
       }
     })

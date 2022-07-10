@@ -47,7 +47,7 @@ io.use(function(socket, next){
       return next(createError.Unauthorized());
     }
     const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
-    const timeout = setTimeout(() => socket.disconnect(true), expiresIn)
+    const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
   
     socket.on('disconnect', () => clearTimeout(timeout))
   
@@ -55,7 +55,6 @@ io.use(function(socket, next){
   });
   //on connect
   io.on('connection', function(socket) {
-    console.log("chegou")
     socketsConnected.push(socket)
 
     socket.emit("Connected","Connected")
@@ -69,12 +68,19 @@ io.use(function(socket, next){
     socket.on("error", (err) => {
         if (err && err.message === "unauthorized event") {
           socket.disconnect();
+          socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
         }
     })
 
     socket.on('test',()=>{
         socket.emit('newUser',"Nada")
     })
+
+    socket.on('nmrSockets',()=>{
+      socket.emit('nmrSockets',socketsConnected.map((x)=>{
+        console.log(x.id+" "+x.env)
+      }))
+  })
   });
 app.set('socketio', io);
 app.set('socketsConnected',socketsConnected)
