@@ -39,11 +39,11 @@ controllers.list = async (req, res, next) => {
       }]
     });
   }else{
-    if(isNaN(lotacao)) return next(createError.BadRequest("Lotacao not a number"))
+    if(isNaN(lotacao[0])|| isNaN(lotacao[1])) return next(createError.BadRequest("Lotacao not a number"))
     data = await Sala.findAll({
       limit: limit,
       offset: offset,
-      lotacao:lotacao,
+      lotacao:{[Op.between]:[lotacao[0],lotacao[1]]},
       pesquisa:{[Op.substring]:pesquisa},
       include:[{
         model:Centro,
