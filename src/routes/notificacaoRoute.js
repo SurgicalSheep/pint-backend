@@ -3,7 +3,7 @@ const router = express.Router();
 const {verifyAccessToken, isAdmin} = require("../middlewares/jwt")
 
 const notificacaoController = require('../controllers/notificacaoController')
-router.get('/list',verifyAccessToken.apply, notificacaoController.list);
+router.get('/list',verifyAccessToken, notificacaoController.list);
 router.get('/utilizador/:id',verifyAccessToken, notificacaoController.getNotificacoesUtilizador);
 router.get('/top10',verifyAccessToken, notificacaoController.getTop10Notificacao);
 router.get('/:id',verifyAccessToken, notificacaoController.getNotificacao);

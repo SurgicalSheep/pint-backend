@@ -98,25 +98,25 @@ controllers.insertNotificacao = async (req, res, next) => {
   }
 };
 
-controllers.insertUtilizadorNotificacao = async (req, res) => {
+controllers.insertUtilizadorNotificacao = async (req, res,next) => {
   const t = await sequelize.transaction();
   try {
     const user = await Utilizador.findByPk(req.body.idutilizador);
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
     const io = req.app.get('socketio');
-    let socketsConnected = req.app.get('socketsConnected')
+    /*let socketsConnected = req.app.get('socketsConnected')
     socketsConnected.map((x)=>{
       if(x.idUser === id && x.env === env){
         x.emit('newNotificacao',{data:noti})
       }
-    })
+    })*/
       await t.commit();
         io.emit('newNotificacao',"newNotificacao")
     res.sendStatus(204);
-  } catch {
+  } catch (error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
 

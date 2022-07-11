@@ -25,8 +25,12 @@ let socketsConnected = new Array()
 io.use(function(socket, next){
     if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
       jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
-        if (err) return next(createError.Unauthorized("Authentication error"));
-        if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)) return next(createError.Conflict("Already Connected"));
+        if (err){
+          return next(createError.Unauthorized("Authentication error"));
+        } 
+        if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)){
+          return next(createError.Conflict("Already Connected"));
+        } 
         socket.idUser = payload.sub;
         socket.decodedToken = payload;
         socket.env = socket.handshake.query.env;
@@ -46,6 +50,21 @@ io.use(function(socket, next){
     }
     const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
     const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
+  
+    socket.on('disconnect', () => clearTimeout(timeout))
+  
+    return next()
+  });
+  //send request refresh
+  io.use((socket, next) => {
+    const decodedToken = socket.decodedToken
+
+    if (!decodedToken.exp) {
+      return next(createError.Unauthorized());
+    }
+    const expiresIn = ((decodedToken.exp - Date.now() / 1000) * 1000)-120000
+    console.log(expiresIn)
+    const timeout = setTimeout(() => {socket.emit("requestRefresh","requestRefresh")}, expiresIn)
   
     socket.on('disconnect', () => clearTimeout(timeout))
   
