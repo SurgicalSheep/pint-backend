@@ -25,7 +25,7 @@ const signRefreshToken = async (id,env) => {
   return new Promise((resolve, reject) => {
     const payload = {};
     const options = {
-      expiresIn: "7d",
+      expiresIn: "30s",
       subject: String(id),
     };
     jwt.sign(
