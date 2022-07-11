@@ -11,7 +11,7 @@ const searchNotificacaoSchema = Joi.object({
     lotacao: Joi.number().integer().allow(null),
     descricao: Joi.string().min(5).allow(null,""),
     estado: Joi.boolean().required().default(true),
-    justificacaoestado: Joi.string().min(5).allow(null,""),
+    justificacao: Joi.string().min(5).allow(null,""),
     idcentro: Joi.number().integer().required()
   });
 
@@ -21,7 +21,7 @@ const searchNotificacaoSchema = Joi.object({
     lotacao: Joi.number().integer().optional(),
     descricao: Joi.string().min(5).allow("").optional(),
     estado: Joi.boolean().optional(),
-    justificacaoestado: Joi.string().min(5).allow("").optional(),
+    justificacao: Joi.string().min(5).allow("").optional(),
     idcentro: Joi.number().integer().optional()
   });
   
