@@ -8,7 +8,7 @@ router.get('/utilizador/:id',verifyAccessToken, notificacaoController.getNotific
 router.get('/top10',verifyAccessToken, notificacaoController.getTop10Notificacao);
 router.get('/:id',verifyAccessToken, notificacaoController.getNotificacao);
 router.post('/add/utilizador',verifyAccessToken, notificacaoController.insertUtilizadorNotificacao);
-router.post('/received', notificacaoController.notificationReceived);
+router.post('/received',verifyAccessToken, notificacaoController.notificationReceived);
 router.post('/add',verifyAccessToken, notificacaoController.insertNotificacao);
 router.put('/:id',verifyAccessToken, notificacaoController.editNotificacao);
 router.delete('/:id',verifyAccessToken, notificacaoController.deleteNotificacao);
