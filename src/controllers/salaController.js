@@ -21,7 +21,7 @@ controllers.list = async (req, res, next) => {
     centro = new Array(0)
     const centros = await Centro.findAll({attributes:["idcentro"]});
     centros.map((x,i)=>{
-      centro[i] = x.dataValues.idcentro
+      centro[i] = Number(x.dataValues.idcentro)
     })
   }
   if(!pesquisa) pesquisa="";
@@ -34,7 +34,7 @@ controllers.list = async (req, res, next) => {
       include:[{
         model:Centro,
         where:{
-          idcentro:{[Op.in]:[centro]}
+          idcentro:{[Op.in]:centro}
         }
       }]
     });

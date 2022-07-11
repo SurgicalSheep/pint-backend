@@ -20,8 +20,6 @@ const createError = require("http-errors");
 controllers.list = async (req, res, next) => {
   try {
     let {centro,pesquisa,limit,offset} = req.query
-    if(!pesquisa)
-    pesquisa = ""
     if (!limit || limit == 0) {
       limit = 5;
     }
@@ -36,32 +34,63 @@ controllers.list = async (req, res, next) => {
       })
     }
     let centroInt = centro.map((x)=>{return Number(x)})
-    const data = await Utilizador.scope("noIdCentro").findAll({
-      limit: limit,
-      offset: offset,
-      where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
-      },
-      include: [
-        {
-          model: Centro,
+    let data;
+    if (pesquisa && !isNaN(pesquisa)) {
+      data = await Utilizador.scope("noIdCentro").findAll({
+        limit: limit,
+        offset: offset,
+        where:{
+          [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
         },
-      ],
-      attributes: {
         include: [
-          [
-            sequelize.literal(
-              "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
-            ),
-            "role",
-          ],
+          {
+            model: Centro,
+          },
         ],
-        exclude: ["password"],
-      },
-      order: [
-        ['idutilizador', 'DESC']
-    ]
-    });
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ],
+          exclude: ["password"],
+        },
+        order: [
+          ['idutilizador', 'DESC']
+      ]
+      });
+    } else {
+      if(!pesquisa) pesquisa=""
+      data = await Utilizador.scope("noIdCentro").findAll({
+        limit: limit,
+        offset: offset,
+        where:{
+          [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}}]}]
+        },
+        include: [
+          {
+            model: Centro,
+          },
+        ],
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ],
+          exclude: ["password"],
+        },
+        order: [
+          ['idutilizador', 'DESC']
+      ]
+      });
+    }
     data.forEach((x, i) => {
       if (x.dataValues.foto) {
         try {
@@ -80,9 +109,16 @@ controllers.list = async (req, res, next) => {
       }
   });
     let x = { data };
-    const count = await Utilizador.count({where:{
-      [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
-    }});
+    let count;
+    if(pesquisa && !isNaN(pesquisa)){
+      count = await Utilizador.count({where:{
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
+      }});
+    }else{
+      count = await Utilizador.count({where:{
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}}]}]
+      }});
+    }
     x.count = count;
     res.send(x);
   } catch (error) {
@@ -166,7 +202,12 @@ controllers.bulkInsertUtilizador = async (req, res, next) => {
     res.sendStatus(204)
   } catch (error) {
     await t.rollback();
-    next(createError.InternalServerError())
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) throw err;
+      });
+    }
+    next(error)
   }
 };
 
