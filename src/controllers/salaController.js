@@ -30,7 +30,7 @@ controllers.list = async (req, res, next) => {
     data = await Sala.findAll({
       limit: limit,
       offset: offset,
-      pesquisa:{[Op.substring]:pesquisa},
+      nome:{[Op.substring]:pesquisa},
       include:[{
         model:Centro,
         where:{
@@ -44,18 +44,36 @@ controllers.list = async (req, res, next) => {
       limit: limit,
       offset: offset,
       lotacao:{[Op.between]:[lotacao[0],lotacao[1]]},
-      pesquisa:{[Op.substring]:pesquisa},
+      nome:{[Op.substring]:pesquisa},
       include:[{
         model:Centro,
         where:{
-          idcentro:{[Op.in]:[centro]}
+          idcentro:{[Op.in]:centro}
         }
       }]
     });
   }
-  
-  let x = {data};
-  const count = await Sala.count();   
+  let count
+  if(!lotacao){
+    count = await Sala.count({nome:{[Op.substring]:pesquisa},include:[{
+      model:Centro,
+      where:{
+        idcentro:{[Op.in]:centro}
+      }
+    }]})  
+  }else{
+    count = await Sala.count({
+      lotacao:{[Op.between]:[lotacao[0],lotacao[1]]},
+      nome:{[Op.substring]:pesquisa},
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:centro}
+        }
+      }]
+    })
+  }
+  let x = {data}; 
   x.count = count;
   
   res.send(x);
