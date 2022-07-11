@@ -8,8 +8,9 @@ const createError = require("http-errors")
 const {createSalaSchema,editSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
 
-controllers.list = async (req, res) => {
-  let {limit,offset,centro,pesquisa} = req.query
+controllers.list = async (req, res, next) => {
+  try {
+    let {limit,offset,centro,pesquisa,lotacao} = req.query
   if(!limit || limit == 0){
     limit = 5;
   }
@@ -23,16 +24,45 @@ controllers.list = async (req, res) => {
       centro[i] = x.dataValues.idcentro
     })
   }
-  const data = await Sala.findAll({
-    limit: limit,
-    offset: offset,
-    include:[{model:Centro}]
-  });
+  if(!pesquisa) pesquisa="";
+  let data
+  if(!lotacao){
+    data = await Sala.findAll({
+      limit: limit,
+      offset: offset,
+      pesquisa:{[Op.substring]:pesquisa},
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:[centro]}
+        }
+      }]
+    });
+  }else{
+    if(isNaN(lotacao)) return next(createError.BadRequest("Lotacao not a number"))
+    data = await Sala.findAll({
+      limit: limit,
+      offset: offset,
+      lotacao:lotacao,
+      pesquisa:{[Op.substring]:pesquisa},
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:[centro]}
+        }
+      }]
+    });
+  }
+  
   let x = {data};
   const count = await Sala.count();   
   x.count = count;
   
   res.send(x);
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.count = async (req, res) => {
   const data = await Sala.Count();
