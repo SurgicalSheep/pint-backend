@@ -28,7 +28,10 @@ controllers.list = async (req, res) => {
       },
     ],
   });
-  res.send({ data: data });
+  const count = await Notificacao.count()
+  let x = {data}
+  x.count = count
+  res.send(x);
 };
 
 controllers.getTop10Notificacao = async (req, res) => {
@@ -182,9 +185,30 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
         }
       });
     }
+    
+    const count = await Utilizador.count({
+      attributes: [],
+      where: {},
+      include: [
+        {
+          model: Notificacao,
+          include: [
+            { model: Utilizador.scope("noPassword"), as: "utilizador" },
+          ],
+          through: {
+            as:"estadoNotificacao",
+            attributes: ["recebida"],
+            where: { idutilizador: req.params.id },
+          },
+          where: {},
+        },
+      ],
+    });
+    let x = {data}
+    x.count = count
 
     
-    res.send({ data: data });
+    res.send(x);
   } catch (error) {
     next(error);
   }

@@ -16,6 +16,8 @@ const {
 } = require("../middlewares/jwt");
 const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schemas/userSchema");
 const createError = require("http-errors");
+const xlsx = require('xlsx');
+const EmpregadoLimpeza = require("../models/empregadoLimpeza");
 
 controllers.list = async (req, res, next) => {
   try {
@@ -197,7 +199,70 @@ controllers.getUtilizador = async (req, res, next) => {
 controllers.bulkInsertUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    await Utilizador.bulkCreate(req.body, { transaction: t });
+    const workbook = xlsx.readFile(req.file.path)
+    let worksheet = workbook.Sheets[workbook.SheetNames[0]]
+    let worksheetLimpeza = workbook.Sheets[workbook.SheetNames[1]]
+    const users = [];
+    const usersLimpeza = [];
+    let user = {};
+    for(let cell in worksheet){
+      const cellAsString = cell.toString();
+      if(cellAsString[1] !== 'r' && cellAsString !== 'm' && cellAsString[1] > 1){
+        if(cellAsString[0] === 'A'){
+          user.admin = worksheet[cell].v;
+        }
+        if(cellAsString[0] === 'B'){
+          user.nome = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'C'){
+          user.telemovel = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'D'){
+          user.email = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'E'){
+          user.password = await bcrypt.hash((worksheet[cell].v).toString(),10)
+        }
+        if(cellAsString[0] === 'F'){
+          user.idcentro = worksheet[cell].v
+          users.push(user);
+          user = {}
+        }
+      }
+    }
+    for(let cell in worksheetLimpeza){
+      const cellAsString = cell.toString();
+      if(cellAsString[1] !== 'r' && cellAsString !== 'm' && cellAsString[1] > 1){
+        if(cellAsString[0] === 'A'){
+          user.admin = worksheetLimpeza[cell].v;
+        }
+        if(cellAsString[0] === 'B'){
+          user.nome = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'C'){
+          user.telemovel = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'D'){
+          user.email = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'E'){
+          user.password = await bcrypt.hash((worksheetLimpeza[cell].v).toString(),10)
+        }
+        if(cellAsString[0] === 'F'){
+          user.idcentro = worksheetLimpeza[cell].v
+          usersLimpeza.push(user);
+          user = {}
+        }
+      }
+    }
+
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) return err;
+      });
+    }
+    await Utilizador.bulkCreate(users,{transaction:t})
+    await EmpregadoLimpeza.bulkCreate(usersLimpeza,{transaction:t})
     await t.commit();
     res.sendStatus(204)
   } catch (error) {
