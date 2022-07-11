@@ -77,9 +77,12 @@ io.use(function(socket, next){
     socket.emit("Connected","Connected")
 
     socket.on('disconnect',()=>{
-        console.log("Disconnected")
-        socket.disconnect();
         socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+    })
+
+    socket.on('setOffline',()=>{
+      console.log("Disconnected")
+      socket.disconnect();
     })
 
     socket.on("error", (err) => {
