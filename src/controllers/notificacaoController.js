@@ -147,29 +147,10 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
     if (!offset) {
       offset = 0;
     }
-    const data = await Utilizador.findAll({
-      limit:limit,
-      offset:offset,
-      attributes: [],
-      where: {},
-      include: [
-        {
-          model: Notificacao,
-          include: [
-            { model: Utilizador.scope("noPassword"), as: "utilizador" },
-          ],
-          through: {
-            as:"estadoNotificacao",
-            attributes: ["recebida"],
-            where: { idutilizador: req.params.id },
-          },
-          where: {},
-        },
-      ],
-    });
-    
+    const utilizador = await Utilizador.findByPk(req.params.id)
+    const data = await utilizador.getNotificacoes({limit:limit,joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
     if(data.length > 0){
-      data[0].dataValues.notificacoes.forEach((x, i) => {
+      data.forEach((x, i) => {
         if (x.dataValues.utilizador) {
           if (x.dataValues.utilizador.dataValues.foto) {
             let idk = fs.readFileSync(
@@ -239,6 +220,20 @@ controllers.notificationReceived = async (req, res, next) => {
   const t = await sequelize.transaction()
   try {
     await UtilizadoresNotificaco.update({recebida:true},{where:{[Op.and]:[{idnotificacao:idnotificacao},{idutilizador:idutilizador}]},transaction:t})
+    await t.commit()
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback()
+    next(error)
+  }
+};
+
+controllers.allNotificationReceived = async (req, res, next) => {
+  const { idutilizador } = req.body;
+  if (isNaN(idutilizador)) return next(createError.BadRequest("Id must be integer"));
+  const t = await sequelize.transaction()
+  try {
+    await UtilizadoresNotificaco.update({recebida:true},{where:{idutilizador:idutilizador},transaction:t})
     await t.commit()
     res.sendStatus(204)
   } catch (error) {
