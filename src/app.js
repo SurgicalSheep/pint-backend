@@ -23,6 +23,10 @@ const io = require('socket.io')(server,{
 let socketsConnected = new Array()
 //authenticate socket
 io.use(function(socket, next){
+  if(socket.handshake.query && socket.handshake.query.env && socket.handshake.query.env === "tablet"){
+    socket.env = socket.handshake.query.env
+    next();
+  }else{
     if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
       jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
         if (err){
@@ -40,9 +44,14 @@ io.use(function(socket, next){
     else {
         next(createError.Unauthorized("Something missing"));
     }    
+  }
+    
   })
   //disconnect socket on jwt expire
   io.use((socket, next) => {
+    if(socket.env == "tablet"){
+      return next();
+    }
     const decodedToken = socket.decodedToken
 
     if (!decodedToken.exp) {
@@ -57,6 +66,9 @@ io.use(function(socket, next){
   });
   //send request refresh
   io.use((socket, next) => {
+    if(socket.env == "tablet"){
+      return next();
+    }
     const decodedToken = socket.decodedToken
 
     if (!decodedToken.exp) {
