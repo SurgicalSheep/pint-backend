@@ -1,8 +1,6 @@
 const Joi = require("joi");
 
 const utilizadorSchema = Joi.object({
-  ncolaborador: Joi.string().required(),
-
   admin: Joi.boolean(),
 
   nome: Joi.string().min(3).max(30).required(),
@@ -22,8 +20,6 @@ const utilizadorSchema = Joi.object({
 
   verificado: Joi.boolean(),
 
-  token: Joi.string(),
-
   foto:Joi.string().allow(null,''),
 
   idcentro:Joi.number().integer().required()
@@ -35,39 +31,36 @@ const editUtilizador = Joi.object({
     telemovel: Joi.string()
       .regex(/^[0-9]{9}$/)
       .required()
-      .messages({ "string.pattern.base": `telemovel must be 9 digit number` }),
+      .messages({ "string.pattern.base": `telemovel must be 9 digit number` }).optional(),
   
     password: Joi.string().min(3).required(),
   
-    foto:Joi.string().allow(null)
+    foto:Joi.string().allow(null).optional()
   });
 
   const editUtilizadorAdmin = Joi.object({
-    ncolaborador: Joi.number().integer(),
+    admin: Joi.boolean().optional(),
   
-    admin: Joi.boolean(),
-  
-    nome: Joi.string().alphanum().min(3).max(30),
+    nome: Joi.string().alphanum().min(3).max(30).optional(),
   
     telemovel: Joi.string()
       .regex(/^[0-9]{9}$/)
-      .messages({ "string.pattern.base": `telemovel must be 9 digit number` }),
+      .messages({ "string.pattern.base": `telemovel must be 9 digit number` }).optional(),
   
-    email: Joi.string().email().lowercase(),
+    email: Joi.string().email().lowercase().optional(),
   
-    password: Joi.string().min(3),
+    password: Joi.string().min(3).optional(),
   
-    estado: Joi.boolean(),
+    estado: Joi.boolean().optional(),
   
-    firstlogin: Joi.boolean(),
+    firstlogin: Joi.boolean().optional(),
   
-    verificado: Joi.boolean(),
+    verificado: Joi.boolean().optional(),
   
-    token: Joi.string(),
   
-    foto:Joi.string().allow(null),
+    foto:Joi.string().allow(null,"").optional(),
   
-    idcentro:Joi.number().integer()
+    idcentro:Joi.number().integer().optional()
   });
 
 module.exports = {
