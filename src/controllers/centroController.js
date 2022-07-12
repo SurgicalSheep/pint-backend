@@ -163,8 +163,17 @@ controllers.deleteCentro = async (req, res, next) => {
 };
 controllers.getSalasCentro = async (req, res, next) => {
   const { id } = req.params;
+  let {limit,offset} = req.query
+  if (!limit || limit == 0) {
+    limit = 5;
+  }
+  if (!offset) {
+    offset = 0;
+  }
   if (Number.isInteger(+id)) {
     const data = await Centro.findAll({
+      limit:limit,
+      offset:offset,
       where: { idcentro: id },
       include: [
         {
@@ -173,7 +182,20 @@ controllers.getSalasCentro = async (req, res, next) => {
         },
       ],
     });
-    res.send({ data: data });
+    const count = await Centro.count({
+      limit:limit,
+      offset:offset,
+      where: { idcentro: id },
+      include: [
+        {
+          model: Sala.scope("noIdCentro"),
+          where: {},
+        },
+      ],
+    });
+    let x = {data}
+    x.count = count
+    res.send(x);
   } else {
     return next(createError.BadRequest("Id is not a Integer"));
   }
@@ -218,4 +240,5 @@ controllers.deleteCentroImagem = async (req, res, next) => {
     next(error);
   }
 };
+
 module.exports = controllers;
