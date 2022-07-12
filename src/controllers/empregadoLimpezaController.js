@@ -140,24 +140,26 @@ controllers.editEmpregadoLimpeza = async (req, res) => {
   if (Number.isInteger(+id)) {
     const t = await sequelize.transaction();
     try {
-      await EmpregadoLimpeza.update(
-        {
-          ncolaborador: req.body.ncolaborador,
-          admin: req.body.admin,
-          nome: req.body.nome,
-          idcentro: req.body.idcentro,
-          telemovel: req.body.telemovel,
-          email: req.body.email,
-          password: req.body.password,
-          estado: req.body.estado,
-          firstlogin: req.body.firstlogin,
-          verificado: req.body.verificado,
-          token: req.body.token,
-          foto: req.body.foto,
-          disponibilidade: req.body.disponibilidade,
-        },
-        { where: { idutilizador: id }, transaction: t }
-      );
+      bcrypt.hash(req.body.password, 10, async function (err, hash) {
+        await EmpregadoLimpeza.update(
+          {
+            admin: req.body.admin,
+            nome: req.body.nome,
+            idcentro: req.body.idcentro,
+            telemovel: req.body.telemovel,
+            email: req.body.email,
+            password: hash,
+            estado: req.body.estado,
+            firstlogin: req.body.firstlogin,
+            verificado: req.body.verificado,
+            token: req.body.token,
+            foto: req.body.foto,
+            disponibilidade: req.body.disponibilidade,
+          },
+          { where: { idutilizador: id }, transaction: t }
+        );
+      })
+      
       await t.commit();
       res.status(200).send("Ok");
     } catch (error) {
@@ -171,29 +173,48 @@ controllers.editEmpregadoLimpeza = async (req, res) => {
 controllers.insertEmpregadoLimpeza = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const data = await EmpregadoLimpeza.create(
-      {
-        ncolaborador: req.body.ncolaborador,
-        admin: req.body.admin,
-        nome: req.body.nome,
-        idcentro: req.body.idcentro,
-        telemovel: req.body.telemovel,
-        email: req.body.email,
-        password: req.body.password,
-        estado: req.body.estado,
-        firstlogin: req.body.firstlogin,
-        verificado: req.body.verificado,
-        token: req.body.token,
-        foto: req.body.foto,
-        disponibilidade: req.body.disponibilidade,
-      },
-      { transaction: t }
-    );
-    await t.commit();
-    res.status(200).send({ data: data });
+    const result = await utilizadorSchema.validateAsync(req.body);
+    const emailExists = await Utilizador.findOne({
+      where: { email: result.email },
+    });
+
+    if (emailExists) {
+      if (req.file) {
+        fs.unlink(req.file.path, (err, result) => {
+          if (err) throw err;
+        });
+      }
+      throw createError.Conflict(`${result.email} has already been registered`)
+    }
+    bcrypt.hash(result.password, 10, async function (err, hash) {
+      result.password = hash;
+      const user = await EmpregadoLimpeza.create(result, { transaction: t });
+      if (req.file) {
+        let x = await handleImage(
+          req.file.path,
+          user.idutilizador,
+          "public/imgs/utilizadores/"
+        );
+        let path = "public/imgs/utilizadores/" + x;
+        await t.commit();
+        await user.update({ foto: path });
+      } else {
+        await user.save();
+        await t.commit();
+      }
+      const io = req.app.get('socketio');
+      io.emit('newUser',"newUser")
+      res.send({ data: user });
+    });
   } catch (error) {
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) throw err;
+      });
+    }
+    if (error.isJoi === true) error.status = 422;
     await t.rollback();
-    res.status(400).send(error);
+    next(error);
   }
 };
 controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
@@ -203,10 +224,10 @@ controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
     try {
       await EmpregadoLimpeza.destroy({ where: { idutilizador: id } });
       await t.commit();
-      res.status(200).send("Ok");
+      res.sendStatus(204);
     } catch (error) {
       await t.rollback();
-      res.status(400).send(error);
+      next(error)
     }
 };
 controllers.getEmpregadoLimpeza = async (req, res, next) => {
