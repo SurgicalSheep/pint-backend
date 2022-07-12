@@ -147,7 +147,7 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
       offset = 0;
     }
     const utilizador = await Utilizador.findByPk(req.params.id)
-    const data = await utilizador.getNotificacoes({limit:limit,joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
+    const data = await utilizador.getNotificacoes({limit:limit,offset:offset,joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
     if(data.length > 0){
       data.forEach((x, i) => {
         if (x.dataValues.utilizador) {
