@@ -122,6 +122,7 @@ app.use('/notificacao',notificacaoRouters);
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
 })
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.use((err,req,res,next) =>{
     console.log(err.message)
