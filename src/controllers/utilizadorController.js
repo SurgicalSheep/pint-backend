@@ -316,7 +316,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           email: "andrioleto@notadmin.com",
           password: await bcrypt.hash("123123", 10),
         },
-        {
+        /*{
           admin: true,
           nome: "Consertino",
           idcentro: 1,
@@ -339,7 +339,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           telemovel: "931233123",
           email: "rodrigorodrigues@softinsa.com",
           password: await bcrypt.hash("123123", 10),
-        }
+        }*/
       ],
       { transaction: t }
     );
@@ -483,9 +483,7 @@ controllers.insertUtilizador = async (req, res, next) => {
     const emailExists = await Utilizador.findOne({
       where: { email: result.email },
     });
-    const nColaboradorExists = await Utilizador.findOne({
-      where: { ncolaborador: result.ncolaborador },
-    });
+
 
     if (emailExists) {
       if (req.file) {
@@ -494,15 +492,6 @@ controllers.insertUtilizador = async (req, res, next) => {
         });
       }
       throw createError.Conflict(`${result.email} has already been registered`)
-    }
-    if (nColaboradorExists) {
-      if (req.file) {
-        fs.unlink(req.file.path, (err, result) => {
-          if (err) throw err;
-        });
-      }
-      throw createError.Conflict(`${result.ncolaborador} has already been registered`
-      );
     }
     bcrypt.hash(result.password, 10, async function (err, hash) {
       result.password = hash;
@@ -555,18 +544,11 @@ controllers.editUtilizador = async (req, res, next) => {
     if (utilizador.admin) {
       const result = await editUtilizadorAdmin.validateAsync(req.body);
       let emailExists;
-      let nColaboradorExists;
       if(result.email){
           emailExists = await Utilizador.findOne({
         where: { email: result.email },
       });
-      }
-      if(result.ncolaborador){
-          nColaboradorExists = await Utilizador.findOne({
-        where: { ncolaborador: result.ncolaborador },
-      });
-      }
-      
+      }    
 
       if (emailExists) {
         if(emailExists.idutilizador != id){
@@ -576,16 +558,6 @@ controllers.editUtilizador = async (req, res, next) => {
             });
           }
           throw createError.Conflict(`${result.email} has already been registered`)
-        }
-      }
-      if (nColaboradorExists) {
-        if(nColaboradorExists.idutilizador != id){
-          if (req.file) {
-            fs.unlink(req.file.path, (err, result) => {
-              if (err) throw err;
-            });
-          }
-          throw createError.Conflict(`${result.ncolaborador} has already been registered`);
         }
       }
       bcrypt.hash(result.password, 10, async function (err, hash) {
