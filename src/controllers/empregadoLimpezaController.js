@@ -5,10 +5,135 @@ var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
 const Centro = require("../models/centro");
 const Op = Sequelize.Op;
+const createError = require('http-errors')
 
-controllers.list = async (req, res) => {
-  const data = await EmpregadoLimpeza.findAll();
-  res.json({data:data});
+controllers.list = async (req, res, next) => {
+  try {
+    let { centro, pesquisa, limit, offset } = req.query;
+    if (!limit || limit == 0) {
+      limit = 5;
+    }
+    if (!offset) {
+      offset = 0;
+    }
+    if (!centro) {
+      centro = new Array(0);
+      const centros = await Centro.findAll({ attributes: ["idcentro"] });
+      centros.map((x, i) => {
+        centro[i] = x.dataValues.idcentro;
+      });
+    }
+    let centroInt = centro.map((x) => {
+      return Number(x);
+    });
+    let data;
+    if (pesquisa && !isNaN(pesquisa)) {
+      data = await EmpregadoLimpeza.findAll({
+        limit: limit,
+        offset: offset,
+        where: {
+          [Op.and]: [
+            { idutilizador: { [Op.not]: req.idUser } },
+            { idcentro: { [Op.in]: centroInt } },
+            {
+              [Op.or]: [
+                { nome: { [Op.like]: "%" + pesquisa + "%" } },
+                { email: { [Op.like]: "%" + pesquisa + "%" } },
+                { ncolaborador: pesquisa },
+              ],
+            },
+          ],
+        },
+        include: [
+          {
+            model: Centro,
+          },
+        ],
+        attributes: {
+          exclude: ["password"],
+        },
+        order: [["idutilizador", "DESC"]],
+      });
+    } else {
+      if (!pesquisa) pesquisa = "";
+      data = await EmpregadoLimpeza.findAll({
+        limit: limit,
+        offset: offset,
+        where: {
+          [Op.and]: [
+            { idutilizador: { [Op.not]: req.idUser } },
+            { idcentro: { [Op.in]: centroInt } },
+            {
+              [Op.or]: [
+                { nome: { [Op.like]: "%" + pesquisa + "%" } },
+                { email: { [Op.like]: "%" + pesquisa + "%" } },
+              ],
+            },
+          ],
+        },
+        include: [
+          {
+            model: Centro,
+          },
+        ],
+        attributes: {
+          exclude: ["password"],
+        },
+        order: [["idutilizador", "DESC"]],
+      });
+    }
+
+    data.forEach((x, i) => {
+      if (x.dataValues.foto) {
+        try {
+          let idk = fs.readFileSync(x.dataValues.foto, "base64", (err, val) => {
+            if (err) return err;
+            return val;
+          });
+          x.dataValues.fotoConv = idk;
+        } catch (error) {}
+      }
+    });
+
+    let x = { data };
+    let count;
+    if (pesquisa && !isNaN(pesquisa)) {
+      count = await EmpregadoLimpeza.count({
+        where: {
+          [Op.and]: [
+            { idutilizador: { [Op.not]: req.idUser } },
+            { idcentro: { [Op.in]: centroInt } },
+            {
+              [Op.or]: [
+                { nome: { [Op.like]: "%" + pesquisa + "%" } },
+                { email: { [Op.like]: "%" + pesquisa + "%" } },
+                { ncolaborador: pesquisa },
+              ],
+            },
+          ],
+        },
+      });
+    } else {
+      count = await EmpregadoLimpeza.count({
+        where: {
+          [Op.and]: [
+            { idutilizador: { [Op.not]: req.idUser } },
+            { idcentro: { [Op.in]: centroInt } },
+            {
+              [Op.or]: [
+                { nome: { [Op.like]: "%" + pesquisa + "%" } },
+                { email: { [Op.like]: "%" + pesquisa + "%" } },
+              ],
+            },
+          ],
+        },
+      });
+    }
+    x.count = count;
+    res.send(x);
+  } catch (error) {
+    next(error);
+  }
 };
 controllers.editEmpregadoLimpeza = async (req, res) => {
   let id = req.params.id;
@@ -65,16 +190,15 @@ controllers.insertEmpregadoLimpeza = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send({data:data});
+    res.status(200).send({ data: data });
   } catch (error) {
     await t.rollback();
     res.status(400).send(error);
   }
 };
-
-controllers.deleteEmpregadoLimpeza = async (req, res) => {
-  let id = req.params.id;
-  if (Number.isInteger(+id)) {
+controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
+  let {id} = req.params;
+  if (isNaN(id)) return next(createError[422]("Id is not an Integer!"));
     const t = await sequelize.transaction();
     try {
       await EmpregadoLimpeza.destroy({ where: { idutilizador: id } });
@@ -84,32 +208,46 @@ controllers.deleteEmpregadoLimpeza = async (req, res) => {
       await t.rollback();
       res.status(400).send(error);
     }
+};
+controllers.getEmpregadoLimpeza = async (req, res, next) => {
+  let {id} = req.params;
+  if (!isNaN(id)) {
+    const data = await EmpregadoLimpeza.scope("noPassword").findByPk(id, { include: [{ model: Centro }] });
+    if (data.dataValues.foto) {
+      try {
+        let idk = fs.readFileSync(
+          data.dataValues.foto,
+          "base64",
+          (err, val) => {
+            if (err) return err;
+            return val;
+          }
+        );
+        data.dataValues.fotoConv = idk;
+      } catch (error) {
+        data.dataValues.fotoConv = "";
+      }
+      
+    }
+    res.send({ data: data });
   } else {
-    res.status("422").send("Id is not an Integer!");
+    createError[422]("Id is not an Integer!")
   }
 };
-controllers.getEmpregadoLimpeza = async (req, res) => {
-  let id = req.params.id;
-  if (Number.isInteger(+id)) {
-    const data = await EmpregadoLimpeza.scope("noPassword").scope("noIdCentro").findByPk(id,{include:[{model:Centro}]});
-    res.send({data:data});
-  } else {
-    res.status("422").send("Id is not an Integer!");
-  }
-};
-controllers.bulkInsertEmpregadoLimpeza = async (req, res) => {
+controllers.makeUtilizador = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
-    await sequelize
-      .sync()
-      .then(() => {
-        EmpregadoLimpeza.bulkCreate(req.body);
-      })
-      .catch((err) => {
-        res.status(400).send(err);
-      });
-    res.status(200).send("1");
+    let {id} = req.params;
+  if (isNaN(id)) return next(createError[422]("Id is not an Integer!"))
+    const empregadoLimpezaRaw = await EmpregadoLimpeza.findByPk(id,{raw: true,transaction:t});
+    const empregadoLimpeza = await EmpregadoLimpeza.findByPk(id,{transaction:t});
+    await empregadoLimpeza.destroy({transaction:t})
+    const utilizador = await Utilizador.create(empregadoLimpezaRaw,{transaction:t})
+    await t.commit();
+    res.send({ data: utilizador });
   } catch (error) {
-    res.status(400).send(error);
+    await t.rollback();
+    next(error)
   }
 };
 module.exports = controllers;

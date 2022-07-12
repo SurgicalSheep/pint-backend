@@ -484,7 +484,6 @@ controllers.insertUtilizador = async (req, res, next) => {
       where: { email: result.email },
     });
 
-
     if (emailExists) {
       if (req.file) {
         fs.unlink(req.file.path, (err, result) => {
@@ -666,4 +665,20 @@ controllers.deleteUtilizadorFoto = async(req,res,next) => {
   }
 }
 
+controllers.makeEmpregadoLimpeza = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  try {
+    let {id} = req.params;
+  if (isNaN(id)) return next(createError[422]("Id is not an Integer!"))
+    const utilizadorRaw = await Utilizador.findByPk(id,{raw: true,transaction:t});
+    const utilizador = await Utilizador.findByPk(id,{transaction:t});
+    await utilizador.destroy({transaction:t})
+    const empregadoLimpeza = await EmpregadoLimpeza.create(utilizadorRaw,{transaction:t})
+    await t.commit();
+    res.send({ data: empregadoLimpeza });
+  } catch (error) {
+    await t.rollback();
+    next(error)
+  }
+};
 module.exports = controllers;
