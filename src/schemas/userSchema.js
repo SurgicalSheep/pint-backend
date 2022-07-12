@@ -26,14 +26,14 @@ const utilizadorSchema = Joi.object({
 });
 
 const editUtilizador = Joi.object({
-    nome: Joi.string().alphanum().min(3).max(30).required(),
+    nome: Joi.string().min(3).max(30).optional(),
   
     telemovel: Joi.string()
       .regex(/^[0-9]{9}$/)
       .required()
       .messages({ "string.pattern.base": `telemovel must be 9 digit number` }).optional(),
   
-    password: Joi.string().min(3).required(),
+    password: Joi.string().min(3).optional(),
   
     foto:Joi.string().allow(null).optional()
   });
@@ -41,7 +41,7 @@ const editUtilizador = Joi.object({
   const editUtilizadorAdmin = Joi.object({
     admin: Joi.boolean().optional(),
   
-    nome: Joi.string().alphanum().min(3).max(30).optional(),
+    nome: Joi.string().min(3).max(30).optional(),
   
     telemovel: Joi.string()
       .regex(/^[0-9]{9}$/)
