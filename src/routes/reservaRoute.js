@@ -11,6 +11,6 @@ router.get('/rangeReservasBySala',verifyAccessToken,reservaController.rangeReser
 router.get('/freeSalas',verifyAccessToken,reservaController.freeSalas)
 router.get('/:id',verifyAccessToken, reservaController.getReserva);
 router.post('/add',verifyAccessToken, reservaController.insertReserva);
-router.delete('/:id',verifyAccessToken.apply, reservaController.deleteReserva);
+router.delete('/:id',verifyAccessToken, reservaController.deleteReserva);
 router.put('/:id',verifyAccessToken, reservaController.editReserva);
 module.exports = router;
