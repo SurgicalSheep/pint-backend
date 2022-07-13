@@ -9,24 +9,102 @@ const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
 
+const isValidDate = function(date) {
+  return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
+}
+
 controllers.list = async (req, res) => {
-  let { limit, offset } = req.query;
+  let { limit, offset,pesquisa,centros} = req.query;
   if (!req.query.limit || req.query.limit == 0) {
     limit = 5;
   }
   if (!req.query.offset) {
     offset = 0;
   }
-  const data = await Reserva.scope("noIdSala")
+  if(!centros){
+    centros = new Array(0)
+    const allCentros = await Centro.findAll({attributes:["idcentro"]});
+    allCentros.map((x,i)=>{
+      centros[i] = Number(x.dataValues.idcentro)
+    })
+  }
+  let data;
+  let count;
+  if(pesquisa && isValidDate(pesquisa)){
+    data = await Reserva.scope("noIdSala")
     .scope("noIdUtilizador")
     .findAll({
       limit: limit,
       offset: offset,
-      include: [{ model: Sala }, { model: Utilizador.scope("noPassword") }],
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+        [Op.or]:[{
+          "$reservas.data$":new Date(pesquisa)
+        },{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]
+      },
       order: [["data", "DESC"]],
     });
+    count = await Reserva.count({
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+        [Op.or]:[{
+          data:new Date(pesquisa)
+        },{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]
+      }
+    });
+  }
+  else{
+    data = await Reserva.scope("noIdSala")
+    .scope("noIdUtilizador")
+    .findAll({
+      limit: limit,
+      offset: offset,
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+        [Op.or]:[{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]
+      },
+      order: [["data", "DESC"]],
+    });
+    count = await Reserva.count({
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+      [Op.or]:[{
+        "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+      },{
+        "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+      }]}});
+  }
+   
   let x = { data };
-  const count = await Reserva.count();
+  
   x.count = count;
   res.send(x);
 };
