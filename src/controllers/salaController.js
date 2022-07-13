@@ -10,7 +10,9 @@ const Op = Sequelize.Op;
 
 controllers.list = async (req, res, next) => {
   try {
-    let {limit,offset,centro,pesquisa,lotacao} = req.query
+    let {limit,offset,pesquisa,lotacao} = req.query
+    let centro = req.query.centros
+    console.log(centro)
   if(!limit || limit == 0){
     limit = 5;
   }

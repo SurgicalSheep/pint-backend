@@ -38,7 +38,7 @@ controllers.getReserva = async (req, res) => {
     });
   res.json({ data: data });
 };
-controllers.insertReserva = async (req, res) => {
+controllers.insertReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const data = await Reserva.create(
@@ -53,10 +53,10 @@ controllers.insertReserva = async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send({ data: data });
+    res.send({ data: data });
   } catch (err) {
     await t.rollback();
-    res.status(400).send(err);
+    next(err)
   }
 };
 controllers.deleteReserva = async (req, res) => {
