@@ -52,6 +52,17 @@ controllers.insertReserva = async (req, res, next) => {
       },
       { transaction: t }
     );
+    /*var today = new Date();
+    var dataReserva = req.body.data
+    var nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+    if()
+    const io = req.app.get('socketio');
+    let socketsConnected = req.app.get('socketsConnected')
+    socketsConnected.map((x)=>{
+      if(x.idUser === req.body.idutilizador){
+        x.emit('newNotificacao',{data:noti})
+      }
+    })*/
     await t.commit();
     res.send({ data: data });
   } catch (err) {
@@ -59,17 +70,17 @@ controllers.insertReserva = async (req, res, next) => {
     next(err)
   }
 };
-controllers.deleteReserva = async (req, res) => {
+controllers.deleteReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const reserva = await Reserva.findByPk(req.params.id);
-    await reserva.destroy({ transaction: t });
-
+    const {id} = req.params
+    if(isNaN(id)) return createError.BadRequest("Id is not a number")
+    await Reserva.destroy({where:{idreserva:id}});
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204)
   } catch (err) {
     await t.rollback();
-    res.status(400).send(err);
+    next(err)
   }
 };
 
