@@ -214,11 +214,13 @@ controllers.editNotificacao = async (req, res, next) => {
 };
 
 controllers.notificationReceived = async (req, res, next) => {
-  const { idutilizador,idnotificacao } = req.body;
-  if (isNaN(idutilizador) || isNaN(idnotificacao)) return next(createError.BadRequest("Ids must be integer"));
+  const {idnotificacao } = req.body;
+  const user = req.idUser
+  
+  if (isNaN(idnotificacao)) return next(createError.BadRequest("Ids must be integer"));
   const t = await sequelize.transaction()
   try {
-    await UtilizadoresNotificaco.update({recebida:true},{where:{[Op.and]:[{idnotificacao:idnotificacao},{idutilizador:idutilizador}]},transaction:t})
+    await UtilizadoresNotificaco.update({recebida:true},{where:{[Op.and]:[{idnotificacao:idnotificacao},{idutilizador:user}]},transaction:t})
     await t.commit()
     res.sendStatus(204)
   } catch (error) {
@@ -228,7 +230,7 @@ controllers.notificationReceived = async (req, res, next) => {
 };
 
 controllers.allNotificationReceived = async (req, res, next) => {
-  const { idutilizador } = req.body;
+  const  idutilizador  = req.idUser
   if (isNaN(idutilizador)) return next(createError.BadRequest("Id must be integer"));
   const t = await sequelize.transaction()
   try {
