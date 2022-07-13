@@ -170,7 +170,7 @@ controllers.getSalasCentro = async (req, res, next) => {
   if (!offset) {
     offset = 0;
   }
-  if (Number.isInteger(+id)) {
+  if (isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
     const data = await Centro.findAll({
       limit:limit,
       offset:offset,
@@ -178,9 +178,11 @@ controllers.getSalasCentro = async (req, res, next) => {
       include: [
         {
           model: Sala.scope("noIdCentro"),
-          where: {},
         },
       ],
+      order: [
+        [Sala,'nome', 'ASC']
+    ]
     });
     const count = await Centro.count({
       limit:limit,
@@ -196,9 +198,6 @@ controllers.getSalasCentro = async (req, res, next) => {
     let x = {data}
     x.count = count
     res.send(x);
-  } else {
-    return next(createError.BadRequest("Id is not a Integer"));
-  }
 };
 controllers.getCentroImagem = async (req, res, next) => {
   try {

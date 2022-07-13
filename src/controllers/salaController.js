@@ -36,7 +36,10 @@ controllers.list = async (req, res, next) => {
         where:{
           idcentro:{[Op.in]:centro}
         }
-      }]
+      }],
+      order: [
+        ['nome', 'ASC']
+    ]
     });
   }else{
     if(isNaN(lotacao[0])|| isNaN(lotacao[1])) return next(createError.BadRequest("Lotacao not a number"))
@@ -50,7 +53,10 @@ controllers.list = async (req, res, next) => {
         where:{
           idcentro:{[Op.in]:centro}
         }
-      }]
+      }],
+      order: [
+        ['nome', 'ASC']
+    ]
     });
   }
   let count
