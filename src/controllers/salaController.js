@@ -30,7 +30,7 @@ controllers.list = async (req, res, next) => {
     data = await Sala.findAll({
       limit: limit,
       offset: offset,
-      nome:{[Op.substring]:pesquisa},
+      where:{nome:{[Op.iLike]:"%"+pesquisa+"%"}},
       include:[{
         model:Centro,
         where:{
@@ -46,8 +46,9 @@ controllers.list = async (req, res, next) => {
     data = await Sala.findAll({
       limit: limit,
       offset: offset,
-      lotacao:{[Op.between]:[lotacao[0],lotacao[1]]},
-      nome:{[Op.substring]:pesquisa},
+      where:{
+        [Op.and]:[{lotacao:{[Op.between]:[lotacao[0],lotacao[1]]}},{nome:{[Op.iLike]:"%"+pesquisa+"%"}}]
+      },
       include:[{
         model:Centro,
         where:{
@@ -61,7 +62,7 @@ controllers.list = async (req, res, next) => {
   }
   let count
   if(!lotacao){
-    count = await Sala.count({nome:{[Op.substring]:pesquisa},include:[{
+    count = await Sala.count({where:{nome:{[Op.iLike]:"%"+pesquisa+"%"}},include:[{
       model:Centro,
       where:{
         idcentro:{[Op.in]:centro}
@@ -69,8 +70,9 @@ controllers.list = async (req, res, next) => {
     }]})  
   }else{
     count = await Sala.count({
-      lotacao:{[Op.between]:[lotacao[0],lotacao[1]]},
-      nome:{[Op.substring]:pesquisa},
+      where:{
+        [Op.and]:[{lotacao:{[Op.between]:[lotacao[0],lotacao[1]]}},{nome:{[Op.iLike]:"%"+pesquisa+"%"}}]
+      },
       include:[{
         model:Centro,
         where:{
