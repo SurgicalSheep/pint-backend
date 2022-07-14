@@ -15,6 +15,7 @@ const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken')
+const checkMinutos = 1;
 //Sockets
 const io = require('socket.io')(server,{
     cors: {
@@ -107,6 +108,10 @@ io.use(function(socket, next){
         socket.emit('newUser',"Nada")
     })
 
+    socket.on('aaa',()=>{
+      io.emit("ping","Ola")
+    })
+
     socket.on('nmrSockets',()=>{
       socket.emit('nmrSockets',socketsConnected.map((x)=>{
         return x.env
@@ -130,10 +135,24 @@ app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 //app.use('/empregadoManutencao',empregadoManutencaoRouters)
 app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters);
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
+/*
+const Reservas = require('./models/reserva')
+
+setInterval(async() => {
+    let now = new Date()
+    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    const reservas1Week = await Reservas.findAll({
+      attributes: [
+        `(CASE WHEN 'data'+7 < 0 THEN '7D'  when ('data' = ${now} AND horainicio - ${time} < 0 )  THEN '5m' END)`
+      ],
+    })
+    console.log(reservas1Week);
+}, checkMinutos * 60 * 1000);
+*/
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
 })
-app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.use((err,req,res,next) =>{
     console.log(err.message)

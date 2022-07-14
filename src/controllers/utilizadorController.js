@@ -153,7 +153,8 @@ controllers.countUtilizadoresByTipo = async (req, res, next) => {
   let countLimpeza = await EmpregadoLimpeza.count();
   let countUtilizadores = await Utilizador.count();
   countUtilizadores -= countLimpeza;
-  res.send({data:{U:countUtilizadores,L:countLimpeza,admin:countAdmin,adminLimpeza:countAdminLimpeza}})
+  countUtilizadores -= countAdmin
+  res.send({data:{U:countUtilizadores,L:countLimpeza,admin:countAdmin}})
 }
 
 controllers.deleteUtilizador = async (req, res,next) => {
