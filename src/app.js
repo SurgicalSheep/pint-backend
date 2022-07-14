@@ -114,7 +114,7 @@ io.use(function(socket, next){
 
     socket.on('nmrSockets',()=>{
       socket.emit('nmrSockets',socketsConnected.map((x)=>{
-        return x.env
+        return x.env + " " + x.idUser
       }))
   })
   });
@@ -136,16 +136,25 @@ app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters);
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
-/*
-const Reservas = require('./models/reserva')
 
+const Reservas = require('./models/reserva');
+const sequelize = require('sequelize');
+/*
 setInterval(async() => {
     let now = new Date()
     let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    now = now.toISOString().split('T')[0]
     const reservas1Week = await Reservas.findAll({
-      attributes: [
-        `(CASE WHEN 'data'+7 < 0 THEN '7D'  when ('data' = ${now} AND horainicio - ${time} < 0 )  THEN '5m' END)`
-      ],
+      attributes: {
+        include:[
+          [
+            sequelize.literal(
+              `(CASE WHEN 'data'-7 < ${now} THEN '7D'  when ('data' = ${now} AND horainicio - ${time} < 0 )  THEN '5m' END)`
+            ),
+            "idk",
+          ]
+      ]
+    },
     })
     console.log(reservas1Week);
 }, checkMinutos * 60 * 1000);
