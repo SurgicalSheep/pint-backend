@@ -63,9 +63,9 @@ function startSocket(server) {
           return next(createError.Unauthorized());
         }
         const expiresIn = ((decodedToken.exp - Date.now() / 1000) * 1000)-120000
-        const timeout = setTimeout(() => {socket.emit("requestRefresh","requestRefresh")}, expiresIn)
+        const timeoutRequest = setTimeout(() => {socket.emit("requestRefresh","requestRefresh")}, expiresIn)
       
-        socket.on('disconnect', () => clearTimeout(timeout))
+        socket.on('disconnect', () => clearTimeout(timeoutRequest))
       
         return next()
       });
@@ -110,6 +110,10 @@ function sendUpdateNotificacao(id,noti) {
       })
 }
 
+function sendUpdateReserva() {
+    io.emit('updateReserva','updateReserva')
+}
+
 function sendUpdateUtilizador() {
     io.emit('updateUser','updateUser')
 }
@@ -118,6 +122,7 @@ module.exports= {
     startSocket:startSocket,
     socketsConnected:socketsConnected,
     sendUpdateNotificacao:sendUpdateNotificacao,
-    sendUpdateUtilizador:sendUpdateUtilizador
+    sendUpdateUtilizador:sendUpdateUtilizador,
+    sendUpdateReserva:sendUpdateReserva
 }
 

@@ -8,6 +8,7 @@ const Op = Sequelize.Op;
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
+const {sendUpdateReserva} = require('../helpers/sockets')
 
 const isValidDate = function(date) {
   return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
@@ -177,17 +178,7 @@ controllers.insertReserva = async (req, res, next) => {
       },
       { transaction: t }
     );
-    /*var today = new Date();
-    var dataReserva = req.body.data
-    var nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
-    if()
-    const io = req.app.get('socketio');
-    let socketsConnected = req.app.get('socketsConnected')
-    socketsConnected.map((x)=>{
-      if(x.idUser === req.body.idutilizador){
-        x.emit('newNotificacao',{data:noti})
-      }
-    })*/
+    sendUpdateReserva()
     await t.commit();
     res.send({ data: data });
   } catch (err) {
@@ -201,6 +192,7 @@ controllers.deleteReserva = async (req, res, next) => {
     const {id} = req.params
     if(isNaN(id)) return createError.BadRequest("Id is not a number")
     await Reserva.destroy({where:{idreserva:id}});
+    sendUpdateReserva()
     await t.commit();
     res.sendStatus(204)
   } catch (err) {
@@ -209,7 +201,7 @@ controllers.deleteReserva = async (req, res, next) => {
   }
 };
 
-controllers.editReserva = async (req, res) => {
+controllers.editReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Reserva.update(
@@ -223,11 +215,12 @@ controllers.editReserva = async (req, res) => {
       },
       { where: { idreserva: req.params.id }, transaction: t }
     );
+    sendUpdateReserva()
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204);
   } catch (error) {
     await t.rollback();
-    res.status(400).send(error);
+    next(error)
   }
 };
 
