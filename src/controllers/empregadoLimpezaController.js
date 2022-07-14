@@ -170,7 +170,7 @@ controllers.editEmpregadoLimpeza = async (req, res) => {
     res.status("422").send("Id is not an Integer!");
   }
 };
-controllers.insertEmpregadoLimpeza = async (req, res) => {
+controllers.insertEmpregadoLimpeza = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const result = await utilizadorSchema.validateAsync(req.body);
