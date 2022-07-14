@@ -500,18 +500,6 @@ controllers.logout = async (req, res, next) => {
     const { refreshToken,env } = req.body;
     if (!(refreshToken && env && (env === "web" || env === "mobile"))) throw createError.BadRequest();
     const id = await verifyRefreshToken(refreshToken);
-    let socketsConnected = req.app.get('socketsConnected');
-    //disconnect socket
-    await socketsConnected.map((x)=>{
-      if(x.idUser === id && x.env === env){
-        x.disconnect()
-        let i = socketsConnected.map((x)=>{
-          return x.idUser
-        }).indexOf(socket.id)
-        socketsConnected.splice(i,1);
-        return x;
-      }
-    })
 
     await client.HDEL(id,env);
     res.sendStatus(204);
