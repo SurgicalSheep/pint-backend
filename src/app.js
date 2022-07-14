@@ -142,8 +142,11 @@ io.on('connection', function(socket) {
   socket.emit("Connected","Connected")
 
   socket.on('disconnect',()=>{
-    console.log("Disconnected")
-    socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+    console.log("Disconnected");
+    let i = socketsConnected.map((x)=>{
+      return x.idUser
+    }).indexOf(socket.id)
+    socketsConnected.splice(i,1);
   })
 
   socket.on('setOffline',()=>{
@@ -154,7 +157,10 @@ io.on('connection', function(socket) {
   socket.on("error", (err) => {
       if (err && err.message === "unauthorized event") {
         socket.disconnect();
-        socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+        let i = socketsConnected.map((x)=>{
+          return x.idUser
+        }).indexOf(socket.id)
+        socketsConnected.splice(i,1);
       }
   })
 
