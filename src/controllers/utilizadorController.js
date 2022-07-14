@@ -18,6 +18,16 @@ const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schema
 const createError = require("http-errors");
 const xlsx = require('xlsx');
 const EmpregadoLimpeza = require("../models/empregadoLimpeza");
+const nodemailer = require('nodemailer');
+const jwt = require("jsonwebtoken");
+
+const transporter = nodemailer.createTransport({
+  service:'Gmail',
+  auth:{
+    user:process.env.GMAIL_USER,
+    pass:process.env.GMAIL_APP_PASS
+  }
+});
 
 controllers.list = async (req, res, next) => {
   try {
@@ -128,9 +138,22 @@ controllers.list = async (req, res, next) => {
   }
 };
 
-controllers.count = async (req, res, next) => {
-  const data = await Utilizador.count();
-  res.send({data:data})
+controllers.countUtilizadoresByTipo = async (req, res, next) => {
+  let countAdmin = await Utilizador.count({
+    where:{
+      admin:true
+    }
+  })
+  let countAdminLimpeza = await EmpregadoLimpeza.count({
+    where:{
+      admin:true
+    }
+  })
+  countAdmin -= countAdminLimpeza
+  let countLimpeza = await EmpregadoLimpeza.count();
+  let countUtilizadores = await Utilizador.count();
+  countUtilizadores -= countLimpeza;
+  res.send({data:{U:countUtilizadores,L:countLimpeza,admin:countAdmin,adminLimpeza:countAdminLimpeza}})
 }
 
 controllers.deleteUtilizador = async (req, res,next) => {
@@ -360,6 +383,12 @@ controllers.login = async (req, res, next) => {
   const utilizador = await Utilizador.findOne({
     where: { email: email.toLowerCase() },
   });
+  /*
+  if(!utilizador.verificado){
+    return next(createError.Unauthorized("Confirm email first."));
+  }
+  
+  */
   if (
     utilizador &&
     (await bcrypt.compare(password, utilizador.password))
@@ -495,6 +524,23 @@ controllers.insertUtilizador = async (req, res, next) => {
     bcrypt.hash(result.password, 10, async function (err, hash) {
       result.password = hash;
       const user = await Utilizador.create(result, { transaction: t });
+
+      const payload = {};
+      const options = {
+        expiresIn: "5m",
+        subject: String(id),
+      };
+      jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+        if(err) return err
+        const url = 'http://localhost:3000/utilizador/confirmar/'+emailToken
+
+        transporter.sendMail({
+          to:result.email,
+          subject:'Confirm Email',
+          html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+        });
+      })
+
       if (req.file) {
         let x = await handleImage(
           req.file.path,
@@ -681,4 +727,47 @@ controllers.makeEmpregadoLimpeza = async (req, res, next) => {
     next(error)
   }
 };
+
+controllers.confirmarUtilizador = async (req, res, next) => {
+  const t = sequelize.transaction()
+  try {
+      const token = req.query.token
+      if (!token) {
+        return next(createError.BadRequest());
+      }
+      jwt.verify(token, process.env.EMAIL_TOKEN_KEY, async(err, payload) => {
+        if (err) {
+          const message =
+            err.name === "JsonWebTokenError" ? "Unauthorized" : err.message;
+          return next(createError.Unauthorized(message));
+        }
+        await Utilizador.update({verificado:true},{where:{idutilizador: payload.sub}})
+        await t.commit()
+      });
+  } catch (error) {
+    await t.rollback()
+    next(error)
+  }
+}
+
+controllers.testMail = async (req,res,next) => {
+  const result = {}
+  result.email = req.body.email
+  const payload = {};
+      const options = {
+        expiresIn: "1d",
+        subject: String("Atum"),
+      };
+  jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+    if(err) return err
+    const url = 'https://pint-web.vercel.app/atum/'+emailToken
+
+    transporter.sendMail({
+      to:result.email,
+      subject:'Confirm Email',
+      html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+    });
+  })
+  res.send("Ola")
+}
 module.exports = controllers;

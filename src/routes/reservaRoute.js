@@ -7,6 +7,7 @@ router.get('/list',verifyAccessToken, reservaController.list);
 router.get('/search',verifyAccessToken, reservaController.searchReservas);
 router.get('/range',verifyAccessToken,reservaController.rangeReservas)
 router.get('/daysReserva',verifyAccessToken,reservaController.daysWithReserva)
+router.get('/reservasDecorrer',verifyAccessToken,reservaController.reservasDecorrer)
 router.get('/rangeReservasBySala',verifyAccessToken,reservaController.rangeReservasBySala)
 router.get('/freeSalas',verifyAccessToken,reservaController.freeSalas)
 router.get('/:id',verifyAccessToken, reservaController.getReserva);

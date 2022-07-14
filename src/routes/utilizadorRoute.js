@@ -58,12 +58,14 @@ const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list',verifyAccessToken,isAdmin, utilizadorController.list);
 router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
-router.get('/count',verifyAccessToken,isAdmin,utilizadorController.count)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
+router.get('/tipoCount',verifyAccessToken, utilizadorController.countUtilizadoresByTipo);
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
 router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorController.makeEmpregadoLimpeza);
 router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
+router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);

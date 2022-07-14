@@ -338,7 +338,6 @@ function Returnsalas(Array) {
     return array_sala
 }
 
-
 controllers.freeSalas = async (req, res, next) => {
   try {
     const { data, horainicio, horafinal, centro } = req.query;
@@ -410,6 +409,41 @@ controllers.rangeReservasBySala = async (req, res, next) => {
       }]
     })
     res.send({ data: val });
+  } catch (error) {
+    next(error);
+  }
+};
+
+controllers.reservasDecorrer = async (req, res, next) => {
+  try {
+    let now = new Date()
+    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    const data = await Reserva.findAll({
+      where: {
+            [Op.and]: [
+              {
+                horafinal:{[Op.gte]:time}
+              },{
+                horainicio: {
+                  [Op.lte]: time,
+                },
+              },{
+                data:now
+              },{
+                [Op.not]:[{
+                  horafinal:{[Op.lte]:time}
+                }]
+                
+              }
+            ],
+      },
+      include: [
+        {
+          model: Sala,
+        },
+      ],
+    });
+    res.send({ data });
   } catch (error) {
     next(error);
   }
