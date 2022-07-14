@@ -161,6 +161,10 @@ io.on('connection', function(socket) {
       socket.emit('newUser',"Nada")
   })
 
+  socket.on('rt',()=>{
+    io.emit("requestRefresh","requestRefresh")
+  })
+
   socket.on('aaa',()=>{
     io.emit("ping","Ola")
   })
