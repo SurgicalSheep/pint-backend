@@ -452,6 +452,16 @@ controllers.getUserByToken = async (req, res, next) => {
             model: Centro,
           },
         ],
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ]
+        },
       }
     );
     if (utilizador.dataValues.foto) {
