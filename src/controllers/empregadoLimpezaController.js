@@ -6,6 +6,7 @@ const Sequelize = require("sequelize");
 const Centro = require("../models/centro");
 const Op = Sequelize.Op;
 const createError = require('http-errors')
+const {utilizadorSchema} = require("../schemas/userSchema");
 
 controllers.list = async (req, res, next) => {
   try {
