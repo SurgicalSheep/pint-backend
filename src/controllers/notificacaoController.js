@@ -107,10 +107,9 @@ controllers.insertUtilizadorNotificacao = async (req, res,next) => {
     const user = await Utilizador.findByPk(req.body.idutilizador);
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
-    const io = req.app.get('socketio');
     let socketsConnected = req.app.get('socketsConnected')
     socketsConnected.map((x)=>{
-      if(x.idUser === req.body.idutilizador){
+      if(x.idUser == req.body.idutilizador){
         x.emit('newNotificacao',{data:noti})
       }
     })
