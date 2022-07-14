@@ -7,7 +7,7 @@ const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
 const fs = require("fs");
 const { Op } = require("sequelize");
 const createError = require('http-errors')
-
+const {sendUpdateNotificacao} = require("../helpers/sockets")
 controllers.list = async (req, res) => {
   let {limit,offset} = req.query;
   if (!limit || limit == 0) {
@@ -107,15 +107,7 @@ controllers.insertUtilizadorNotificacao = async (req, res,next) => {
     const user = await Utilizador.findByPk(req.body.idutilizador);
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
-    let socketsConnected = req.app.get('socketsConnected')
-    Promise.all(
-      socketsConnected.map((x)=>{
-        if(x.idUser == req.body.idutilizador){
-          console.log(x.idUser)
-           x.emit('updateNotificacao',{data:noti})
-        }
-      })
-    )
+    sendUpdateNotificacao(req.body.idutilizador,noti)
       await t.commit();
     res.sendStatus(204);
   } catch (error){

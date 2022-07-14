@@ -20,6 +20,7 @@ const xlsx = require('xlsx');
 const EmpregadoLimpeza = require("../models/empregadoLimpeza");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
+const {sendUpdateUtilizador} = require('../helpers/sockets')
 
 const transporter = nodemailer.createTransport({
   service:'Gmail',
@@ -568,8 +569,7 @@ controllers.insertUtilizador = async (req, res, next) => {
         await user.save();
         await t.commit();
       }
-      const io = req.app.get('socketio');
-      io.emit('updateUser',"newUser")
+      sendUpdateUtilizador();
       res.send({ data: user });
     });
   } catch (error) {
