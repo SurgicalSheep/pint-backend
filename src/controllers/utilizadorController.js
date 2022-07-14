@@ -569,7 +569,7 @@ controllers.insertUtilizador = async (req, res, next) => {
         await t.commit();
       }
       const io = req.app.get('socketio');
-      io.emit('newUser',"newUser")
+      io.emit('updateUser',"newUser")
       res.send({ data: user });
     });
   } catch (error) {

@@ -149,11 +149,6 @@ io.on('connection', function(socket) {
     socketsConnected.splice(i,1);
   })
 
-  socket.on('setOffline',()=>{
-    console.log("Disconnected")
-    socket.disconnect();
-  })
-
   socket.on("error", (err) => {
       if (err && err.message === "unauthorized event") {
         socket.disconnect();
@@ -162,18 +157,6 @@ io.on('connection', function(socket) {
         }).indexOf(socket.id)
         socketsConnected.splice(i,1);
       }
-  })
-
-  socket.on('test',()=>{
-      socket.emit('newUser',"Nada")
-  })
-
-  socket.on('rt',()=>{
-    socket.emit("requestRefresh","requestRefresh")
-  })
-
-  socket.on('aaa',()=>{
-    io.emit("ping","Ola")
   })
 
   socket.on('nmrSockets',()=>{

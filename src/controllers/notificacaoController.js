@@ -112,7 +112,7 @@ controllers.insertUtilizadorNotificacao = async (req, res,next) => {
       socketsConnected.map((x)=>{
         if(x.idUser == req.body.idutilizador){
           console.log(x.idUser)
-           x.emit('newNotificacao',{data:noti})
+           x.emit('updateNotificacao',{data:noti})
         }
       })
     )
