@@ -48,6 +48,7 @@ function startSocket(server) {
         const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
         const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
         socket.on('disconnect', () => clearTimeout(timeout))
+
       
         return next()
       });
@@ -93,7 +94,6 @@ function startSocket(server) {
         })
       
         socket.on('nmrSockets',()=>{
-            socketsConnected[0].emit("updateNotificacao","ola")
           socket.emit('nmrSockets',socketsConnected.map((x)=>{
             return x.env + " " + x.idUser
           }))
