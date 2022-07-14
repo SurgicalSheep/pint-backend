@@ -162,7 +162,7 @@ io.on('connection', function(socket) {
   })
 
   socket.on('rt',()=>{
-    io.emit("requestRefresh","requestRefresh")
+    sock.emit("requestRefresh","requestRefresh")
   })
 
   socket.on('aaa',()=>{
