@@ -142,7 +142,8 @@ io.on('connection', function(socket) {
   socket.emit("Connected","Connected")
 
   socket.on('disconnect',()=>{
-      socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+    console.log("Disconnected")
+    socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
   })
 
   socket.on('setOffline',()=>{
@@ -162,7 +163,7 @@ io.on('connection', function(socket) {
   })
 
   socket.on('rt',()=>{
-    sock.emit("requestRefresh","requestRefresh")
+    socket.emit("requestRefresh","requestRefresh")
   })
 
   socket.on('aaa',()=>{
