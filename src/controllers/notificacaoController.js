@@ -108,15 +108,12 @@ controllers.insertUtilizadorNotificacao = async (req, res,next) => {
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
     let socketsConnected = req.app.get('socketsConnected')
-    console.log("yo1")
-    socketsConnected.map((x)=>{
-      console.log("yo"+x.idUser)
+    await socketsConnected.map((x)=>{
       if(x.idUser == req.body.idutilizador){
         console.log(x.idUser)
         x.emit('newNotificacao',{data:noti})
       }
     })
-    console.log("yo2")
       await t.commit();
     res.sendStatus(204);
   } catch (error){
