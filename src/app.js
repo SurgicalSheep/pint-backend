@@ -16,110 +16,6 @@ const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken')
 const checkMinutos = 1;
-//Sockets
-const io = require('socket.io')(server,{
-    cors: {
-      origin: '*',
-    }})
-let socketsConnected = new Array()
-//authenticate socket
-io.use(function(socket, next){
-  if(socket.handshake.query && socket.handshake.query.env && socket.handshake.query.env === "tablet"){
-    socket.env = socket.handshake.query.env
-    next();
-  }else{
-    if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
-      jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
-        if (err){
-          return next(createError.Unauthorized("Authentication error"));
-        } 
-        if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)){
-          return next(createError.Conflict("Already Connected"));
-        } 
-        socket.idUser = payload.sub;
-        socket.decodedToken = payload;
-        socket.env = socket.handshake.query.env;
-        next();
-      });
-    }
-    else {
-        next(createError.Unauthorized("Something missing"));
-    }    
-  }
-    
-  })
-  //disconnect socket on jwt expire
-  io.use((socket, next) => {
-    if(socket.env == "tablet"){
-      return next();
-    }
-    const decodedToken = socket.decodedToken
-
-    if (!decodedToken.exp) {
-      return next(createError.Unauthorized());
-    }
-    const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
-    const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
-  
-    socket.on('disconnect', () => clearTimeout(timeout))
-  
-    return next()
-  });
-  //send request refresh
-  io.use((socket, next) => {
-    if(socket.env == "tablet"){
-      return next();
-    }
-    const decodedToken = socket.decodedToken
-
-    if (!decodedToken.exp) {
-      return next(createError.Unauthorized());
-    }
-    const expiresIn = ((decodedToken.exp - Date.now() / 1000) * 1000)-120000
-    const timeout = setTimeout(() => {socket.emit("requestRefresh","requestRefresh")}, expiresIn)
-  
-    socket.on('disconnect', () => clearTimeout(timeout))
-  
-    return next()
-  });
-  //on connect
-  io.on('connection', function(socket) {
-    socketsConnected.push(socket)
-
-    socket.emit("Connected","Connected")
-
-    socket.on('disconnect',()=>{
-        socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
-    })
-
-    socket.on('setOffline',()=>{
-      console.log("Disconnected")
-      socket.disconnect();
-    })
-
-    socket.on("error", (err) => {
-        if (err && err.message === "unauthorized event") {
-          socket.disconnect();
-          socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
-        }
-    })
-
-    socket.on('test',()=>{
-        socket.emit('newUser',"Nada")
-    })
-
-    socket.on('aaa',()=>{
-      io.emit("ping","Ola")
-    })
-
-    socket.on('nmrSockets',()=>{
-      socket.emit('nmrSockets',socketsConnected.map((x)=>{
-        return x.env + " " + x.idUser
-      }))
-  })
-  });
-app.set('socketio', io);
-app.set('socketsConnected',socketsConnected)
 
 app.use(cors())
 app.set('port', (process.env.PORT || 3000));
@@ -172,3 +68,108 @@ app.use((err,req,res,next) =>{
 server.listen(app.get('port'), () => {
     console.log("Start server on port " + app.get('port'))
 })
+
+//Sockets
+const io = require('socket.io')(server,{
+  cors: {
+    origin: '*',
+  }})
+let socketsConnected = new Array()
+//authenticate socket
+io.use(function(socket, next){
+if(socket.handshake.query && socket.handshake.query.env && socket.handshake.query.env === "tablet"){
+  socket.env = socket.handshake.query.env
+  next();
+}else{
+  if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
+    jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
+      if (err){
+        return next(createError.Unauthorized("Authentication error"));
+      } 
+      if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)){
+        return next(createError.Conflict("Already Connected"));
+      } 
+      socket.idUser = payload.sub;
+      socket.decodedToken = payload;
+      socket.env = socket.handshake.query.env;
+      next();
+    });
+  }
+  else {
+      next(createError.Unauthorized("Something missing"));
+  }    
+}
+  
+})
+//disconnect socket on jwt expire
+io.use((socket, next) => {
+  if(socket.env == "tablet"){
+    return next();
+  }
+  const decodedToken = socket.decodedToken
+
+  if (!decodedToken.exp) {
+    return next(createError.Unauthorized());
+  }
+  const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
+  const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
+
+  socket.on('disconnect', () => clearTimeout(timeout))
+
+  return next()
+});
+//send request refresh
+io.use((socket, next) => {
+  if(socket.env == "tablet"){
+    return next();
+  }
+  const decodedToken = socket.decodedToken
+
+  if (!decodedToken.exp) {
+    return next(createError.Unauthorized());
+  }
+  const expiresIn = ((decodedToken.exp - Date.now() / 1000) * 1000)-120000
+  const timeout = setTimeout(() => {socket.emit("requestRefresh","requestRefresh")}, expiresIn)
+
+  socket.on('disconnect', () => clearTimeout(timeout))
+
+  return next()
+});
+//on connect
+io.on('connection', function(socket) {
+  socketsConnected.push(socket)
+
+  socket.emit("Connected","Connected")
+
+  socket.on('disconnect',()=>{
+      socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+  })
+
+  socket.on('setOffline',()=>{
+    console.log("Disconnected")
+    socket.disconnect();
+  })
+
+  socket.on("error", (err) => {
+      if (err && err.message === "unauthorized event") {
+        socket.disconnect();
+        socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
+      }
+  })
+
+  socket.on('test',()=>{
+      socket.emit('newUser',"Nada")
+  })
+
+  socket.on('aaa',()=>{
+    io.emit("ping","Ola")
+  })
+
+  socket.on('nmrSockets',()=>{
+    socket.emit('nmrSockets',socketsConnected.map((x)=>{
+      return x.env + " " + x.idUser
+    }))
+})
+});
+app.set('socketio', io);
+app.set('socketsConnected',socketsConnected)
