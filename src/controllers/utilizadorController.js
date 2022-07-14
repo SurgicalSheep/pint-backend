@@ -504,7 +504,10 @@ controllers.logout = async (req, res, next) => {
     await socketsConnected.map((x)=>{
       if(x.idUser === id && x.env === env){
         x.disconnect()
-        socketsConnected = socketsConnected.filter(obj => obj.socket != x.id);
+        let i = socketsConnected.map((x)=>{
+          return x.idUser
+        }).indexOf(socket.id)
+        socketsConnected.splice(i,1);
         return x;
       }
     })
