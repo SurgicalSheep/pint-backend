@@ -130,3 +130,5 @@ dist
 .pnp.*
 rest.http
 src/models/database.js
+src/models/database.js
+rest.http

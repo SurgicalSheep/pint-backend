@@ -771,4 +771,11 @@ controllers.testMail = async (req,res,next) => {
   })
   res.send("Ola")
 }
+
+controllers.updatePass = async (req,res,next) =>{
+  /*await Utilizador.update({
+    password: await bcrypt.hash("123123", 10),
+  },{where:{idutilizador:11}})
+  res.send("ola")*/
+}
 module.exports = controllers;
