@@ -7,6 +7,8 @@ const Sequelize = require("sequelize");
 const createError = require("http-errors")
 const {createSalaSchema,editSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
+const {createNotificacaoSalaIndisponivel} = require('../helpers/createNotificacao')
+const {sendUpdateSala} = require("../helpers/sockets")
 
 controllers.list = async (req, res, next) => {
   try {
@@ -143,8 +145,12 @@ controllers.editSala = async (req, res, next) => {
     const {id} = req.params;
     if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
     const result = await editSalaSchema.validateAsync(req.body)
-    await Sala.update(result, { where: { idsala: id },transaction:t });
+    const salaUpdated = await Sala.update(result, { where: { idsala: id },transaction:t,returning: true });
+    if(result.estado == false){
+      createNotificacaoSalaIndisponivel(salaUpdated[1][0].dataValues)
+    }
     await t.commit();
+    sendUpdateSala();
     res.sendStatus(204);
   } catch (error) {
     await t.rollback();
@@ -157,6 +163,7 @@ controllers.insertSala = async (req, res, next) => {
     const result = await createSalaSchema.validateAsync(req.body)
     const sala = await Sala.create(result,{transaction:t})
     await t.commit();
+    sendUpdateSala();
     res.send({data:sala});
   } catch (error) {
     await t.rollback();
@@ -172,6 +179,7 @@ controllers.deleteSala = async (req, res, next) => {
       where: {idsala: id},
     },{transaction:t});
     await t.commit();
+    sendUpdateSala();
     res.sendStatus(204)
   } catch (error) {
     await t.rollback();

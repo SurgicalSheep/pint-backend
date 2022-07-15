@@ -64,16 +64,13 @@ setInterval(async() => {
                     reservasSent.push({idreserva:x.idreserva,check5m:true})
                 }else if(!isNaN(pos)){
                 //send
-                console.log("ola")
                 await createNotificacaoReserva5Min(x)
-                console.log("adeus")
                 reservasSent[pos].check5m = true;
                 }
                 
             }
         }
     })
-    console.log(reservasSent);
 }, checkMinutos * 20 * 1000);
 
 app.use(async (req,res,next) => {

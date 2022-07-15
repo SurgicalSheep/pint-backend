@@ -118,12 +118,17 @@ function sendUpdateUtilizador() {
     io.emit('updateUser','updateUser')
 }
 
+function sendUpdateSala() {
+  io.emit('updateSala','updateSala')
+}
+
 
 module.exports= {
     startSocket:startSocket,
     socketsConnected:socketsConnected,
     sendUpdateNotificacao:sendUpdateNotificacao,
     sendUpdateUtilizador:sendUpdateUtilizador,
-    sendUpdateReserva:sendUpdateReserva
+    sendUpdateReserva:sendUpdateReserva,
+    sendUpdateSala:sendUpdateSala
 }
 

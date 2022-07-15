@@ -1,8 +1,10 @@
 const Notificacao = require("../models/notificacao");
 const Sala = require("../models/sala");
 const Utilizador = require("../models/utilizador")
+const Reserva = require("../models/reserva")
 const { sendUpdateNotificacao } = require("../helpers/sockets");
 const sequelize = require("../models/database");
+const { Op } = require("sequelize");
 
 async function createNotificacaoReserva5Min(reserva) {
   const t = await sequelize.transaction();
@@ -23,19 +25,32 @@ async function createNotificacaoReserva5Min(reserva) {
   }
 }
 
-async function createNotificacaoSalaIndisponivel(sala) {
+async function createNotificacaoSalaIndisponivel(salaIndisponivel) {
     const t = await sequelize.transaction();
     try {
-      const sala = await Sala.findByPk(sala.idsala,{transaction:t});
-      const user = await Utilizador.findByPk(reserva.idutilizador,{transaction:t});
+      const sala = await Sala.findByPk(salaIndisponivel.idsala,{transaction:t});
+      let now = new Date()
+      let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+      const reservasAfetadas = await Reserva.findAll({
+        where:{[Op.and]:[{
+            idsala:sala.idsala
+      },{
+            data:{[Op.gte]:now}
+      },{
+            horainicio:{[Op.gte]:time}
+      }]}},{transaction:t});
+      if(!salaIndisponivel.justificacao){
+        salaIndisponivel.justificacao = "motivos desconhecidos!"
+      }
       const notificacao = await Notificacao.create({
-        titulo: "Reserva prestes a começar",
-        descricao: `Faltam menos de 5 minutos para a sua reserva da sala ${sala.nome} começar!`,
+        titulo: "Sala indisponível!",
+        descricao: `A sala ${sala.nome} acabou de ficar indisponível devido a ${salaIndisponivel.justificacao}`,
       },{transaction:t});
-  
-      await notificacao.addUtilizadores(user, { transaction: t });
-      await t.commit()
-      sendUpdateNotificacao(user.idutilizador, notificacao);
+      await t.commit();
+      reservasAfetadas.map(async(reservaAfetada)=>{
+        await notificacao.addUtilizadores(reservaAfetada.idutilizador);
+        sendUpdateNotificacao(reservaAfetada.idutilizador, notificacao);
+      });
     } catch (error) {
       await t.rollback()
       console.log(error);
@@ -43,5 +58,6 @@ async function createNotificacaoSalaIndisponivel(sala) {
   }
 
 module.exports = {
-  createNotificacaoReserva5Min: createNotificacaoReserva5Min
+  createNotificacaoReserva5Min: createNotificacaoReserva5Min,
+  createNotificacaoSalaIndisponivel:createNotificacaoSalaIndisponivel
 };
