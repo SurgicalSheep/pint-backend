@@ -664,8 +664,7 @@ controllers.editUtilizador = async (req, res, next) => {
         throw createError.Unauthorized()
       }
     }
-    const io = req.app.get('socketio');
-      io.emit('userUpdated',"userUpdated")
+    sendUpdateUtilizador()
     res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();
