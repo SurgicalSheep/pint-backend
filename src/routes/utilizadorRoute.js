@@ -64,7 +64,7 @@ router.get('/updatePass',verifyAccessToken, utilizadorController.updatePass);
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
 router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorController.makeEmpregadoLimpeza);
-router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+//router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
 router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);

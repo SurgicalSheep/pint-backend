@@ -341,7 +341,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           email: "andrioleto@notadmin.com",
           password: await bcrypt.hash("123123", 10),
         },
-        /*{
+        {
           admin: true,
           nome: "Consertino",
           idcentro: 1,
@@ -364,7 +364,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           telemovel: "931233123",
           email: "rodrigorodrigues@softinsa.com",
           password: await bcrypt.hash("123123", 10),
-        }*/
+        }
       ],
       { transaction: t }
     );
