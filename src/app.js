@@ -14,74 +14,9 @@ const pedidoRouters = require('./routes/pedidoRoute')
 const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
-const jwt = require('jsonwebtoken')
-//Sockets
-const io = require('socket.io')(server,{
-    cors: {
-      origin: '*',
-    }})
-let socketsConnected = new Array()
-//authenticate socket
-io.use(function(socket, next){
-    if (socket.handshake.query && socket.handshake.query.token && socket.handshake.query.env && (socket.handshake.query.env === "web" || socket.handshake.query.env === "mobile")){
-      jwt.verify(socket.handshake.query.token, process.env.TOKEN_KEY, function(err, payload) {
-        if (err) return next(createError.Unauthorized("Authentication error"));
-        if (socketsConnected.some(e => e.idUser === payload.sub && e.env === socket.handshake.query.env)) return next(createError.Conflict("Already Connected"));
-        socket.idUser = payload.sub;
-        socket.decodedToken = payload;
-        socket.env = socket.handshake.query.env;
-        next();
-      });
-    }
-    else {
-        next(createError.Unauthorized("Something missing"));
-    }    
-  })
-  //disconnect socket on jwt expire
-  io.use((socket, next) => {
-    const decodedToken = socket.decodedToken
-
-    if (!decodedToken.exp) {
-      return next(createError.Unauthorized());
-    }
-    const expiresIn = (decodedToken.exp - Date.now() / 1000) * 1000
-    const timeout = setTimeout(() => {socket.disconnect(true)}, expiresIn)
-  
-    socket.on('disconnect', () => clearTimeout(timeout))
-  
-    return next()
-  });
-  //on connect
-  io.on('connection', function(socket) {
-    socketsConnected.push(socket)
-
-    socket.emit("Connected","Connected")
-
-    socket.on('disconnect',()=>{
-        console.log("Disconnected")
-        socket.disconnect();
-        socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
-    })
-
-    socket.on("error", (err) => {
-        if (err && err.message === "unauthorized event") {
-          socket.disconnect();
-          socketsConnected = socketsConnected.filter(obj => obj.id != socket.id);
-        }
-    })
-
-    socket.on('test',()=>{
-        socket.emit('newUser',"Nada")
-    })
-
-    socket.on('nmrSockets',()=>{
-      socket.emit('nmrSockets',socketsConnected.map((x)=>{
-        console.log(x.id+" "+x.env)
-      }))
-  })
-  });
-app.set('socketio', io);
-app.set('socketsConnected',socketsConnected)
+const {startSocket} = require('./helpers/sockets')
+const {createNotificacaoReserva5Min} = require('./helpers/createNotificacao')
+const checkMinutos = 1;
 
 app.use(cors())
 app.set('port', (process.env.PORT || 3000));
@@ -97,6 +32,47 @@ app.use('/empregadoLimpeza',empregadoLimpezaRouters)
 //app.use('/empregadoManutencao',empregadoManutencaoRouters)
 app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters);
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
+
+const sequelize = require('./models/database');
+const { QueryTypes } = require('sequelize');
+const reservasSent = new Array()
+setInterval(async() => {
+    let sendOne = false
+    const reservas1Week = await sequelize.query(`SELECT "idreserva", "data", "horainicio", "horafinal", "observacoes", "idutilizador","idsala",
+    CASE when ("data" = date(Now()) AND (horainicio - (CURRENT_TIME(0)::TIME + '01:00:00')) <= interval '5 minutes') AND (horainicio > (CURRENT_TIME(0)::TIME + '01:00:00')) THEN '5m'
+    WHEN NOW()::DATE <= "data"::DATE AND "data" < NOW() + INTERVAL '7 DAYS' THEN '7D' 
+    ELSE 'no'
+     END AS "check" FROM "reservas" AS "reservas";`, { type: QueryTypes.SELECT,logging:false })
+    reservas1Week.map(async(x)=>{
+        let sent = false
+            if(x.check == "5m"){
+            reservasSent.map((y)=>{
+                if(y.idreserva == x.idreserva && y.check5m){
+                    sent = true
+                }
+            })
+            if(!sent){
+                let pos;
+                reservasSent.map((y,i)=>{
+                    if(y.idreserva == x.idreserva && y.check7D){
+                        pos =  i
+                    }
+                })
+                if(!pos){
+                    await createNotificacaoReserva5Min(x)
+                    reservasSent.push({idreserva:x.idreserva,check5m:true})
+                }else if(!isNaN(pos)){
+                //send
+                await createNotificacaoReserva5Min(x)
+                reservasSent[pos].check5m = true;
+                }
+                
+            }
+        }
+    })
+}, checkMinutos * 20 * 1000);
+
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
 })
@@ -110,3 +86,5 @@ app.use((err,req,res,next) =>{
 server.listen(app.get('port'), () => {
     console.log("Start server on port " + app.get('port'))
 })
+
+startSocket(server)

@@ -8,25 +8,151 @@ const Op = Sequelize.Op;
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
+const {sendUpdateReserva} = require('../helpers/sockets')
+
+const isValidDate = function(date) {
+  return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
+}
 
 controllers.list = async (req, res) => {
-  let { limit, offset } = req.query;
+  let { limit, offset,pesquisa,centros,mostrarAntingas} = req.query;
   if (!req.query.limit || req.query.limit == 0) {
     limit = 5;
   }
   if (!req.query.offset) {
     offset = 0;
   }
-  const data = await Reserva.scope("noIdSala")
+  if(!centros){
+    centros = new Array(0)
+    const allCentros = await Centro.findAll({attributes:["idcentro"]});
+    allCentros.map((x,i)=>{
+      centros[i] = Number(x.dataValues.idcentro)
+    })
+  }
+  let data;
+  let count;
+  if(pesquisa && isValidDate(pesquisa)){
+    data = await Reserva.scope("noIdSala")
     .scope("noIdUtilizador")
     .findAll({
       limit: limit,
       offset: offset,
-      include: [{ model: Sala }, { model: Utilizador.scope("noPassword") }],
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+        [Op.or]:[{
+          "$reservas.data$":new Date(pesquisa)
+        },{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]
+      },
       order: [["data", "DESC"]],
     });
+    count = await Reserva.count({
+      include: [{ 
+        model: Sala,
+       }, { 
+        model: Utilizador.scope("noPassword"),
+      }],
+      where:{
+        [Op.or]:[{
+          data:new Date(pesquisa)
+        },{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]
+      }
+    });
+  }
+  else{
+    if(!pesquisa)pesquisa=""
+    if(mostrarAntingas && (String(mostrarAntingas).toLowerCase() == "false")){
+      let today = new Date();
+      data = await Reserva.scope("noIdSala")
+      .scope("noIdUtilizador")
+      .findAll({
+        limit: limit,
+        offset: offset,
+        include: [{ 
+          model: Sala,
+         }, { 
+          model: Utilizador.scope("noPassword"),
+        }],
+        where:{
+          [Op.and]:[{
+            data:{[Op.gt]:today}
+          },{
+            [Op.or]:[{
+              "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            },{
+              "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            }]
+          }]
+        },
+        order: [["data", "DESC"]],
+      });
+      count = await Reserva.count({
+        include: [{ 
+          model: Sala,
+         }, { 
+          model: Utilizador.scope("noPassword"),
+        }],
+        where:{
+          [Op.and]:[{
+            data:{[Op.gt]:today}
+          },{
+            [Op.or]:[{
+              "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            },{
+              "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            }]
+          }]
+        }});
+    }
+    else{
+      data = await Reserva.scope("noIdSala")
+      .scope("noIdUtilizador")
+      .findAll({
+        limit: limit,
+        offset: offset,
+        include: [{ 
+          model: Sala,
+         }, { 
+          model: Utilizador.scope("noPassword"),
+        }],
+        where:{
+          [Op.or]:[{
+            "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          },{
+            "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          }]
+        },
+        order: [["data", "DESC"]],
+      });
+      count = await Reserva.count({
+        include: [{ 
+          model: Sala,
+         }, { 
+          model: Utilizador.scope("noPassword"),
+        }],
+        where:{
+        [Op.or]:[{
+          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        },{
+          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+        }]}});
+    }
+
+  }
+   
   let x = { data };
-  const count = await Reserva.count();
+  
   x.count = count;
   res.send(x);
 };
@@ -38,7 +164,7 @@ controllers.getReserva = async (req, res) => {
     });
   res.json({ data: data });
 };
-controllers.insertReserva = async (req, res) => {
+controllers.insertReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const data = await Reserva.create(
@@ -52,28 +178,30 @@ controllers.insertReserva = async (req, res) => {
       },
       { transaction: t }
     );
+    sendUpdateReserva()
     await t.commit();
-    res.status(200).send({ data: data });
+    res.send({ data: data });
   } catch (err) {
     await t.rollback();
-    res.status(400).send(err);
+    next(err)
   }
 };
-controllers.deleteReserva = async (req, res) => {
+controllers.deleteReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const reserva = await Reserva.findByPk(req.params.id);
-    await reserva.destroy({ transaction: t });
-
+    const {id} = req.params
+    if(isNaN(id)) return createError.BadRequest("Id is not a number")
+    await Reserva.destroy({where:{idreserva:id}});
+    sendUpdateReserva()
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204)
   } catch (err) {
     await t.rollback();
-    res.status(400).send(err);
+    next(err)
   }
 };
 
-controllers.editReserva = async (req, res) => {
+controllers.editReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Reserva.update(
@@ -87,11 +215,12 @@ controllers.editReserva = async (req, res) => {
       },
       { where: { idreserva: req.params.id }, transaction: t }
     );
+    sendUpdateReserva()
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204);
   } catch (error) {
     await t.rollback();
-    res.status(400).send(error);
+    next(error)
   }
 };
 
@@ -116,33 +245,22 @@ controllers.rangeReservas = async (req, res, next) => {
     if (!(start && end)) {
       return next(createError.BadRequest("Date missing"));
     }
-    let days = getDaysArray(start, end);
-    let info = [];
-    await Promise.all(
-      days.map(async (day, i) => {
-        let data = await Reserva.count({
-          where: {
-            data: day,
-          },
-        });
-        info.push({ day: day, value: data });
-      })
-    );
-    res.send({ data: info });
+    let data = await Reserva.count({
+      attributes:['data'],
+      as:"value",
+      where:{
+        data:{[Op.between]:[
+          start
+        ,
+          end
+        ]}
+      },
+      group:"data"
+    })
+    res.send({ data: data });
   } catch (error) {
     next(error);
   }
-};
-
-var getDaysArray = function (start, end) {
-  for (
-    var arr = [], dt = new Date(start);
-    dt <= new Date(end);
-    dt.setDate(dt.getDate() + 1)
-  ) {
-    arr.push(new Date(dt).toISOString().split("T")[0]);
-  }
-  return arr;
 };
 
 controllers.daysWithReserva = async (req, res, next) => {
@@ -201,7 +319,6 @@ function Returnsalas(Array) {
     })
     return array_sala
 }
-
 
 controllers.freeSalas = async (req, res, next) => {
   try {
@@ -274,6 +391,41 @@ controllers.rangeReservasBySala = async (req, res, next) => {
       }]
     })
     res.send({ data: val });
+  } catch (error) {
+    next(error);
+  }
+};
+
+controllers.reservasDecorrer = async (req, res, next) => {
+  try {
+    let now = new Date()
+    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    const data = await Reserva.findAll({
+      where: {
+            [Op.and]: [
+              {
+                horafinal:{[Op.gte]:time}
+              },{
+                horainicio: {
+                  [Op.lte]: time,
+                },
+              },{
+                data:now
+              },{
+                [Op.not]:[{
+                  horafinal:{[Op.lte]:time}
+                }]
+                
+              }
+            ],
+      },
+      include: [
+        {
+          model: Sala,
+        },
+      ],
+    });
+    res.send({ data });
   } catch (error) {
     next(error);
   }

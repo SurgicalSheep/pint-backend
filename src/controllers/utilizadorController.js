@@ -16,12 +16,23 @@ const {
 } = require("../middlewares/jwt");
 const {utilizadorSchema,editUtilizador,editUtilizadorAdmin} = require("../schemas/userSchema");
 const createError = require("http-errors");
+const xlsx = require('xlsx');
+const EmpregadoLimpeza = require("../models/empregadoLimpeza");
+const nodemailer = require('nodemailer');
+const jwt = require("jsonwebtoken");
+const {sendUpdateUtilizador} = require('../helpers/sockets')
+
+const transporter = nodemailer.createTransport({
+  service:'Gmail',
+  auth:{
+    user:process.env.GMAIL_USER,
+    pass:process.env.GMAIL_APP_PASS
+  }
+});
 
 controllers.list = async (req, res, next) => {
   try {
     let {centro,pesquisa,limit,offset} = req.query
-    if(!pesquisa)
-    pesquisa = ""
     if (!limit || limit == 0) {
       limit = 5;
     }
@@ -36,32 +47,63 @@ controllers.list = async (req, res, next) => {
       })
     }
     let centroInt = centro.map((x)=>{return Number(x)})
-    const data = await Utilizador.scope("noIdCentro").findAll({
-      limit: limit,
-      offset: offset,
-      where:{
-        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
-      },
-      include: [
-        {
-          model: Centro,
+    let data;
+    if (pesquisa && !isNaN(pesquisa)) {
+      data = await Utilizador.scope("noIdCentro").findAll({
+        limit: limit,
+        offset: offset,
+        where:{
+          [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
         },
-      ],
-      attributes: {
         include: [
-          [
-            sequelize.literal(
-              "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
-            ),
-            "role",
-          ],
+          {
+            model: Centro,
+          },
         ],
-        exclude: ["password"],
-      },
-      order: [
-        ['idutilizador', 'DESC']
-    ]
-    });
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ],
+          exclude: ["password"],
+        },
+        order: [
+          ['idutilizador', 'DESC']
+      ]
+      });
+    } else {
+      if(!pesquisa) pesquisa=""
+      data = await Utilizador.scope("noIdCentro").findAll({
+        limit: limit,
+        offset: offset,
+        where:{
+          [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}}]}]
+        },
+        include: [
+          {
+            model: Centro,
+          },
+        ],
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ],
+          exclude: ["password"],
+        },
+        order: [
+          ['idutilizador', 'DESC']
+      ]
+      });
+    }
     data.forEach((x, i) => {
       if (x.dataValues.foto) {
         try {
@@ -80,9 +122,16 @@ controllers.list = async (req, res, next) => {
       }
   });
     let x = { data };
-    const count = await Utilizador.count({where:{
-      [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
-    }});
+    let count;
+    if(pesquisa && !isNaN(pesquisa)){
+      count = await Utilizador.count({where:{
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}},{ncolaborador:pesquisa}]}]
+      }});
+    }else{
+      count = await Utilizador.count({where:{
+        [Op.and]:[{idutilizador:{[Op.not]:req.idUser}},{idcentro:{[Op.in]:centroInt}},{[Op.or]:[{nome:{[Op.like]: '%' + pesquisa + '%'}},{email:{[Op.like]: '%' + pesquisa + '%'}}]}]
+      }});
+    }
     x.count = count;
     res.send(x);
   } catch (error) {
@@ -90,9 +139,23 @@ controllers.list = async (req, res, next) => {
   }
 };
 
-controllers.count = async (req, res, next) => {
-  const data = await Utilizador.count();
-  res.send({data:data})
+controllers.countUtilizadoresByTipo = async (req, res, next) => {
+  let countAdmin = await Utilizador.count({
+    where:{
+      admin:true
+    }
+  })
+  let countAdminLimpeza = await EmpregadoLimpeza.count({
+    where:{
+      admin:true
+    }
+  })
+  countAdmin -= countAdminLimpeza
+  let countLimpeza = await EmpregadoLimpeza.count();
+  let countUtilizadores = await Utilizador.count();
+  countUtilizadores -= countLimpeza;
+  countUtilizadores -= countAdmin
+  res.send({data:{U:countUtilizadores,L:countLimpeza,admin:countAdmin}})
 }
 
 controllers.deleteUtilizador = async (req, res,next) => {
@@ -161,12 +224,80 @@ controllers.getUtilizador = async (req, res, next) => {
 controllers.bulkInsertUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    await Utilizador.bulkCreate(req.body, { transaction: t });
+    const workbook = xlsx.readFile(req.file.path)
+    let worksheet = workbook.Sheets[workbook.SheetNames[0]]
+    let worksheetLimpeza = workbook.Sheets[workbook.SheetNames[1]]
+    const users = [];
+    const usersLimpeza = [];
+    let user = {};
+    for(let cell in worksheet){
+      const cellAsString = cell.toString();
+      if(cellAsString[1] !== 'r' && cellAsString !== 'm' && cellAsString[1] > 1){
+        if(cellAsString[0] === 'A'){
+          user.admin = worksheet[cell].v;
+        }
+        if(cellAsString[0] === 'B'){
+          user.nome = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'C'){
+          user.telemovel = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'D'){
+          user.email = worksheet[cell].v
+        }
+        if(cellAsString[0] === 'E'){
+          user.password = await bcrypt.hash((worksheet[cell].v).toString(),10)
+        }
+        if(cellAsString[0] === 'F'){
+          user.idcentro = worksheet[cell].v
+          users.push(user);
+          user = {}
+        }
+      }
+    }
+    for(let cell in worksheetLimpeza){
+      const cellAsString = cell.toString();
+      if(cellAsString[1] !== 'r' && cellAsString !== 'm' && cellAsString[1] > 1){
+        if(cellAsString[0] === 'A'){
+          user.admin = worksheetLimpeza[cell].v;
+        }
+        if(cellAsString[0] === 'B'){
+          user.nome = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'C'){
+          user.telemovel = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'D'){
+          user.email = worksheetLimpeza[cell].v
+        }
+        if(cellAsString[0] === 'E'){
+          user.password = await bcrypt.hash((worksheetLimpeza[cell].v).toString(),10)
+        }
+        if(cellAsString[0] === 'F'){
+          user.idcentro = worksheetLimpeza[cell].v
+          usersLimpeza.push(user);
+          user = {}
+        }
+      }
+    }
+
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) return err;
+      });
+    }
+    await Utilizador.bulkCreate(users,{transaction:t})
+    await EmpregadoLimpeza.bulkCreate(usersLimpeza,{transaction:t})
     await t.commit();
     res.sendStatus(204)
   } catch (error) {
     await t.rollback();
-    next(createError.InternalServerError())
+    if (req.file) {
+      fs.unlink(req.file.path, (err, result) => {
+        if (err) throw err;
+      });
+    }
+    next(error)
   }
 };
 
@@ -202,7 +333,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
   try {
     await Utilizador.bulkCreate(
       [
-        /*{
+        {
           admin: false,
           nome: "Andrioleto",
           idcentro: 1,
@@ -210,7 +341,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           email: "andrioleto@notadmin.com",
           password: await bcrypt.hash("123123", 10),
         },
-        {
+        /*{
           admin: true,
           nome: "Consertino",
           idcentro: 1,
@@ -254,6 +385,12 @@ controllers.login = async (req, res, next) => {
   const utilizador = await Utilizador.findOne({
     where: { email: email.toLowerCase() },
   });
+  /*
+  if(!utilizador.verificado){
+    return next(createError.Unauthorized("Confirm email first."));
+  }
+  
+  */
   if (
     utilizador &&
     (await bcrypt.compare(password, utilizador.password))
@@ -316,6 +453,16 @@ controllers.getUserByToken = async (req, res, next) => {
             model: Centro,
           },
         ],
+        attributes: {
+          include: [
+            [
+              sequelize.literal(
+                "(CASE WHEN utilizadores.tableoid::regclass::text = 'utilizadores' THEN 'U'  when utilizadores.tableoid::regclass::text = 'empregados_limpeza' THEN 'L' END)"
+              ),
+              "role",
+            ],
+          ]
+        },
       }
     );
     if (utilizador.dataValues.foto) {
@@ -353,15 +500,6 @@ controllers.logout = async (req, res, next) => {
     const { refreshToken,env } = req.body;
     if (!(refreshToken && env && (env === "web" || env === "mobile"))) throw createError.BadRequest();
     const id = await verifyRefreshToken(refreshToken);
-    let socketsConnected = req.app.get('socketsConnected');
-    //disconnect socket
-    await socketsConnected.map((x)=>{
-      if(x.idUser === id && x.env === env){
-        x.disconnect()
-        socketsConnected = socketsConnected.filter(obj => obj.socket != x.id);
-        return x;
-      }
-    })
 
     await client.HDEL(id,env);
     res.sendStatus(204);
@@ -377,9 +515,6 @@ controllers.insertUtilizador = async (req, res, next) => {
     const emailExists = await Utilizador.findOne({
       where: { email: result.email },
     });
-    const nColaboradorExists = await Utilizador.findOne({
-      where: { ncolaborador: result.ncolaborador },
-    });
 
     if (emailExists) {
       if (req.file) {
@@ -389,18 +524,26 @@ controllers.insertUtilizador = async (req, res, next) => {
       }
       throw createError.Conflict(`${result.email} has already been registered`)
     }
-    if (nColaboradorExists) {
-      if (req.file) {
-        fs.unlink(req.file.path, (err, result) => {
-          if (err) throw err;
-        });
-      }
-      throw createError.Conflict(`${result.ncolaborador} has already been registered`
-      );
-    }
     bcrypt.hash(result.password, 10, async function (err, hash) {
       result.password = hash;
       const user = await Utilizador.create(result, { transaction: t });
+
+      const payload = {};
+      const options = {
+        expiresIn: "5m",
+        subject: String(id),
+      };
+      jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+        if(err) return err
+        const url = 'http://localhost:3000/utilizador/confirmar/'+emailToken
+
+        transporter.sendMail({
+          to:result.email,
+          subject:'Confirm Email',
+          html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+        });
+      })
+
       if (req.file) {
         let x = await handleImage(
           req.file.path,
@@ -414,8 +557,7 @@ controllers.insertUtilizador = async (req, res, next) => {
         await user.save();
         await t.commit();
       }
-      const io = req.app.get('socketio');
-      io.emit('newUser',"newUser")
+      sendUpdateUtilizador();
       res.send({ data: user });
     });
   } catch (error) {
@@ -449,18 +591,11 @@ controllers.editUtilizador = async (req, res, next) => {
     if (utilizador.admin) {
       const result = await editUtilizadorAdmin.validateAsync(req.body);
       let emailExists;
-      let nColaboradorExists;
       if(result.email){
           emailExists = await Utilizador.findOne({
         where: { email: result.email },
       });
-      }
-      if(result.ncolaborador){
-          nColaboradorExists = await Utilizador.findOne({
-        where: { ncolaborador: result.ncolaborador },
-      });
-      }
-      
+      }    
 
       if (emailExists) {
         if(emailExists.idutilizador != id){
@@ -470,16 +605,6 @@ controllers.editUtilizador = async (req, res, next) => {
             });
           }
           throw createError.Conflict(`${result.email} has already been registered`)
-        }
-      }
-      if (nColaboradorExists) {
-        if(nColaboradorExists.idutilizador != id){
-          if (req.file) {
-            fs.unlink(req.file.path, (err, result) => {
-              if (err) throw err;
-            });
-          }
-          throw createError.Conflict(`${result.ncolaborador} has already been registered`);
         }
       }
       bcrypt.hash(result.password, 10, async function (err, hash) {
@@ -539,8 +664,7 @@ controllers.editUtilizador = async (req, res, next) => {
         throw createError.Unauthorized()
       }
     }
-    const io = req.app.get('socketio');
-      io.emit('userUpdated',"userUpdated")
+    sendUpdateUtilizador()
     res.send({ data: "Utilizador updated!" });
   } catch (err) {
     await t.rollback();
@@ -588,4 +712,70 @@ controllers.deleteUtilizadorFoto = async(req,res,next) => {
   }
 }
 
+controllers.makeEmpregadoLimpeza = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  try {
+    let {id} = req.params;
+  if (isNaN(id)) return next(createError[422]("Id is not an Integer!"))
+    const utilizadorRaw = await Utilizador.findByPk(id,{raw: true,transaction:t});
+    const utilizador = await Utilizador.findByPk(id,{transaction:t});
+    await utilizador.destroy({transaction:t})
+    const empregadoLimpeza = await EmpregadoLimpeza.create(utilizadorRaw,{transaction:t})
+    await t.commit();
+    res.send({ data: empregadoLimpeza });
+  } catch (error) {
+    await t.rollback();
+    next(error)
+  }
+};
+
+controllers.confirmarUtilizador = async (req, res, next) => {
+  const t = sequelize.transaction()
+  try {
+      const token = req.query.token
+      if (!token) {
+        return next(createError.BadRequest());
+      }
+      jwt.verify(token, process.env.EMAIL_TOKEN_KEY, async(err, payload) => {
+        if (err) {
+          const message =
+            err.name === "JsonWebTokenError" ? "Unauthorized" : err.message;
+          return next(createError.Unauthorized(message));
+        }
+        await Utilizador.update({verificado:true},{where:{idutilizador: payload.sub}})
+        await t.commit()
+      });
+  } catch (error) {
+    await t.rollback()
+    next(error)
+  }
+}
+
+controllers.testMail = async (req,res,next) => {
+  const result = {}
+  result.email = req.body.email
+  const payload = {};
+      const options = {
+        expiresIn: "1d",
+        subject: String("Atum"),
+      };
+  jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+    if(err) return err
+    const url = 'https://pint-web.vercel.app/atum/'+emailToken
+
+    transporter.sendMail({
+      to:result.email,
+      subject:'Confirm Email',
+      html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+    });
+  })
+  res.send("Ola")
+}
+
+controllers.updatePass = async (req,res,next) =>{
+  /*await Utilizador.update({
+    password: await bcrypt.hash("123123", 10),
+  },{where:{idutilizador:11}})
+  res.send("ola")*/
+}
 module.exports = controllers;

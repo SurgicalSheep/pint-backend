@@ -1,11 +1,13 @@
 const controllers = {};
 var Notificacao = require("../models/notificacao");
-var UtilizadorNotificacao = require("../models/utilizadoresNotificacao");
 var sequelize = require("../models/database");
 const Utilizador = require("../models/utilizador");
+const UtilizadoresNotificaco = require('../models/utilizadoresNotificacao')
 const { editNotificacaoSchema } = require("../schemas/notificacaoSchema");
 const fs = require("fs");
-
+const { Op } = require("sequelize");
+const createError = require('http-errors')
+const {sendUpdateNotificacao} = require("../helpers/sockets")
 controllers.list = async (req, res) => {
   let {limit,offset} = req.query;
   if (!limit || limit == 0) {
@@ -26,7 +28,10 @@ controllers.list = async (req, res) => {
       },
     ],
   });
-  res.send({ data: data });
+  const count = await Notificacao.count()
+  let x = {data}
+  x.count = count
+  res.send(x);
 };
 
 controllers.getTop10Notificacao = async (req, res) => {
@@ -84,7 +89,6 @@ controllers.insertNotificacao = async (req, res, next) => {
         titulo: req.body.titulo,
         descricao: req.body.descricao,
         hora: req.body.hora,
-        recebida: req.body.recebida,
         idutilizador: req.body.idutilizador,
       },
       { transaction: t }
@@ -97,25 +101,18 @@ controllers.insertNotificacao = async (req, res, next) => {
   }
 };
 
-controllers.insertUtilizadorNotificacao = async (req, res) => {
+controllers.insertUtilizadorNotificacao = async (req, res,next) => {
   const t = await sequelize.transaction();
   try {
     const user = await Utilizador.findByPk(req.body.idutilizador);
     const noti = await Notificacao.findByPk(req.body.idnotificacao);
     await noti.addUtilizadores(user, { transaction: t });
-    const io = req.app.get('socketio');
-    let socketsConnected = req.app.get('socketsConnected')
-    socketsConnected.map((x)=>{
-      if(x.idUser === id && x.env === env){
-        x.emit('newNotificacao',{data:noti})
-      }
-    })
+    sendUpdateNotificacao(req.body.idutilizador,noti)
       await t.commit();
-        io.emit('newNotificacao',"newNotificacao")
     res.sendStatus(204);
-  } catch {
+  } catch (error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
 
@@ -143,9 +140,27 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
     if (!offset) {
       offset = 0;
     }
-    const data = await Utilizador.findAll({
-      limit:limit,
-      offset:offset,
+    const utilizador = await Utilizador.findByPk(req.params.id)
+    const data = await utilizador.getNotificacoes({limit:limit,offset:offset,order:[["idnotificacao","DESC"]],joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
+    if(data.length > 0){
+      data.forEach((x, i) => {
+        if (x.dataValues.utilizador) {
+          if (x.dataValues.utilizador.dataValues.foto) {
+            let idk = fs.readFileSync(
+              x.dataValues.utilizador.dataValues.foto,
+              "base64",
+              (err, val) => {
+                if (err) return err;
+                return val;
+              }
+            );
+            x.dataValues.utilizador.dataValues.fotoConv = idk;
+          }
+        }
+      });
+    }
+    
+    const count = await Utilizador.count({
       attributes: [],
       where: {},
       include: [
@@ -155,30 +170,19 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
             { model: Utilizador.scope("noPassword"), as: "utilizador" },
           ],
           through: {
-            attributes: [],
+            as:"estadoNotificacao",
+            attributes: ["recebida"],
             where: { idutilizador: req.params.id },
           },
           where: {},
         },
       ],
     });
+    let x = {data}
+    x.count = count
+
     
-    data[0].dataValues.notificacoes.forEach((x, i) => {
-      if (x.dataValues.utilizador) {
-        if (x.dataValues.utilizador.dataValues.foto) {
-          let idk = fs.readFileSync(
-            x.dataValues.utilizador.dataValues.foto,
-            "base64",
-            (err, val) => {
-              if (err) return err;
-              return val;
-            }
-          );
-          x.dataValues.utilizador.dataValues.fotoConv = idk;
-        }
-      }
-    });
-    res.send({ data: data });
+    res.send(x);
   } catch (error) {
     next(error);
   }
@@ -186,7 +190,7 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
 
 controllers.editNotificacao = async (req, res, next) => {
   const { id } = req.params;
-  if (Number.isInteger(+id)) {
+  if (isNaN(id)) next(createError.BadRequest("Id is not a Integer"));
     const t = await sequelize.transaction();
     try {
       const result = await editNotificacaoSchema.validateAsync(req.body);
@@ -201,27 +205,36 @@ controllers.editNotificacao = async (req, res, next) => {
       await t.rollback();
       return next(error);
     }
-  } else {
-    next(createError.BadRequest("Id is not a Integer"));
+};
+
+controllers.notificationReceived = async (req, res, next) => {
+  const {idnotificacao } = req.body;
+  const user = req.idUser
+  
+  if (isNaN(idnotificacao)) return next(createError.BadRequest("Ids must be integer"));
+  const t = await sequelize.transaction()
+  try {
+    await UtilizadoresNotificaco.update({recebida:true},{where:{[Op.and]:[{idnotificacao:idnotificacao},{idutilizador:user}]},transaction:t})
+    await t.commit()
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback()
+    next(error)
   }
 };
 
-function fotoConv(data) {
-  data[0].dataValues.notificacoes.forEach((x,i) => {
-    if (x.dataValues.utilizador) {
-      if (x.dataValues.utilizador.dataValues.foto) {
-        let idk = fs.readFileSync(
-          x.dataValues.utilizador.dataValues.foto,
-          "base64",
-          (err, val) => {
-            if (err) return err;
-            return val;
-          }
-        );
-        x.dataValues.utilizador.dataValues.fotoConv = idk;
-      }
-    }
-  });
-}
+controllers.allNotificationReceived = async (req, res, next) => {
+  const  idutilizador  = req.idUser
+  if (isNaN(idutilizador)) return next(createError.BadRequest("Id must be integer"));
+  const t = await sequelize.transaction()
+  try {
+    await UtilizadoresNotificaco.update({recebida:true},{where:{idutilizador:idutilizador},transaction:t})
+    await t.commit()
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback()
+    next(error)
+  }
+};
 
 module.exports = controllers;

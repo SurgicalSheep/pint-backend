@@ -31,12 +31,12 @@ const upload = multer({
   });
 
 const centroController = require('../controllers/centroController')
-router.get('/list', centroController.list);
-router.get('/:id/salas', centroController.getSalasCentro);
-router.get('/:id/imagem', centroController.getCentroImagem);
-router.get('/:id', centroController.getCentro);
-router.post('/',upload.single('imagem'), centroController.insertCentro);
-router.delete('/:id/imagem', centroController.deleteCentroImagem);
-router.delete('/:id', centroController.deleteCentro);
-router.put('/:id',upload.single('imagem'), centroController.editCentro);
+router.get('/list',verifyAccessToken, centroController.list);
+router.get('/:id/salas',verifyAccessToken, centroController.getSalasCentro);
+router.get('/:id/imagem',verifyAccessToken, centroController.getCentroImagem);
+router.get('/:id',verifyAccessToken, centroController.getCentro);
+router.post('/',upload.single('imagem'),verifyAccessToken, centroController.insertCentro);
+router.delete('/:id/imagem',verifyAccessToken, centroController.deleteCentroImagem);
+router.delete('/:id',verifyAccessToken, centroController.deleteCentro);
+router.put('/:id',upload.single('imagem'),verifyAccessToken,centroController.editCentro);
 module.exports = router;

@@ -30,15 +30,43 @@ const upload = multer({
     },
   });
 
+  const storageExcel = multer.diskStorage({
+    destination: function(req,file,cb){
+        cb(null,'public/temp');
+    },
+    filename: function(req,file,cb){
+        cb(null,Date.now() + file.originalname);
+    }
+})
+
+  const uploadExcel = multer({
+    storage: storageExcel,
+    fileFilter: (req, file, cb) => {
+      if (
+        file.mimetype == "application/vnd.ms-excel" ||
+        file .mimetype == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ) {
+        cb(null, true); 
+      } else {
+        cb(null, false);
+        return cb(createError.BadRequest("Only .xls and .xlsx format allowed!"));
+      }
+    },
+  });
+
 const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list',verifyAccessToken,isAdmin, utilizadorController.list);
 router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
-router.get('/count',verifyAccessToken,isAdmin,utilizadorController.count)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
+router.get('/tipoCount',verifyAccessToken, utilizadorController.countUtilizadoresByTipo);
+router.get('/updatePass',verifyAccessToken, utilizadorController.updatePass);
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
-//router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorController.makeEmpregadoLimpeza);
+router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
+router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);
@@ -46,5 +74,5 @@ router.post('/logout', utilizadorController.logout);
 router.delete('/:id/foto',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizadorFoto);
 router.delete('/:id',verifyAccessToken,isAdmin, utilizadorController.deleteUtilizador);
 router.put('/:id', verifyAccessToken,upload.single('foto'), utilizadorController.editUtilizador);
-router.post('/bulkAdd', utilizadorController.bulkInsertUtilizador);
+router.post('/bulkAdd',uploadExcel.single('excel'), utilizadorController.bulkInsertUtilizador);
 module.exports = router;

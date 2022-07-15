@@ -7,10 +7,15 @@ const Sequelize = require("sequelize");
 const createError = require("http-errors")
 const {createSalaSchema,editSalaSchema} = require('../schemas/salaSchema')
 const Op = Sequelize.Op;
+const {createNotificacaoSalaIndisponivel} = require('../helpers/createNotificacao')
+const {sendUpdateSala} = require("../helpers/sockets")
 
-controllers.list = async (req, res) => {
-  let {limit,offset,centro,pesquisa} = req.query
-  if(!limit || offset == 0){
+controllers.list = async (req, res, next) => {
+  try {
+    let {limit,offset,pesquisa,lotacao} = req.query
+    let centro = req.query.centros
+    console.log(centro)
+  if(!limit || limit == 0){
     limit = 5;
   }
   if(!req.query.offset){
@@ -20,19 +25,74 @@ controllers.list = async (req, res) => {
     centro = new Array(0)
     const centros = await Centro.findAll({attributes:["idcentro"]});
     centros.map((x,i)=>{
-      centro[i] = x.dataValues.idcentro
+      centro[i] = Number(x.dataValues.idcentro)
     })
   }
-  const data = await Sala.findAll({
-    limit: limit,
-    offset: offset,
-    include:[{model:Centro}]
-  });
-  let x = {data};
-  const count = await Sala.count();   
+  if(!pesquisa) pesquisa="";
+  let data
+  if(!lotacao){
+    data = await Sala.findAll({
+      limit: limit,
+      offset: offset,
+      where:{nome:{[Op.iLike]:"%"+pesquisa+"%"}},
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:centro}
+        }
+      }],
+      order: [
+        ['nome', 'ASC']
+    ]
+    });
+  }else{
+    if(isNaN(lotacao[0])|| isNaN(lotacao[1])) return next(createError.BadRequest("Lotacao not a number"))
+    data = await Sala.findAll({
+      limit: limit,
+      offset: offset,
+      where:{
+        [Op.and]:[{lotacao:{[Op.between]:[lotacao[0],lotacao[1]]}},{nome:{[Op.iLike]:"%"+pesquisa+"%"}}]
+      },
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:centro}
+        }
+      }],
+      order: [
+        ['nome', 'ASC']
+    ]
+    });
+  }
+  let count
+  if(!lotacao){
+    count = await Sala.count({where:{nome:{[Op.iLike]:"%"+pesquisa+"%"}},include:[{
+      model:Centro,
+      where:{
+        idcentro:{[Op.in]:centro}
+      }
+    }]})  
+  }else{
+    count = await Sala.count({
+      where:{
+        [Op.and]:[{lotacao:{[Op.between]:[lotacao[0],lotacao[1]]}},{nome:{[Op.iLike]:"%"+pesquisa+"%"}}]
+      },
+      include:[{
+        model:Centro,
+        where:{
+          idcentro:{[Op.in]:centro}
+        }
+      }]
+    })
+  }
+  let x = {data}; 
   x.count = count;
   
   res.send(x);
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.count = async (req, res) => {
   const data = await Sala.Count();
@@ -85,8 +145,12 @@ controllers.editSala = async (req, res, next) => {
     const {id} = req.params;
     if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
     const result = await editSalaSchema.validateAsync(req.body)
-    await Sala.update(result, { where: { idsala: id },transaction:t });
+    const salaUpdated = await Sala.update(result, { where: { idsala: id },transaction:t,returning: true });
+    if(result.estado == false){
+      createNotificacaoSalaIndisponivel(salaUpdated[1][0].dataValues)
+    }
     await t.commit();
+    sendUpdateSala();
     res.sendStatus(204);
   } catch (error) {
     await t.rollback();
@@ -99,6 +163,7 @@ controllers.insertSala = async (req, res, next) => {
     const result = await createSalaSchema.validateAsync(req.body)
     const sala = await Sala.create(result,{transaction:t})
     await t.commit();
+    sendUpdateSala();
     res.send({data:sala});
   } catch (error) {
     await t.rollback();
@@ -114,6 +179,7 @@ controllers.deleteSala = async (req, res, next) => {
       where: {idsala: id},
     },{transaction:t});
     await t.commit();
+    sendUpdateSala();
     res.sendStatus(204)
   } catch (error) {
     await t.rollback();
