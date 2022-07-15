@@ -11,7 +11,7 @@ function startSocket(server) {
       
       //authenticate socket
       io.use(function(socket, next){
-      if(socket.handshake.query && socket.handshake.query.env && socket.handshake.query.env === "tablet"){
+      if(socket.handshake.query && socket.handshake.query.env && socket.handshake.query.env == "tablet"){
         socket.env = socket.handshake.query.env
         next();
       }else{
@@ -117,6 +117,7 @@ function sendUpdateReserva() {
 function sendUpdateUtilizador() {
     io.emit('updateUser','updateUser')
 }
+
 
 module.exports= {
     startSocket:startSocket,

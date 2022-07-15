@@ -15,7 +15,7 @@ const notificacaoRouters = require('./routes/notificacaoRoute')
 const reservaRouters = require('./routes/reservaRoute');
 const createError = require('http-errors');
 const {startSocket} = require('./helpers/sockets')
-const jwt = require('jsonwebtoken')
+const {createNotificacaoReserva5Min} = require('./helpers/createNotificacao')
 const checkMinutos = 1;
 
 app.use(cors())
@@ -34,28 +34,48 @@ app.use('/pedido',pedidoRouters)
 app.use('/notificacao',notificacaoRouters);
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
-const Reservas = require('./models/reserva');
-const sequelize = require('sequelize');
-/*
+const sequelize = require('./models/database');
+const { QueryTypes } = require('sequelize');
+const reservasSent = new Array()
 setInterval(async() => {
-    let now = new Date()
-    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
-    now = now.toISOString().split('T')[0]
-    const reservas1Week = await Reservas.findAll({
-      attributes: {
-        include:[
-          [
-            sequelize.literal(
-              `(CASE WHEN 'data'-7 < ${now} THEN '7D'  when ('data' = ${now} AND horainicio - ${time} < 0 )  THEN '5m' END)`
-            ),
-            "idk",
-          ]
-      ]
-    },
+    let sendOne = false
+    const reservas1Week = await sequelize.query(`SELECT "idreserva", "data", "horainicio", "horafinal", "observacoes", "idutilizador","idsala",
+    CASE when ("data" = date(Now()) AND (horainicio - (CURRENT_TIME(0)::TIME + '01:00:00')) <= interval '5 minutes') AND (horainicio > (CURRENT_TIME(0)::TIME + '01:00:00')) THEN '5m'
+    WHEN NOW()::DATE <= "data"::DATE AND "data" < NOW() + INTERVAL '7 DAYS' THEN '7D' 
+    ELSE 'no'
+     END AS "check" FROM "reservas" AS "reservas";`, { type: QueryTypes.SELECT,logging:false })
+    reservas1Week.map(async(x)=>{
+        let sent = false
+            if(x.check == "5m"){
+            reservasSent.map((y)=>{
+                if(y.idreserva == x.idreserva && y.check5m){
+                    sent = true
+                }
+            })
+            if(!sent){
+                let pos;
+                reservasSent.map((y,i)=>{
+                    if(y.idreserva == x.idreserva && y.check7D){
+                        pos =  i
+                    }
+                })
+                if(!pos){
+                    await createNotificacaoReserva5Min(x)
+                    reservasSent.push({idreserva:x.idreserva,check5m:true})
+                }else if(!isNaN(pos)){
+                //send
+                console.log("ola")
+                await createNotificacaoReserva5Min(x)
+                console.log("adeus")
+                reservasSent[pos].check5m = true;
+                }
+                
+            }
+        }
     })
-    console.log(reservas1Week);
-}, checkMinutos * 60 * 1000);
-*/
+    console.log(reservasSent);
+}, checkMinutos * 20 * 1000);
+
 app.use(async (req,res,next) => {
     next(createError.NotFound("Route does not exist!"))
 })
