@@ -32,7 +32,7 @@ controllers.list = async (req, res) => {
   let data;
   let count;
   if(pesquisa && isValidDate(pesquisa)){
-    data = await Reserva.scope("noIdSala")
+    data = await Reserva
     .scope("noIdUtilizador")
     .findAll({
       limit: limit,
@@ -43,13 +43,18 @@ controllers.list = async (req, res) => {
         model: Utilizador.scope("noPassword"),
       }],
       where:{
-        [Op.or]:[{
-          "$reservas.data$":new Date(pesquisa)
+        [Op.and]:[{
+          [Op.or]:[{
+            "$reservas.data$":new Date(pesquisa)
+          },{
+            "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          },{
+            "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          }]
         },{
-          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
-        },{
-          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          "$sala.idcentro$":{[Op.in]: centros}
         }]
+        
       },
       order: [["data", "DESC"]],
     });
@@ -60,12 +65,16 @@ controllers.list = async (req, res) => {
         model: Utilizador.scope("noPassword"),
       }],
       where:{
-        [Op.or]:[{
-          data:new Date(pesquisa)
+        [Op.and]:[{
+          [Op.or]:[{
+            "$reservas.data$":new Date(pesquisa)
+          },{
+            "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          },{
+            "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          }]
         },{
-          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
-        },{
-          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          "$sala.idcentro$":{[Op.in]: centros}
         }]
       }
     });
@@ -74,7 +83,7 @@ controllers.list = async (req, res) => {
     if(!pesquisa)pesquisa=""
     if(mostrarAntingas && (String(mostrarAntingas).toLowerCase() == "false")){
       let today = new Date();
-      data = await Reserva.scope("noIdSala")
+      data = await Reserva
       .scope("noIdUtilizador")
       .findAll({
         limit: limit,
@@ -93,6 +102,8 @@ controllers.list = async (req, res) => {
             },{
               "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
             }]
+          },{
+            "$sala.idcentro$":{[Op.in]: centros}
           }]
         },
         order: [["data", "DESC"]],
@@ -112,11 +123,13 @@ controllers.list = async (req, res) => {
             },{
               "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
             }]
+          },{
+            "$sala.idcentro$":{[Op.in]: centros}
           }]
         }});
     }
     else{
-      data = await Reserva.scope("noIdSala")
+      data = await Reserva
       .scope("noIdUtilizador")
       .findAll({
         limit: limit,
@@ -127,10 +140,14 @@ controllers.list = async (req, res) => {
           model: Utilizador.scope("noPassword"),
         }],
         where:{
-          [Op.or]:[{
-            "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+          [Op.and]:[{
+            [Op.or]:[{
+              "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            },{
+              "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            }]
           },{
-            "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            "$sala.idcentro$":{[Op.in]: centros}
           }]
         },
         order: [["data", "DESC"]],
@@ -142,11 +159,15 @@ controllers.list = async (req, res) => {
           model: Utilizador.scope("noPassword"),
         }],
         where:{
-        [Op.or]:[{
-          "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
-        },{
-          "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
-        }]}});
+          [Op.and]:[{
+            [Op.or]:[{
+              "$utilizadore.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            },{
+              "$sala.nome$":{[Op.iLike]:"%"+pesquisa+"%"}
+            }]
+          },{
+            "$sala.idcentro$":{[Op.in]: centros}
+          }]}});
     }
 
   }
