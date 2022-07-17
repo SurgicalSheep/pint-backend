@@ -108,14 +108,12 @@ WHERE
               }
         }
       });
-
-      console.table({reservasSent,limpezasSent})
   
   const reservasSentUpdate = JSON.stringify(reservasSent);
   const limpezasSentUpdate = JSON.stringify(limpezasSent);
     await client.set('reservasSent', reservasSentUpdate)
     await client.set('limpezasSent', limpezasSentUpdate)
-}, checkMinutos * 5 * 1000);
+}, checkMinutos * 60 * 1000);
 
 app.use(async (req, res, next) => {
   next(createError.NotFound("Route does not exist!"));
