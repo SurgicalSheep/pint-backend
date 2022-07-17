@@ -32,21 +32,21 @@ const transporter = nodemailer.createTransport({
 
 controllers.list = async (req, res, next) => {
   try {
-    let {centro,pesquisa,limit,offset} = req.query
+    let {centros,pesquisa,limit,offset} = req.query
     if (!limit || limit == 0) {
       limit = 5;
     }
     if (!offset) {
       offset = 0;
     }
-    if(!centro){
-      centro = new Array(0)
-      const centros = await Centro.findAll({attributes:["idcentro"]});
-      centros.map((x,i)=>{
-        centro[i] = x.dataValues.idcentro
+    if(!centros){
+      centros = new Array(0)
+      const allCentros = await Centro.findAll({attributes:["idcentro"]});
+      allCentros.map((x,i)=>{
+        centros[i] = x.dataValues.idcentro
       })
     }
-    let centroInt = centro.map((x)=>{return Number(x)})
+    let centroInt = centros.map((x)=>{return Number(x)})
     let data;
     if (pesquisa && !isNaN(pesquisa)) {
       data = await Utilizador.scope("noIdCentro").findAll({
@@ -365,7 +365,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           email: "rodrigorodrigues@softinsa.com",
           password: await bcrypt.hash("123123", 10),
         }
-        ,*//*
+        ,*/
         {
           admin: false,
           nome: "requesitante 4",
@@ -389,7 +389,7 @@ controllers.insertTestUtilizadores = async (req, res, next) => {
           telemovel: "931233123",
           email: "admin@softinsa.com",
           password: await bcrypt.hash("softinsa334", 10),
-        }*/
+        }
       ],
       { transaction: t }
     );

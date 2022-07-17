@@ -3,8 +3,7 @@ var Utilizador = require("../models/utilizador");
 var Sala = require("../models/sala");
 var Reserva = require("../models/reserva");
 var sequelize = require("../models/database");
-const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
+const { Op } = require("sequelize");
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
@@ -212,8 +211,20 @@ controllers.deleteReserva = async (req, res, next) => {
   try {
     const {id} = req.params
     if(isNaN(id)) return createError.BadRequest("Id is not a number")
-    await Reserva.destroy({where:{idreserva:id}});
-    sendUpdateReserva()
+    const userId = req.idUser;
+    const user = await Utilizador.findByPk(userId)
+
+    if(user.admin == true){
+      await Reserva.destroy({where:{idreserva:id}},{transaction:t});
+      sendUpdateReserva()
+    }else{
+      let now = new Date()
+      let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+      const reserva = await Reserva.findByPk(id);
+      if(new Date(reserva.data) < now || (new Date(reserva.data) == now && reserva.horainicio < time)) return next(createError.BadRequest("Can't delete previous reserva"))
+      await reserva.destroy({transaction:t});
+      sendUpdateReserva();
+    }
     await t.commit();
     res.sendStatus(204)
   } catch (err) {
