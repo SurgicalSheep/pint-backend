@@ -4,7 +4,7 @@ const app = express();
 const server = require("http").createServer(app);
 require("dotenv").config();
 require("./models/associations");
-require("./models/redisDatabase");
+const client = require("./models/redisDatabase");
 const centroRouters = require("./routes/centroRoute.js");
 const utilizadorRouters = require("./routes/utilizadorRoute.js");
 const salaRouters = require("./routes/salaRoute.js");
@@ -37,9 +37,18 @@ app.get("/favicon.ico", (req, res) => res.sendStatus(204));
 
 const sequelize = require("./models/database");
 const { QueryTypes } = require("sequelize");
-const reservasSent = new Array();
-const limpezasSent = new Array();
 setInterval(async () => {
+    const reservasSentRedis = await client.get('reservasSent');
+    const limpezasSentRedis = await client.get('limpezasSent');
+    let reservasSent = JSON.parse(reservasSentRedis)
+    let limpezasSent = JSON.parse(limpezasSentRedis)
+    if(!reservasSent){
+        reservasSent = new Array(0)
+    }
+    if(!limpezasSent){
+        limpezasSent = new Array(0)
+    }
+
   const reservasCheck = await sequelize.query(
     `SELECT
     *
@@ -62,41 +71,51 @@ FROM
                 AND (
                     horainicio > (CURRENT_TIME(0) :: TIME + '01:00:00')
                 ) THEN '5m'
-                WHEN (horafinal - (CURRENT_TIME(0) :: TIME + '01:00:00')) <= INTERVAL '0 minutes' THEN 'L'
+                WHEN (horafinal - (CURRENT_TIME(0) :: TIME + '01:00:00')) <= INTERVAL '0 minutes' AND (horafinal - (CURRENT_TIME(0) :: TIME + '01:00:00') >= '-00:05:00'::INTERVAL)  THEN 'L'
             END AS "check"
         FROM
             "reservas"
     ) tmp
 WHERE
     "data" = date(NOW())
-    AND tmp.check is not null;`,
+    AND tmp.check is not null;
+    `,
     { type: QueryTypes.SELECT, logging: false }
   );
-  reservasCheck.map(async (x) => {
-    let sent = false;
-    if (x.check == "5m") {
-      reservasSent.map((y) => {
-        if (y.idreserva == x.idreserva && y.check5m) {
-          sent = true;
-        }
-      });
-      if (!sent) {
-        await createNotificacaoReserva5Min(x);
-        reservasSent.push({ idreserva: x.idreserva, check5m: true });
-      }
-    }/*else if(x.check == "L"){
-        limpezasSent.map((y) => {
-            if (y.idreserva == x.idreserva && y.checkL) {
+
+    reservasCheck.map((x) => {
+        let sent = false;
+        if (x.check == "5m") {
+          reservasSent.map((y) => {
+            if (y.idreserva == x.idreserva) {
               sent = true;
             }
           });
           if (!sent) {
-            await createPedidoLimpezaAutomatico(x);
-            limpezasSent.push({ idreserva: x.idreserva, checkL: true });
+            createNotificacaoReserva5Min(x);
+            reservasSent.push({ idreserva: x.idreserva});
           }
-    }*/
-  });
-}, checkMinutos * 20 * 1000);
+        }else if(x.check == "L"){
+            
+            limpezasSent.map((y) => {
+                if (y.idreserva == x.idreserva) {
+                  sent = true;
+                }
+              });
+              if (!sent) {
+                createPedidoLimpezaAutomatico(x);
+                limpezasSent.push({ idreserva: x.idreserva});
+              }
+        }
+      });
+
+      console.table({reservasSent,limpezasSent})
+  
+  const reservasSentUpdate = JSON.stringify(reservasSent);
+  const limpezasSentUpdate = JSON.stringify(limpezasSent);
+    await client.set('reservasSent', reservasSentUpdate)
+    await client.set('limpezasSent', limpezasSentUpdate)
+}, checkMinutos * 5 * 1000);
 
 app.use(async (req, res, next) => {
   next(createError.NotFound("Route does not exist!"));
