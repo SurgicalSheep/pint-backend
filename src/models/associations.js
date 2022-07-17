@@ -22,7 +22,8 @@ empregadoLimpeza.belongsTo(utilizador,{foreignKey:'idutilizador'});
 
 feedback.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:false,as:'utilizadores'});
 feedback.belongsTo(sala,{foreignKey:'idsala',allowNull:true});
-feedback.belongsTo(reserva,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade',hooks:true});
+reserva.hasMany(feedback,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade', hooks:true})
+feedback.belongsTo(reserva,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade', hooks:true});
 
 notificacao.belongsTo(utilizador,{foreignKey:'idutilizador',as:'utilizador', useJunctionTable: false});
 
