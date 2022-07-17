@@ -9,7 +9,9 @@ var Pedido = sequelize.define('pedidos', {
         autoIncrement: true,
     },
     duracaomax:Sequelize.TIME,
-    descricao:Sequelize.TEXT
+    descricao:Sequelize.TEXT,
+    estado:{type:Sequelize.BOOLEAN,defaultValue:false,allowNull:true},
+    data:{type:Sequelize.BOOLEAN,allowNull:true},
 }, 
 {
     freezeTableName: true,

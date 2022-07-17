@@ -27,8 +27,9 @@ feedback.belongsTo(reserva,{foreignKey:'idreserva',allowNull:true, onDelete: 'ca
 
 notificacao.belongsTo(utilizador,{foreignKey:'idutilizador',as:'utilizador', useJunctionTable: false});
 
-pedido.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:false});
+pedido.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:true});
 pedido.belongsTo(sala,{foreignKey:'idsala',allowNull:false});
+pedido.belongsTo(empregadoLimpeza,{foreignKey:'idutilizador',allowNull:true});
 
 reserva.belongsTo(sala,{foreignKey:'idsala'});
 reserva.belongsTo(utilizador,{foreignKey:'idutilizador'});

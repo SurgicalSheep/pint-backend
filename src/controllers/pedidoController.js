@@ -3,6 +3,8 @@ var Pedido = require("../models/pedido");
 var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const client = require("../models/redisDatabase");
+const createError = require("http-errors")
 
 controllers.list = async (req, res) => {
   let {limit,offset} = req.query;
@@ -79,5 +81,24 @@ controllers.editPedido = async (req, res) => {
     await t.rollback();
     res.status(400).send("Err");
   }
+};
+
+controllers.editTempoLimpeza = async (req, res, next) => {
+  try {
+    const {tempo} = req.body
+    if(!/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(tempo)) return next(createError.BadRequest("Not time"));
+    await client.set('tempoLimpeza', tempo);
+    res.sendStatus(204)
+  } catch (error) {
+    next(error)
+  }
+};
+controllers.getTempoLimpeza = async (req, res, next) => {
+try {
+  const value = await client.get('tempoLimpeza');
+  res.send({data:value})
+} catch (error) {
+  next(error)
+}
 };
 module.exports = controllers;

@@ -410,12 +410,9 @@ controllers.login = async (req, res, next) => {
   const utilizador = await Utilizador.findOne({
     where: { email: email.toLowerCase() },
   });
-  /*
   if(!utilizador.verificado){
     return next(createError.Unauthorized("Confirm email first."));
   }
-  
-  */
   if (
     utilizador &&
     (await bcrypt.compare(password, utilizador.password))
@@ -803,4 +800,80 @@ controllers.updatePass = async (req,res,next) =>{
   },{where:{idutilizador:11}})
   res.send("ola")*/
 }
+
+controllers.getReservasDecorrer = async (req, res, next) => {
+  try {
+    const {id} = req.params
+    if(isNaN(id)) return next(createError.BadRequest("Not a number"))
+    let now = new Date()
+    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    const data = await Reserva.findAll({
+      where: {
+            [Op.and]: [
+              {
+                horafinal:{[Op.gte]:time}
+              },{
+                horainicio: {
+                  [Op.lte]: time,
+                },
+              },{
+                data:now
+              },{
+                [Op.not]:[{
+                  horafinal:{[Op.lte]:time}
+                }]
+                
+              },{
+                idutilizador:id
+              }
+            ],
+      },
+      include: [
+        {
+          model: Sala,
+        },
+      ],
+    });
+    res.send({ data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+controllers.getReservasAntigas = async (req, res, next) => {
+  try {
+    const {id} = req.params
+    if(isNaN(id)) return next(createError.BadRequest("Not a number"))
+    let now = new Date()
+    let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
+    const data = await Reserva.findAll({
+      where: {
+            [Op.and]: [
+              {
+                [Op.or]:[{
+                  data:{[Op.lte]:now}
+                  
+                },{
+                  [Op.and]:[{
+                    horafinal:{[Op.lt]:time}
+                  },{
+                    data:now
+                  }]
+                }]
+              },{
+                idutilizador:id
+              }
+            ],
+      },
+      include: [
+        {
+          model: Sala,
+        },
+      ],
+    });
+    res.send({ data });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = controllers;

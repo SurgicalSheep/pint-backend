@@ -20,7 +20,7 @@ const utilizadorSchema = Joi.object({
 
   verificado: Joi.boolean(),
 
-  foto:Joi.string().allow(null,''),
+  foto:Joi.string().allow(''),
 
   idcentro:Joi.number().integer().required()
 });
@@ -58,7 +58,7 @@ const editUtilizador = Joi.object({
     verificado: Joi.boolean().optional(),
   
   
-    foto:Joi.string().allow(null,"").optional(),
+    foto:Joi.string().allow("").optional(),
   
     idcentro:Joi.number().integer().optional()
   });
