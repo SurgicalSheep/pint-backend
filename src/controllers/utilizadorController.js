@@ -220,6 +220,8 @@ controllers.bulkInsertUtilizador = async (req, res, next) => {
     const users = [];
     const usersLimpeza = [];
     let user = {};
+    const payload = {};
+      
     for(let cell in worksheet){
       const cellAsString = cell.toString();
       if(cellAsString[1] !== 'r' && cellAsString !== 'm' && cellAsString[1] > 1){
@@ -401,6 +403,21 @@ controllers.login = async (req, res, next) => {
     where: { email: email.toLowerCase() },
   });
   if(!utilizador.verificado){
+    const payload = {};
+    const options = {
+      expiresIn: "3d",
+      subject: String(utilizador.idutilizador),
+    };
+    jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+      if(err) return err
+      const url = 'https://pint-web.vercel.app/verify/'+emailToken
+
+      transporter.sendMail({
+        to:utilizador.email,
+        subject:'Confirm Email',
+        html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+      });
+    })
     return next(createError.Unauthorized("Confirm email first."));
   }
   if (
@@ -535,8 +552,8 @@ controllers.insertUtilizador = async (req, res, next) => {
 
       const payload = {};
       const options = {
-        expiresIn: "5m",
-        subject: String(id),
+        expiresIn: "3d",
+        subject: String(user.idutilizador),
       };
       jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
         if(err) return err
