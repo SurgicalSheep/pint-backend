@@ -741,13 +741,13 @@ controllers.confirmarUtilizador = async (req, res, next) => {
   try {
       const token = req.params.token
       if (!token) {
-        return next(createError.BadRequest());
+        throw next(createError.BadRequest("Token missing"));
       }
       jwt.verify(token, process.env.EMAIL_TOKEN_KEY, async(err, payload) => {
         if (err) {
           const message =
             err.name === "JsonWebTokenError" ? "Unauthorized" : err.message;
-          return next(createError.Unauthorized(message));
+            throw next(createError.Unauthorized(message));
         }
         await Utilizador.update({verificado:true},{where:{idutilizador: payload.sub}})
         await t.commit()
