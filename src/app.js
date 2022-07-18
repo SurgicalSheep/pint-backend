@@ -1,6 +1,8 @@
 const express = require("express");
 var cors = require("cors");
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 const server = require("http").createServer(app);
 require("dotenv").config();
 require("./models/associations");
@@ -33,6 +35,10 @@ app.use("/empregadoLimpeza", empregadoLimpezaRouters);
 //app.use('/empregadoManutencao',empregadoManutencaoRouters)
 app.use("/pedido", pedidoRouters);
 app.use("/notificacao", notificacaoRouters);
+var options = {
+  customCss: '.swagger-ui .topbar { display: none }'
+};
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.get("/favicon.ico", (req, res) => res.sendStatus(204));
 
 const sequelize = require("./models/database");

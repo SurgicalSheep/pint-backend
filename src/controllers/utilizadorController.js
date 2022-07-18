@@ -735,6 +735,7 @@ controllers.confirmarUtilizador = async (req, res, next) => {
         await Utilizador.update({verificado:true},{where:{idutilizador: payload.sub}})
         await t.commit()
       });
+      res.sendStatus(204)
   } catch (error) {
     await t.rollback()
     next(error)

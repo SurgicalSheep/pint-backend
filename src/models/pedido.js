@@ -11,7 +11,7 @@ var Pedido = sequelize.define('pedidos', {
     duracaomax:Sequelize.TIME,
     descricao:Sequelize.TEXT,
     estado:{type:Sequelize.BOOLEAN,defaultValue:false,allowNull:true},
-    data:{type:Sequelize.BOOLEAN,allowNull:true},
+    data:{type:Sequelize.DATE,allowNull:true},
 }, 
 {
     freezeTableName: true,
