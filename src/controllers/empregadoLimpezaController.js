@@ -7,6 +7,7 @@ const Centro = require("../models/centro");
 const Op = Sequelize.Op;
 const createError = require('http-errors')
 const {utilizadorSchema} = require("../schemas/userSchema");
+const bcrypt = require("bcrypt");
 
 controllers.list = async (req, res, next) => {
   try {
@@ -136,7 +137,7 @@ controllers.list = async (req, res, next) => {
     next(error);
   }
 };
-controllers.editEmpregadoLimpeza = async (req, res) => {
+controllers.editEmpregadoLimpeza = async (req, res, next) => {
   let id = req.params.id;
   if (Number.isInteger(+id)) {
     const t = await sequelize.transaction();
