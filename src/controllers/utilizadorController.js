@@ -766,10 +766,9 @@ controllers.testMail = async (req,res,next) => {
 controllers.updateOwnPass = async (req,res,next) =>{
   const t = await sequelize.transaction();
   try {
-    const {oldPass,newPass,newPassRepeat} = req.body
+    const {oldPass,newPass} = req.body
     const utilizador = await Utilizador.findByPk(req.idUser);
     if (!(utilizador && (await bcrypt.compare(oldPass, utilizador.password)))) {throw createError.BadRequest("Passwords don't match")}
-    if(newPass != newPassRepeat) {throw createError.BadRequest("Passwords don't match")}
     console.log(newPass)
     bcrypt.hash(newPass, 10, async function (err, hash) {
       await Utilizador.update(
