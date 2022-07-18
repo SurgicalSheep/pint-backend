@@ -24,8 +24,8 @@ const checkMinutos = 1;
 app.use(cors());
 app.set("port", process.env.PORT || 3000);
 //Middlewares
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: false,limit: '10mb' }));
+app.use(express.json({limit: '10mb'}));
 app.use("/centro", centroRouters);
 app.use("/feedback", feedbackRouters);
 app.use("/utilizador", utilizadorRouters);
