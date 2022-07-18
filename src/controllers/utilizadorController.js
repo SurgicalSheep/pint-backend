@@ -771,11 +771,20 @@ controllers.updateOwnPass = async (req,res,next) =>{
     if (!(utilizador && (await bcrypt.compare(oldPass, utilizador.password)))) {throw createError.BadRequest("Passwords don't match")}
     console.log(newPass)
     bcrypt.hash(newPass, 10, async function (err, hash) {
-      await Utilizador.update(
-        {password:hash},
-        { where: { idutilizador: req.idUser } },
-        { transaction: t }
-      );
+      if(utilizador.firstLogin == true){
+        await Utilizador.update(
+          {password:hash,firstLogin:false},
+          { where: { idutilizador: req.idUser } },
+          { transaction: t }
+        );
+      }else{
+        await Utilizador.update(
+          {password:hash},
+          { where: { idutilizador: req.idUser } },
+          { transaction: t }
+        );
+      }
+      
     });
     await t.commit()
     res.sendStatus(204)
