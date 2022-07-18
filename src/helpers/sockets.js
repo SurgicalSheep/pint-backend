@@ -87,7 +87,7 @@ function startSocket(server) {
             if (err && err.message === "unauthorized event") {
               socket.disconnect();
               let i = socketsConnected.map((x)=>{
-                return x.idUser
+                return x.id
               }).indexOf(socket.id)
               socketsConnected.splice(i,1);
             }
