@@ -68,6 +68,7 @@ router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorCon
 //router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
 router.put('/updateOwnPass',verifyAccessToken, utilizadorController.updateOwnPass);
 router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
+router.post('/setFotoB64',verifyAccessToken, utilizadorController.setUtilizadorFotoBase64);
 //router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);

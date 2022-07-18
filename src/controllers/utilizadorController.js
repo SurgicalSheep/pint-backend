@@ -9,6 +9,7 @@ const client = require("../models/redisDatabase");
 const {handleImage} = require("../helpers/imageHandler");
 const { Op } = require("sequelize");
 const fs = require("fs");
+const fsPromises = require("fs").promises;
 const {
   signAccessToken,
   signRefreshToken,
@@ -903,20 +904,26 @@ controllers.getReservasAntigas = async (req, res, next) => {
   }
 };
 
-controllers.settUtilizadorFotoBase64 = async (req, res, next) => {
+controllers.setUtilizadorFotoBase64 = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
     const {foto} = req.body
     if(!foto){
       throw createError.BadRequest("Foto missing!");
     }
-    var base64Data = req.rawBody.replace(/^data:image\/png;base64,/, "");
-    fs.writeFile("public/imgs/utilizadores/", base64Data, 'base64', function(err) {
+    const utilizador = await Utilizador.findByPk(req.idUser);
+    var base64Data = foto;
+    await fsPromises.writeFile("public/imgs/utilizadores/"+utilizador.idutilizador+".png", base64Data, 'base64', function(err) {
       console.log(err);
+    }).then(async(data)=>{
+      let path = "public/imgs/utilizadores/" + utilizador.idutilizador+".png";
+      let s3Path = await sendFotoUtilizador(path,utilizador.idutilizador);
+      await utilizador.update({ foto: s3Path },{transaction:t});
+      await t.commit();
+      res.sendStatus(204)
     });
-    let path = "public/imgs/utilizadores/" + x;
-    let s3Path = await sendFotoUtilizador(path,user.idutilizador);
-      res.send({data:image})
   } catch (err) {
+    await t.rollback();
     next(err);
   }
 };

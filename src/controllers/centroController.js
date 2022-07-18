@@ -6,65 +6,66 @@ const { centroSchema, editcentroSchema } = require("../schemas/centroSchema");
 const createError = require("http-errors");
 const { handleImageCentro } = require("../helpers/imageHandler");
 const fs = require("fs");
-const {deleteImagemCentro,getImagemCentro,sendImagemCentro} = require('../helpers/s3')
+const {
+  deleteImagemCentro,
+  getImagemCentro,
+  sendImagemCentro,
+} = require("../helpers/s3");
 
 controllers.list = async (req, res, next) => {
   try {
     let { limit, offset } = req.body;
-  if (!req.query.limit || req.query.limit == 0) {
-    limit = 5;
-  }
-  if (!req.query.offset) {
-    offset = 0;
-  }
-   const data = await Centro.findAll();
+    if (!req.query.limit || req.query.limit == 0) {
+      limit = 5;
+    }
+    if (!req.query.offset) {
+      offset = 0;
+    }
+    const data = await Centro.findAll();
 
-  for (let x of data) {
-    if (x.dataValues) {
-      if (x.dataValues.imagem) {
-        try {
-          let idk = await getImagemCentro(x.idcentro)
-          x.dataValues.imagemConv = idk;
-        } catch (error) {
-          
+    for (let x of data) {
+      if (x.dataValues) {
+        if (x.dataValues.imagem) {
+          try {
+            let idk = await getImagemCentro(x.idcentro);
+            x.dataValues.imagemConv = idk;
+          } catch (error) {}
         }
       }
     }
-  }
 
-  let x = { data };
-  const count = await Centro.count();
-  x.count = count;
-  res.send(x);
+    let x = { data };
+    const count = await Centro.count();
+    x.count = count;
+    res.send(x);
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 controllers.getCentro = async (req, res, next) => {
   try {
     let id = req.params.id;
-  if (Number.isInteger(+id)) {
-    const data = await Centro.findOne({
-      where: {
-        idcentro: id,
-      },
-    });
-        if (data.dataValues.imagem) {
-          try {
-            let idk = await getImagemCentro(data.idcentro);
-            data.dataValues.fotoConv = idk;
-          } catch (error) {
-            data.dataValues.fotoConv = ""
-          } 
-          }
-    res.json({ data: data });
-  } else {
-    return next(createError.BadRequest("Id is not a Integer"));
-  }
+    if (Number.isInteger(+id)) {
+      const data = await Centro.findOne({
+        where: {
+          idcentro: id,
+        },
+      });
+      if (data.dataValues.imagem) {
+        try {
+          let idk = await getImagemCentro(data.idcentro);
+          data.dataValues.fotoConv = idk;
+        } catch (error) {
+          data.dataValues.fotoConv = "";
+        }
+      }
+      res.json({ data: data });
+    } else {
+      return next(createError.BadRequest("Id is not a Integer"));
+    }
   } catch (error) {
-    next(error)
+    next(error);
   }
-  
 };
 controllers.editCentro = async (req, res, next) => {
   const { id } = req.params;
@@ -84,7 +85,7 @@ controllers.editCentro = async (req, res, next) => {
           "public/imgs/centros/"
         );
         let path = "public/imgs/centros/" + x;
-        let pathS3 = await sendImagemCentro(path,id)
+        let pathS3 = await sendImagemCentro(path, id);
         await Centro.update(
           { imagem: pathS3 },
           { where: { idcentro: id } },
@@ -125,7 +126,7 @@ controllers.insertCentro = async (req, res, next) => {
       "public/imgs/centros/"
     );
     let path = "public/imgs/centros/" + x;
-    let pathS3 = await sendImagemCentro(path,id)
+    let pathS3 = await sendImagemCentro(path, id);
     await centro.update({ imagem: pathS3 }, { transaction: t });
     await t.commit();
     res.send({ data: centro });
@@ -164,30 +165,28 @@ controllers.deleteCentro = async (req, res, next) => {
 controllers.getSalasCentro = async (req, res, next) => {
   try {
     const { id } = req.params;
-  let {limit,offset} = req.query
-  if (!limit || limit == 0) {
-    limit = 5;
-  }
-  if (!offset) {
-    offset = 0;
-  }
-  if (isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
+    let { limit, offset } = req.query;
+    if (!limit || limit == 0) {
+      limit = 5;
+    }
+    if (!offset) {
+      offset = 0;
+    }
+    if (isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
     const data = await Centro.findAll({
-      limit:limit,
-      offset:offset,
+      limit: limit,
+      offset: offset,
       where: { idcentro: id },
       include: [
         {
           model: Sala.scope("noIdCentro"),
         },
       ],
-      order: [
-        [Sala,'nome', 'ASC']
-    ]
+      order: [[Sala, "nome", "ASC"]],
     });
     const count = await Centro.count({
-      limit:limit,
-      offset:offset,
+      limit: limit,
+      offset: offset,
       where: { idcentro: id },
       include: [
         {
@@ -196,11 +195,11 @@ controllers.getSalasCentro = async (req, res, next) => {
         },
       ],
     });
-    let x = {data}
-    x.count = count
+    let x = { data };
+    x.count = count;
     res.send(x);
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 controllers.getCentroImagem = async (req, res, next) => {
@@ -209,8 +208,8 @@ controllers.getCentroImagem = async (req, res, next) => {
     if (!Number.isInteger(+id)) {
       throw createError.BadRequest("Id is not a Integer");
     }
-    const image = await getImagemCentro(id)
-    res.send({data:image})
+    const image = await getImagemCentro(id);
+    res.send({ data: image });
   } catch (err) {
     next(err);
   }
@@ -219,12 +218,11 @@ controllers.deleteCentroImagem = async (req, res, next) => {
   const t = await sequelize.transaction();
   const { id } = req.params;
   try {
-    if (isNaN(id))
-      return next(createError.BadRequest("Id is not a Integer"));
+    if (isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
     const centro = await Centro.findByPk(id);
     if (!(centro && centro.imagem))
       throw createError.NotFound("This centro has no image");
-      deleteImagemCentro(centro.idcentro)
+    deleteImagemCentro(centro.idcentro);
     await centro.update({ imagem: "" }, { transaction: t });
     await t.commit();
     res.sendStatus(204);
