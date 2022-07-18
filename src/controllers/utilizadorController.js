@@ -687,7 +687,7 @@ controllers.getUtilizadorFoto = async (req, res, next) => {
       throw createError.BadRequest("Id is not a Integer");
     }
       const image = await getFileUtilizador(id)
-      res.send(image)
+      res.send({data:image})
   } catch (err) {
     next(err);
   }
@@ -770,11 +770,27 @@ controllers.testMail = async (req,res,next) => {
   res.send("Ola")
 }
 
-controllers.updatePass = async (req,res,next) =>{
-  /*await Utilizador.update({
-    password: await bcrypt.hash("123123", 10),
-  },{where:{idutilizador:11}})
-  res.send("ola")*/
+controllers.updateOwnPass = async (req,res,next) =>{
+  const t = await sequelize.transaction();
+  try {
+    const {oldPass,newPass,newPassRepeat} = req.body
+    const utilizador = await Utilizador.findByPk(req.idUser);
+    if (!(utilizador && (await bcrypt.compare(oldPass, utilizador.password)))) {throw createError.BadRequest("Passwords don't match")}
+    if(newPass != newPassRepeat) {throw createError.BadRequest("Passwords don't match")}
+    console.log(newPass)
+    bcrypt.hash(newPass, 10, async function (err, hash) {
+      await Utilizador.update(
+        {password:hash},
+        { where: { idutilizador: req.idUser } },
+        { transaction: t }
+      );
+    });
+    await t.commit()
+    res.sendStatus(204)
+  } catch (error) {
+    await t.rollback();
+    next(error)
+  }
 }
 
 controllers.getReservasDecorrer = async (req, res, next) => {

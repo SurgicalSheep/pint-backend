@@ -62,11 +62,11 @@ router.get('/:id/reservasAntigas',verifyAccessToken,utilizadorController.getRese
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
 router.get('/tipoCount',verifyAccessToken, utilizadorController.countUtilizadoresByTipo);
-router.get('/updatePass',verifyAccessToken, utilizadorController.updatePass);
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
 router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorController.makeEmpregadoLimpeza);
 //router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+router.post('/updatePass',verifyAccessToken, utilizadorController.updateOwnPass);
 router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
 router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);

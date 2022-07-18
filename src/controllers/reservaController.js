@@ -8,6 +8,7 @@ const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
 const {sendUpdateReserva} = require('../helpers/sockets')
+const client = require("../models/redisDatabase");
 
 /*const isValidDate = function(date) {
   return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
@@ -261,20 +262,55 @@ controllers.getReserva = async (req, res) => {
 controllers.insertReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const data = await Reserva.create(
+    const {data,horainicio,horafinal,observacoes,idutilizador,idsala} = req.body
+    /*const value = await client.get('tempoLimpeza');
+    const findReserva = await Reserva.findAll({
+      where: {
+        data:data,
+        idsala:idsala,
+        [Op.or]: [
+          {
+            [Op.and]: [
+              {
+                horafinal: {
+                  [Op.lte]: horafinal,
+                }},{
+                horafinal: {
+                  [Op.gte]: horainicio,
+                },
+              },
+            ],
+          },
+          {
+            [Op.and]: [
+              {
+                horainicio: {
+                  [Op.lte]: horafinal,
+                }},{
+                horainicio: {
+                  [Op.gte]: horainicio,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    })
+*/
+    const x = await Reserva.create(
       {
-        data: req.body.data,
-        horainicio: req.body.horainicio,
-        horafinal: req.body.horafinal,
-        observacoes: req.body.observacoes,
-        idutilizador: req.body.idutilizador,
-        idsala: req.body.idsala,
+        data: data,
+        horainicio: horainicio,
+        horafinal: horafinal,
+        observacoes: observacoes,
+        idutilizador: idutilizador,
+        idsala: idsala,
       },
       { transaction: t }
     );
     sendUpdateReserva()
     await t.commit();
-    res.send({ data: data });
+    res.send({ data: x });
   } catch (err) {
     await t.rollback();
     next(err)
