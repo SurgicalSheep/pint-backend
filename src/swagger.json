@@ -1059,7 +1059,7 @@
       }
     },
     "/utilizador/updatePass": {
-      "post": {
+      "put": {
         "description": "",
         "parameters": [
           {
@@ -1090,9 +1090,6 @@
                   "example": "any"
                 },
                 "newPass": {
-                  "example": "any"
-                },
-                "newPassRepeat": {
                   "example": "any"
                 }
               }
