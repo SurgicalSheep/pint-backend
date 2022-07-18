@@ -672,7 +672,6 @@ controllers.editUtilizador = async (req, res, next) => {
       });
     } else {
       if (req.idUser == req.params.id) {
-        if (req.body.password) {
           const result = await editUtilizador.validateAsync(req.body);
           await Utilizador.update(
             result,
@@ -690,7 +689,6 @@ controllers.editUtilizador = async (req, res, next) => {
             await utilizador.update({ foto: s3Path },{ where: { idutilizador: req.idUser }},{transaction:t});
             } 
           await t.commit();
-        }
       }else{
         if (req.file) {
           fs.unlink(req.file.path, (err, result) => {
@@ -904,4 +902,23 @@ controllers.getReservasAntigas = async (req, res, next) => {
     next(error);
   }
 };
+
+controllers.settUtilizadorFotoBase64 = async (req, res, next) => {
+  try {
+    const {foto} = req.body
+    if(!foto){
+      throw createError.BadRequest("Foto missing!");
+    }
+    var base64Data = req.rawBody.replace(/^data:image\/png;base64,/, "");
+    fs.writeFile("public/imgs/utilizadores/", base64Data, 'base64', function(err) {
+      console.log(err);
+    });
+    let path = "public/imgs/utilizadores/" + x;
+    let s3Path = await sendFotoUtilizador(path,user.idutilizador);
+      res.send({data:image})
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = controllers;
