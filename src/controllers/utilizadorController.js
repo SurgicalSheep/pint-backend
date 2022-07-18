@@ -21,6 +21,7 @@ const EmpregadoLimpeza = require("../models/empregadoLimpeza");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const {sendUpdateUtilizador} = require('../helpers/sockets')
+const {sendFotoUtilizador,getFileUtilizador,deleteImagemUtilizador} = require('../helpers/s3')
 
 const transporter = nodemailer.createTransport({
   service:'Gmail',
@@ -104,23 +105,19 @@ controllers.list = async (req, res, next) => {
       ]
       });
     }
-    data.forEach((x, i) => {
+    for (let x of data) {
       if (x.dataValues.foto) {
         try {
-          let idk = fs.readFileSync(
-            x.dataValues.foto,
-            "base64",
-            (err, val) => {
-              if (err) return err;
-              return val;
-            }
-          );
-          x.dataValues.fotoConv = idk;
+            let idk = await getFileUtilizador(x.idutilizador)
+            x.dataValues.fotoConv = idk;
         } catch (error) {
         }
         
       }
-  });
+      
+    }
+
+    
     let x = { data };
     let count;
     if(pesquisa && !isNaN(pesquisa)){
@@ -201,14 +198,7 @@ controllers.getUtilizador = async (req, res, next) => {
     });
     if (data.dataValues.foto) {
       try {
-        let idk = fs.readFileSync(
-          data.dataValues.foto,
-          "base64",
-          (err, val) => {
-            if (err) return err;
-            return val;
-          }
-        );
+        let idk = await getFileUtilizador(data.dataValues.idutilizador)
         data.dataValues.fotoConv = idk;
       } catch (error) {
         data.dataValues.fotoConv = "";
@@ -488,14 +478,7 @@ controllers.getUserByToken = async (req, res, next) => {
       }
     );
     if (utilizador.dataValues.foto) {
-      let idk = fs.readFileSync(
-        utilizador.dataValues.foto,
-        "base64",
-        (err, val) => {
-          if (err) return err;
-          return val;
-        }
-      );
+      let idk = await getFileUtilizador(req.idUser)
       utilizador.dataValues.fotoConv = idk;
     }
     res.send({ data: utilizador });
@@ -573,8 +556,9 @@ controllers.insertUtilizador = async (req, res, next) => {
           "public/imgs/utilizadores/"
         );
         let path = "public/imgs/utilizadores/" + x;
+        let s3Path = await sendFotoUtilizador(path,user.idutilizador);
         await t.commit();
-        await user.update({ foto: path });
+        await user.update({ foto: s3Path });
       } else {
         await user.save();
         await t.commit();
@@ -643,8 +627,9 @@ controllers.editUtilizador = async (req, res, next) => {
             "public/imgs/utilizadores/"
           );
           let path = "public/imgs/utilizadores/" + x;
+          let s3Path = await sendFotoUtilizador(path,req.params.id);
           await t.commit();
-          await Utilizador.update({ foto: path },{ where: { idutilizador: req.params.id } });
+          await Utilizador.update({ foto: s3Path },{ where: { idutilizador: req.params.id } });
         } else {
           await t.commit();
         }
@@ -668,7 +653,8 @@ controllers.editUtilizador = async (req, res, next) => {
                 "public/imgs/utilizadores/"
               );
               let path = "public/imgs/utilizadores/" + x;
-              await utilizador.update({ foto: path },{ where: { idutilizador: req.idUser }},{transaction:t});
+              let s3Path = await sendFotoUtilizador(path,req.idUser);
+              await utilizador.update({ foto: s3Path },{ where: { idutilizador: req.idUser }},{transaction:t});
               await t.commit();
             } else {
               await t.commit();
@@ -700,16 +686,8 @@ controllers.getUtilizadorFoto = async (req, res, next) => {
     if(!Number.isInteger(+id)){
       throw createError.BadRequest("Id is not a Integer");
     }
-    const user = await Utilizador.findByPk(id);
-    if (!user.foto) return next(createError.NotFound("Utilizador has no foto"));
-    const readStream = fs.createReadStream(user.foto);
-    readStream.on('error', function(err) {
-      return next(err);
-   });
-
-    readStream.on("open", function () {
-      readStream.pipe(res);
-    });
+      const image = await getFileUtilizador(id)
+      res.send(image)
   } catch (err) {
     next(err);
   }
@@ -719,12 +697,10 @@ controllers.deleteUtilizadorFoto = async(req,res,next) => {
   const t = await sequelize.transaction()
   const {id} = req.params;
   try {
-      if(!Number.isInteger(+id)) throw createError.BadRequest("Id is not a Integer");
+      if(isNaN(id)) throw createError.BadRequest("Id is not a Integer");
       const user = await Utilizador.findByPk(id);
       if(!(user && user.foto)) throw createError.NotFound("This utilizador has no image");
-          fs.unlink("public\\imgs\\utilizadores\\" + id + ".jpeg", (err, result) => {
-            if (err) return next(err);
-          });
+      await deleteImagemUtilizador(id);
       await user.update({foto:""},{transaction:t})
       await t.commit()
       res.sendStatus(204)
