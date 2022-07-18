@@ -789,7 +789,7 @@ controllers.updateOwnPass = async (req,res,next) =>{
     bcrypt.hash(newPass, 10, async function (err, hash) {
       if(utilizador.firstlogin == true){
         await Utilizador.update(
-          {password:hash,firstLogin:false},
+          {password:hash,firstlogin:false},
           { where: { idutilizador: req.idUser } },
           { transaction: t }
         );
