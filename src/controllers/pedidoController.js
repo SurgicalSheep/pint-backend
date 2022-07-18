@@ -26,7 +26,7 @@ controllers.list = async (req, res) => {
   let x = { data };
     const count = await Pedido.count();
     x.count = count;
-  res.json({data:x});
+  res.json(x);
 };
 controllers.getPedido = async (req, res, next) => {
   try {
