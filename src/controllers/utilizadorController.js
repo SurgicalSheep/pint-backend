@@ -449,6 +449,25 @@ controllers.loginWeb = async (req, res, next) => {
   const utilizador = await Utilizador.findOne({
     where: { email: email.toLowerCase() },
   });
+
+  if(!utilizador.verificado){
+    const payload = {};
+    const options = {
+      expiresIn: "3d",
+      subject: String(utilizador.idutilizador),
+    };
+    jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
+      if(err) return err
+      const url = 'https://pint-web.vercel.app/verify/'+emailToken
+
+      transporter.sendMail({
+        to:utilizador.email,
+        subject:'Confirm Email',
+        html:`Please click this link to confirm your email: <a href="${url}">${url}</a>`
+      });
+    })
+    return next(createError.Unauthorized("Confirm email first."));
+  }
   if (
     utilizador &&
     (await bcrypt.compare(password, utilizador.password))
