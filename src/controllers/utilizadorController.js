@@ -540,7 +540,7 @@ controllers.insertUtilizador = async (req, res, next) => {
       };
       jwt.sign(payload,process.env.EMAIL_TOKEN_KEY,options,(err,emailToken)=>{
         if(err) return err
-        const url = 'http://localhost:3000/utilizador/confirmar/'+emailToken
+        const url = 'https://pint-web.vercel.app/verify/'+emailToken
 
         transporter.sendMail({
           to:result.email,
