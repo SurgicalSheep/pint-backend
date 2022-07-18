@@ -739,7 +739,7 @@ controllers.makeEmpregadoLimpeza = async (req, res, next) => {
 controllers.confirmarUtilizador = async (req, res, next) => {
   const t = sequelize.transaction()
   try {
-      const token = req.query.token
+      const token = req.params.token
       if (!token) {
         return next(createError.BadRequest());
       }
