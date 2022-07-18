@@ -9,7 +9,8 @@ const fs = require("fs");
 const {deleteImagemCentro,getImagemCentro,sendImagemCentro} = require('../helpers/s3')
 
 controllers.list = async (req, res, next) => {
-  let { limit, offset } = req.body;
+  try {
+    let { limit, offset } = req.body;
   if (!req.query.limit || req.query.limit == 0) {
     limit = 5;
   }
@@ -35,9 +36,13 @@ controllers.list = async (req, res, next) => {
   const count = await Centro.count();
   x.count = count;
   res.send(x);
+  } catch (error) {
+    next(error)
+  }
 };
 controllers.getCentro = async (req, res, next) => {
-  let id = req.params.id;
+  try {
+    let id = req.params.id;
   if (Number.isInteger(+id)) {
     const data = await Centro.findOne({
       where: {
@@ -56,6 +61,10 @@ controllers.getCentro = async (req, res, next) => {
   } else {
     return next(createError.BadRequest("Id is not a Integer"));
   }
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.editCentro = async (req, res, next) => {
   const { id } = req.params;
@@ -153,7 +162,8 @@ controllers.deleteCentro = async (req, res, next) => {
   }
 };
 controllers.getSalasCentro = async (req, res, next) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
   let {limit,offset} = req.query
   if (!limit || limit == 0) {
     limit = 5;
@@ -189,6 +199,9 @@ controllers.getSalasCentro = async (req, res, next) => {
     let x = {data}
     x.count = count
     res.send(x);
+  } catch (error) {
+    next(error)
+  }
 };
 controllers.getCentroImagem = async (req, res, next) => {
   try {

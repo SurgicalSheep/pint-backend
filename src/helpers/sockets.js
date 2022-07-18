@@ -78,7 +78,7 @@ function startSocket(server) {
         socket.on('disconnect',()=>{
           console.log("Disconnected");
           let i = socketsConnected.map((x)=>{
-            return x.idUser
+            return x.id
           }).indexOf(socket.id)
           socketsConnected.splice(i,1);
         })
