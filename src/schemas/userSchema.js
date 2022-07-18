@@ -33,8 +33,6 @@ const editUtilizador = Joi.object({
       .required()
       .messages({ "string.pattern.base": `telemovel must be 9 digit number` }).optional(),
   
-    password: Joi.string().min(3).optional(),
-  
     foto:Joi.string().allow(null).optional()
   });
 

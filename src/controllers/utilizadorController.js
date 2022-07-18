@@ -583,7 +583,7 @@ controllers.editUtilizador = async (req, res, next) => {
   try {
     const { id } = req.params;
     
-    if(!Number.isInteger(+id)){
+    if(isNaN(id)){
       if (req.file) {
         fs.unlink(req.file.path, (err, result) => {
           if (err) throw err;
@@ -636,32 +636,24 @@ controllers.editUtilizador = async (req, res, next) => {
       });
     } else {
       if (req.idUser == req.params.id) {
-        console.log(req.idUser)
         if (req.body.password) {
           const result = await editUtilizador.validateAsync(req.body);
-          bcrypt.hash(result.password, 10, async function (err, hash) {
-            result.password = hash;
-              await Utilizador.update(
-              result,
-              { where: {idutilizador:req.idUser} },
-              { transaction: t }
+          await Utilizador.update(
+            result,
+            { where: {idutilizador:req.idUser} },
+            { transaction: t }
+          );
+          if (req.file) {
+            let x = await handleImage(
+              req.file.path,
+              req.params.id,
+              "public/imgs/utilizadores/"
             );
-            if (req.file) {
-              let x = await handleImage(
-                req.file.path,
-                req.params.id,
-                "public/imgs/utilizadores/"
-              );
-              let path = "public/imgs/utilizadores/" + x;
-              let s3Path = await sendFotoUtilizador(path,req.idUser);
-              await utilizador.update({ foto: s3Path },{ where: { idutilizador: req.idUser }},{transaction:t});
-              await t.commit();
-            } else {
-              await t.commit();
-            }
-
-            
-          });
+            let path = "public/imgs/utilizadores/" + x;
+            let s3Path = await sendFotoUtilizador(path,req.idUser);
+            await utilizador.update({ foto: s3Path },{ where: { idutilizador: req.idUser }},{transaction:t});
+            } 
+          await t.commit();
         }
       }else{
         if (req.file) {
