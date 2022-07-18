@@ -934,8 +934,14 @@ controllers.setUtilizadorFotoBase64 = async (req, res, next) => {
     var base64Data = foto;
     await fsPromises.writeFile("public/imgs/utilizadores/"+utilizador.idutilizador+".png", base64Data, 'base64', function(err) {
       console.log(err);
-    })
-      let path = "public/imgs/utilizadores/" + utilizador.idutilizador+".png";
+    });
+    let x = await handleImage(
+      "public/imgs/utilizadores/"+utilizador.idutilizador+".png",
+      utilizador.idutilizador,
+      "public/imgs/utilizadores/"
+    );  
+      
+      let path = "public/imgs/utilizadores/" + x;
       let s3Path = await sendFotoUtilizador(path,utilizador.idutilizador);
       await utilizador.update({ foto: s3Path },{transaction:t});
       await t.commit();
