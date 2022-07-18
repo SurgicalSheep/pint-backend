@@ -9,7 +9,6 @@ const s3 = new AWS.S3({
   })
 
 async function sendFotoUtilizador(path,key) {
-
       const blob = fs.readFileSync(path)
       const params = {
         Bucket: process.env.S3_BUCKET,
@@ -49,20 +48,15 @@ async function sendImagemCentro(path,key) {
 }
 
 async function getFileUtilizador(key) {
-    
-
-    return new Promise(async(resolve, reject) => {
       const params = {
         Bucket: process.env.S3_BUCKET,
         Key: "imgs/utilizadores/"+key+".jpeg"
     }
     s3.getObject(params)
      const image = await s3.getObject(params, function(err, data) {
-      if(err) reject(err)
     }).promise();
     let base64 = image.Body.toString('base64')
-    resolve(base64)
-    });
+    return (base64)
 }
 
 async function getImagemCentro(key) {
