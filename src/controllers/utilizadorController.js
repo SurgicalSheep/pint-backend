@@ -836,24 +836,43 @@ controllers.getReservasDecorrer = async (req, res, next) => {
     let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
     const data = await Reserva.findAll({
       where: {
-            [Op.and]: [
-              {
-                horafinal:{[Op.gte]:time}
+        [Op.or]:[{
+          [Op.and]: [
+            {
+              horafinal:{[Op.gte]:time}
+            },{
+              horainicio: {
+                [Op.lte]: time,
+              },
+            },{
+              data:now
+            },{
+              [Op.not]:[{
+                horafinal:{[Op.lte]:time}
+              }]
+              
+            },{
+              idutilizador:id
+            }
+          ]
+        },{
+          [Op.and]: [
+            {
+              [Op.or]:[{
+                data:{[Op.gt]:now}
               },{
-                horainicio: {
-                  [Op.lte]: time,
-                },
-              },{
-                data:now
-              },{
-                [Op.not]:[{
-                  horafinal:{[Op.lte]:time}
+                [Op.and]:[{
+                  horafinal:{[Op.gt]:time}
+                },{
+                  data:now
                 }]
-                
-              },{
-                idutilizador:id
-              }
-            ],
+              }]
+            },{
+              idutilizador:id
+            }
+          ],
+        }]
+            
       },
       include: [
         {
@@ -915,13 +934,12 @@ controllers.setUtilizadorFotoBase64 = async (req, res, next) => {
     var base64Data = foto;
     await fsPromises.writeFile("public/imgs/utilizadores/"+utilizador.idutilizador+".png", base64Data, 'base64', function(err) {
       console.log(err);
-    }).then(async(data)=>{
+    })
       let path = "public/imgs/utilizadores/" + utilizador.idutilizador+".png";
       let s3Path = await sendFotoUtilizador(path,utilizador.idutilizador);
       await utilizador.update({ foto: s3Path },{transaction:t});
       await t.commit();
       res.sendStatus(204)
-    });
   } catch (err) {
     await t.rollback();
     next(err);
