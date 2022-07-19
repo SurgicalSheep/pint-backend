@@ -127,8 +127,13 @@ function sendUpdatePedido() {
 }
 
 function sendUpdateCentro() {
-  io.emit('updateSala','updateSala')
+  io.emit('updateCentro','updateCentro')
 }
+
+function sendUpdateFeedback() {
+  io.emit('updateFeedback','updateFeedback')
+}
+
 
 
 module.exports= {
@@ -139,6 +144,7 @@ module.exports= {
     sendUpdateReserva:sendUpdateReserva,
     sendUpdateSala:sendUpdateSala,
     sendUpdatePedido:sendUpdatePedido,
-    sendUpdateCentro:sendUpdateCentro
+    sendUpdateCentro:sendUpdateCentro,
+    sendUpdateFeedback:sendUpdateFeedback
 }
 
