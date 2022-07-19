@@ -208,7 +208,7 @@ controllers.deleteUtilizador = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!Number.isInteger(+id)) {
+    if (isNaN(id)) {
       throw createError.BadRequest("Id is not a Integer");
     }
     const user = await Utilizador.findByPk(id);
@@ -707,7 +707,6 @@ controllers.editUtilizador = async (req, res, next) => {
           where: { email: result.email },
         });
       }
-      console.log("ola")
       if (emailExists) {
         if (emailExists.idutilizador != id) {
           if (req.file) {

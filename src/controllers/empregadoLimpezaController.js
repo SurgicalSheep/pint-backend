@@ -231,28 +231,33 @@ controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
 };
 controllers.getEmpregadoLimpeza = async (req, res, next) => {
   let {id} = req.params;
-  if (!isNaN(id)) {
-    const data = await EmpregadoLimpeza.scope("noPassword").findByPk(id, { include: [{ model: Centro }] });
-    if (data.dataValues.foto) {
-      try {
-        let idk = fs.readFileSync(
-          data.dataValues.foto,
-          "base64",
-          (err, val) => {
-            if (err) return err;
-            return val;
-          }
-        );
-        data.dataValues.fotoConv = idk;
-      } catch (error) {
-        data.dataValues.fotoConv = "";
+  try {
+    if (!isNaN(id)) {
+      const data = await EmpregadoLimpeza.scope("noPassword").findByPk(id, { include: [{ model: Centro }] });
+      if (data.dataValues.foto) {
+        try {
+          let idk = fs.readFileSync(
+            data.dataValues.foto,
+            "base64",
+            (err, val) => {
+              if (err) return err;
+              return val;
+            }
+          );
+          data.dataValues.fotoConv = idk;
+        } catch (error) {
+          data.dataValues.fotoConv = "";
+        }
+        
       }
-      
+      res.send({ data: data });
+    } else {
+      createError[422]("Id is not an Integer!")
     }
-    res.send({ data: data });
-  } else {
-    createError[422]("Id is not an Integer!")
+  } catch (error) {
+    next(error)
   }
+
 };
 controllers.makeUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();

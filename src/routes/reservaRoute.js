@@ -8,8 +8,8 @@ router.get('/search',verifyAccessToken, reservaController.searchReservas);
 router.get('/range',verifyAccessToken,reservaController.rangeReservas)
 router.get('/daysReserva',verifyAccessToken,reservaController.daysWithReserva)
 router.get('/reservasDecorrer',verifyAccessToken,reservaController.reservasDecorrer)
-router.get('/percentSalasUtilizadas',reservaController.salasUtilizadasPercent)
-router.get('/alocacaoMensal',reservaController.salasAlocacaoMensal)
+router.get('/percentSalasUtilizadas',verifyAccessToken,reservaController.salasUtilizadasPercent)
+router.get('/alocacaoMensal',verifyAccessToken,reservaController.salasAlocacaoMensal)
 router.get('/rangeReservasBySala',reservaController.rangeReservasBySala)
 router.get('/freeSalas',verifyAccessToken,reservaController.freeSalas)
 router.get('/:id',verifyAccessToken, reservaController.getReserva);

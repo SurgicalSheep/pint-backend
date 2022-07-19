@@ -7,8 +7,9 @@ const client = require("../models/redisDatabase");
 const createError = require("http-errors");
 const Sala = require("../models/sala");
 
-controllers.list = async (req, res) => {
-  let {limit,offset} = req.query;
+controllers.list = async (req, res, next) => {
+  try {
+    let {limit,offset} = req.query;
   if (!limit || limit == 0) {
     limit = 5;
   }
@@ -23,12 +24,14 @@ controllers.list = async (req, res) => {
     ]
   });
 
-  console.log(data)
-
   let x = { data };
     const count = await Pedido.count();
     x.count = count;
   res.json(x);
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.getPedido = async (req, res, next) => {
   try {
@@ -40,7 +43,7 @@ controllers.getPedido = async (req, res, next) => {
     next(error)
   }
 };
-controllers.insertPedido = async (req, res) => {
+controllers.insertPedido = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const pedido = await Pedido.create(
@@ -55,9 +58,9 @@ controllers.insertPedido = async (req, res) => {
     );
     await t.commit();
     res.status(200).json({data:pedido});
-  } catch {
+  } catch (error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
 
@@ -90,7 +93,7 @@ controllers.editPedido = async (req, res, next) => {
       { transaction: t }
     );
     await t.commit();
-    res.status(200).send("1");
+    res.sendStatus(204)
   } catch (error) {
     await t.rollback();
     next(error)

@@ -218,53 +218,23 @@ controllers.list = async (req, res, next) => {
     next(error);
   }
 };
-controllers.getReserva = async (req, res) => {
-  const data = await Reserva.scope("noIdSala")
+controllers.getReserva = async (req, res, next) => {
+  try {
+    const data = await Reserva.scope("noIdSala")
     .scope("noIdUtilizador")
     .findByPk(req.params.id, {
       include: [{ model: Sala }, { model: Utilizador }],
     });
   res.json({ data: data });
+  } catch (error) {
+    next(error)
+  }
 };
 controllers.insertReserva = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const { data, horainicio, horafinal, observacoes, idutilizador, idsala } =
       req.body;
-    /*const value = await client.get('tempoLimpeza');
-    const findReserva = await Reserva.findAll({
-      where: {
-        data:data,
-        idsala:idsala,
-        [Op.or]: [
-          {
-            [Op.and]: [
-              {
-                horafinal: {
-                  [Op.lte]: horafinal,
-                }},{
-                horafinal: {
-                  [Op.gte]: horainicio,
-                },
-              },
-            ],
-          },
-          {
-            [Op.and]: [
-              {
-                horainicio: {
-                  [Op.lte]: horafinal,
-                }},{
-                horainicio: {
-                  [Op.gte]: horainicio,
-                },
-              },
-            ],
-          },
-        ],
-      },
-    })
-*/
     const x = await Reserva.create(
       {
         data: data,

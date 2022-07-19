@@ -10,8 +10,9 @@ const Op = Sequelize.Op;
 const { getFileUtilizador } = require("../helpers/s3");
 const { sendUpdateFeedback } = require("../helpers/sockets");
 
-controllers.list = async (req, res) => {
-  let { limit, offset } = req.query;
+controllers.list = async (req, res, next) => {
+    try {
+        let { limit, offset } = req.query;
   if (!limit || limit == 0) {
     limit = 5;
   }
@@ -35,7 +36,9 @@ controllers.list = async (req, res) => {
         x.count = count;
         res.send(x);
       })
-  
+    } catch (error) {
+        next(error)
+    }
 };
 
 async function fotoConv(data) {
@@ -48,8 +51,9 @@ async function fotoConv(data) {
         } catch (error) {}
       }
 }
-controllers.getFeedback = async (req, res) => {
-  const id = req.params.id;
+controllers.getFeedback = async (req, res, next) => {
+    try {
+        const id = req.params.id;
   const data = await Feedback.findOne({
     where: {
       idfeedback: {
@@ -58,8 +62,12 @@ controllers.getFeedback = async (req, res) => {
     },
   });
   res.json({ data: data });
+    } catch (error) {
+        next(error)
+    }
+  
 };
-controllers.insertFeedback = async (req, res) => {
+controllers.insertFeedback = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const data = await Feedback.create(
@@ -75,13 +83,13 @@ controllers.insertFeedback = async (req, res) => {
     );
     await t.commit();
     sendUpdateFeedback();
-    res.status(200).send({ data: data });
-  } catch {
+    res.send({ data: data });
+  } catch (error){
     await t.rollback();
-    res.status(400).send(err);
+    next(error)
   }
 };
-controllers.deleteFeedack = async (req, res) => {
+controllers.deleteFeedack = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Feedback.destroy({
@@ -92,13 +100,13 @@ controllers.deleteFeedack = async (req, res) => {
 
     await t.commit();
     sendUpdateFeedback();
-    res.status(200).send("1");
-  } catch {
+    res.sendStatus(204)
+  } catch (error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
-controllers.editFeedback = async (req, res) => {
+controllers.editFeedback = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Feedback.update(
@@ -114,10 +122,10 @@ controllers.editFeedback = async (req, res) => {
     );
     await t.commit();
     sendUpdateFeedback();
-    res.status(200).send("1");
+    res.status(200).send("Oke");
   } catch (error) {
     await t.rollback();
-    res.status(400).send(error);
+    next(error)
   }
 };
 module.exports = controllers;

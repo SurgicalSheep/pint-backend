@@ -11,8 +11,9 @@ const {sendUpdateNotificacao} = require("../helpers/sockets")
 const {
   getFileUtilizador,
 } = require("../helpers/s3");
-controllers.list = async (req, res) => {
-  let {limit,offset} = req.query;
+controllers.list = async (req, res, next) => {
+  try {
+    let {limit,offset} = req.query;
   if (!limit || limit == 0) {
     limit = 5;
   }
@@ -35,22 +36,31 @@ controllers.list = async (req, res) => {
   let x = {data}
   x.count = count
   res.send(x);
+  } catch (error) {
+    next(error)
+  }
+  
 };
 
-controllers.getTop10Notificacao = async (req, res) => {
-  const data = await Notificacao.scope("noIdUtilizador").findAll({
-    limit: 10,
-    order: [["hora", "DESC"]],
-    where: {},
-    include: [
-      {
-        model: Utilizador.scope("noIdCentro"),
-        as: "utilizador",
-        where: {},
-      },
-    ],
-  });
-  res.send({ data: data });
+controllers.getTop10Notificacao = async (req, res, next) => {
+  try {
+    const data = await Notificacao.scope("noIdUtilizador").findAll({
+      limit: 10,
+      order: [["hora", "DESC"]],
+      where: {},
+      include: [
+        {
+          model: Utilizador.scope("noIdCentro"),
+          as: "utilizador",
+          where: {},
+        },
+      ],
+    });
+    res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+
 };
 
 controllers.getNotificacao = async (req, res, next) => {
@@ -119,7 +129,7 @@ controllers.insertUtilizadorNotificacao = async (req, res,next) => {
   }
 };
 
-controllers.deleteNotificacao = async (req, res) => {
+controllers.deleteNotificacao = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     await Notificacao.destroy(
@@ -128,9 +138,9 @@ controllers.deleteNotificacao = async (req, res) => {
     );
     await t.commit();
     res.sendStatus(204);
-  } catch {
+  } catch (error){
     await t.rollback();
-    res.status(400).send("Err");
+    next(error)
   }
 };
 
