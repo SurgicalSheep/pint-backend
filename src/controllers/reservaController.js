@@ -569,7 +569,6 @@ controllers.reservasDecorrer = async (req, res, next) => {
 };
 
 controllers.salasUtilizadasPercent = async (req, res, next) => {
-  const t = await sequelize.transaction();
   try {
     const { centro } = req.query;
     const lotacoesMax = await Sala.findAll({
@@ -632,10 +631,8 @@ controllers.salasUtilizadasPercent = async (req, res, next) => {
       });
     });
 
-    await t.commit();
     res.send(arrayFinal);
   } catch (err) {
-    await t.rollback();
     next(err);
   }
 };
