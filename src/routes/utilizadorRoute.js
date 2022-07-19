@@ -59,7 +59,7 @@ router.get('/list',verifyAccessToken,isAdmin, utilizadorController.list);
 router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
 router.get('/:id/reservasDecorrer',verifyAccessToken,utilizadorController.getReservasDecorrer)
 router.get('/:id/reservasAntigas',verifyAccessToken,utilizadorController.getReservasAntigas)
-router.get('/:id/notificacoesPorLer',verifyAccessToken,utilizadorController.getNotificacoesPorLer)
+router.get('/notificacoesPorLer',verifyAccessToken,utilizadorController.getNotificacoesPorLer)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
 router.get('/tipoCount',verifyAccessToken, utilizadorController.countUtilizadoresByTipo);
