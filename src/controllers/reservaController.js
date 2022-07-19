@@ -704,6 +704,15 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
       }
       if (reservasMinutos.length > 0) final.push(...reservasMinutos);
     }
+    final.map((x)=>{
+      for (const [key,value] of Object.entries(x)) {
+        if(key != "dia"){
+          let p = (value * 100)/1440
+          x[key] = p
+        }
+      }
+      
+    })
     res.send({ data:final });
   } catch (err) {
     next(err);
