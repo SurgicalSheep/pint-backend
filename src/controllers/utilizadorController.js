@@ -955,10 +955,10 @@ controllers.setUtilizadorFotoBase64 = async (req, res, next) => {
 
 controllers.getNotificacoesPorLer = async (req, res, next) => {
   try {
-    const data = await Notificacao.findAll({
+    const utilizador = await Utilizador.findByPk(req.idUser)
+    const data = await utilizador.getNotificacoes({where:{idutilizador:req.idUser,recebida:false},order:[["idnotificacao","DESC"]],joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
+    const x = await Notificacao.findAll({
       where:{
-        idutilizador:req.idUser,
-        recebida:false
       }
     })
     res.send({data})
