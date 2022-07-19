@@ -3,6 +3,7 @@ var Utilizador = require("../models/utilizador");
 var Sala = require("../models/sala");
 var Reserva = require("../models/reserva");
 var sequelize = require("../models/database");
+const Sequelize = require('sequelize')
 const { Op, where } = require("sequelize");
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
@@ -520,6 +521,7 @@ controllers.rangeReservasBySala = async (req, res, next) => {
 
 controllers.reservasDecorrer = async (req, res, next) => {
   try {
+    const {centro} = req.query
     let now = new Date();
     let time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
     const data = await Reserva.findAll({
@@ -542,13 +544,18 @@ controllers.reservasDecorrer = async (req, res, next) => {
                 horafinal: { [Op.lte]: time },
               },
             ],
-          },
+          }
         ],
       },
       include: [
         {
           model: Sala,
-        },
+          where:{
+            idcentro:centro
+          }
+        },{
+          model:Utilizador
+        }
       ],
     });
     res.send({ data });
@@ -557,13 +564,38 @@ controllers.reservasDecorrer = async (req, res, next) => {
   }
 };
 
+
 controllers.stat = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const lotacaoMax = await Sala.findAll({
-      attributes: [lotacaoMax, nome],
-      group: ["lotacaoMax", "nome"],
+    const {centro} = req.query
+    const lotacoesMax = await Sala.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('lotacaomax')) ,'lotacaomax'],
+      ],
+      where:{
+        idcentro:centro
+      }
     });
+    const salasCentro = await Sala.findAll({
+      where:{idcentro:centro}
+    })
+    let idk = [];
+    for(let lotacao of lotacoesMax){
+      let c = await Reserva.count({
+        include:[{
+          model:Sala,
+          where:{lotacaomax:lotacao.dataValues.lotacaomax,idcentro:centro}
+        }]
+      })
+      idk.push({lotacaoMax:lotacao.dataValues.lotacaomax,count:c})
+    }
+    
+    let x = await Reserva.count({
+      
+    })
+    await t.commit();
+    res.send(idk)
   } catch (err) {
     await t.rollback();
     next(err);

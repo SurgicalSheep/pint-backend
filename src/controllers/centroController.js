@@ -11,6 +11,7 @@ const {
   getImagemCentro,
   sendImagemCentro,
 } = require("../helpers/s3");
+const {sendUpdateCentro} = require('../helpers/sockets')
 
 controllers.list = async (req, res, next) => {
   try {
@@ -93,6 +94,7 @@ controllers.editCentro = async (req, res, next) => {
         );
       }
       await t.commit();
+      sendUpdateCentro();
       res.send({ data: "Centro updated!" });
     } catch (error) {
       await t.rollback();
@@ -129,6 +131,7 @@ controllers.insertCentro = async (req, res, next) => {
     let pathS3 = await sendImagemCentro(path, id);
     await centro.update({ imagem: pathS3 }, { transaction: t });
     await t.commit();
+    sendUpdateCentro();
     res.send({ data: centro });
   } catch (error) {
     await t.rollback();
@@ -153,6 +156,7 @@ controllers.deleteCentro = async (req, res, next) => {
       }
       await centro.destroy({ transaction: t });
       await t.commit();
+      sendUpdateCentro();
       res.sendStatus(204);
     } catch (error) {
       await t.rollback();

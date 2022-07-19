@@ -126,6 +126,10 @@ function sendUpdatePedido() {
   io.emit('updateSala','updateSala')
 }
 
+function sendUpdateCentro() {
+  io.emit('updateSala','updateSala')
+}
+
 
 module.exports= {
     startSocket:startSocket,
@@ -134,6 +138,7 @@ module.exports= {
     sendUpdateUtilizador:sendUpdateUtilizador,
     sendUpdateReserva:sendUpdateReserva,
     sendUpdateSala:sendUpdateSala,
-    sendUpdatePedido:sendUpdatePedido
+    sendUpdatePedido:sendUpdatePedido,
+    sendUpdateCentro:sendUpdateCentro
 }
 
