@@ -118,4 +118,21 @@ try {
   next(error)
 }
 };
+controllers.getPedidoEstado = async (req, res, next) => {
+  try {
+    const {centro} = req.query
+    const pedidos = await Pedido.findAll({
+      where:{estado:false},
+      include:[{
+        model:Sala,
+        where:{
+          ...centro && { idcentro: centro },
+        }
+      }]
+    })
+    res.send({data:pedidos})
+  } catch (error) {
+    next(error)
+  }
+  };
 module.exports = controllers;
