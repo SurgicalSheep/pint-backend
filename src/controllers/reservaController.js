@@ -568,7 +568,7 @@ controllers.reservasDecorrer = async (req, res, next) => {
   }
 };
 
-controllers.stat = async (req, res, next) => {
+controllers.salasUtilizadasPercent = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const { centro } = req.query;
@@ -612,6 +612,7 @@ controllers.stat = async (req, res, next) => {
         idsala: sala.dataValues.idsala,
         count: c,
         lotacaoMax: sala.dataValues.lotacaomax,
+        nome:sala.dataValues.nome
       });
     }
     let arrayFinal = [];
@@ -620,10 +621,12 @@ controllers.stat = async (req, res, next) => {
       countSolo.map((y) => {
         if (x.lotacaoMax == y.lotacaoMax) {
           let percent = (y.count * 100) / x.count;
+          if(!percent) percent = 0
           arrayFinal.push({
             idsala: y.idsala,
             p: percent,
             lotacaoMax: y.lotacaoMax,
+            nome:y.nome
           });
         }
       });
