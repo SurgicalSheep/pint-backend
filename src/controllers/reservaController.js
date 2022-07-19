@@ -707,7 +707,6 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
       }
       if (reservasMinutos.length > 0) final.push(...reservasMinutos);
     }
-
     res.send({ data:final });
   } catch (err) {
     next(err);

@@ -36,14 +36,11 @@ controllers.list = async (req, res) => {
               x.dataValues.fotoConv = idk;
           } catch (error) {
           }
-          
         }
-        
       }
 
       await fotoConv(data).then(async(aaa)=>{
         let x = { data };
-        console.log(data)
         const count = await Feedback.count();
         x.count = count;
         res.send(x);
@@ -56,7 +53,7 @@ async function fotoConv(data) {
         try {
             if(x.dataValues.utilizadores?.foto){
                 let idk = await getFileUtilizador(x.dataValues.utilizadores.idutilizador);
-                  x.dataValues.utilizadores.fotoConv = idk;
+                  x.dataValues.utilizadores.dataValues.fotoConv = idk;
             }
         } catch (error) {}
       }
