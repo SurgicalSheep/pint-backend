@@ -22,7 +22,8 @@ const EmpregadoLimpeza = require("../models/empregadoLimpeza");
 const nodemailer = require('nodemailer');
 const jwt = require("jsonwebtoken");
 const {sendUpdateUtilizador} = require('../helpers/sockets')
-const {sendFotoUtilizador,getFileUtilizador,deleteImagemUtilizador} = require('../helpers/s3')
+const {sendFotoUtilizador,getFileUtilizador,deleteImagemUtilizador} = require('../helpers/s3');
+const Notificacao = require("../models/notificacao");
 
 const transporter = nodemailer.createTransport({
   service:'Gmail',
@@ -948,6 +949,20 @@ controllers.setUtilizadorFotoBase64 = async (req, res, next) => {
       res.sendStatus(204)
   } catch (err) {
     await t.rollback();
+    next(err);
+  }
+};
+
+controllers.getNotificacoesPorLer = async (req, res, next) => {
+  try {
+    const data = await Notificacao.findAll({
+      where:{
+        idutilizador:req.idUser,
+        recebida:false
+      }
+    })
+    res.send({data})
+  } catch (err) {
     next(err);
   }
 };
