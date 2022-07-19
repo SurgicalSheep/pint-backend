@@ -32,13 +32,17 @@ async function createNotificacaoSalaIndisponivel(salaIndisponivel) {
       let now = new Date()
       let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
       const reservasAfetadas = await Reserva.findAll({
-        where:{[Op.and]:[{
-            idsala:sala.idsala
-      },{
-            data:{[Op.gte]:now}
-      },{
+        where:{
+          idsala:sala.idsala,
+          [Op.or]:[{[Op.and]:[{
+            data:now
+          },{
             horainicio:{[Op.gte]:time}
-      }]}},{transaction:t});
+          }]
+        },{
+          data:{[Op.gt]:now}
+          }]
+        }},{transaction:t});
       if(!salaIndisponivel.justificacao){
         salaIndisponivel.justificacao = "motivos desconhecidos!"
       }
