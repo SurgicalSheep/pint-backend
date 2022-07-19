@@ -22,12 +22,14 @@ empregadoLimpeza.belongsTo(utilizador,{foreignKey:'idutilizador'});
 
 feedback.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:false,as:'utilizadores'});
 feedback.belongsTo(sala,{foreignKey:'idsala',allowNull:true});
-feedback.belongsTo(reserva,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade',hooks:true});
+reserva.hasMany(feedback,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade', hooks:true})
+feedback.belongsTo(reserva,{foreignKey:'idreserva',allowNull:true, onDelete: 'cascade', hooks:true});
 
 notificacao.belongsTo(utilizador,{foreignKey:'idutilizador',as:'utilizador', useJunctionTable: false});
 
-pedido.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:false});
+pedido.belongsTo(utilizador,{foreignKey:'idutilizador',allowNull:true});
 pedido.belongsTo(sala,{foreignKey:'idsala',allowNull:false});
+pedido.belongsTo(empregadoLimpeza,{foreignKey:'idutilizador',allowNull:true});
 
 reserva.belongsTo(sala,{foreignKey:'idsala'});
 reserva.belongsTo(utilizador,{foreignKey:'idutilizador'});

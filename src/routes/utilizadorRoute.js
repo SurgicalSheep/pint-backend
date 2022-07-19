@@ -57,16 +57,20 @@ const upload = multer({
 const utilizadorController = require('../controllers/utilizadorController')
 router.get('/list',verifyAccessToken,isAdmin, utilizadorController.list);
 router.get('/:id/reservas',verifyAccessToken,utilizadorController.getUtilizadorReservas)
+router.get('/:id/reservasDecorrer',verifyAccessToken,utilizadorController.getReservasDecorrer)
+router.get('/:id/reservasAntigas',verifyAccessToken,utilizadorController.getReservasAntigas)
+router.get('/notificacoesPorLer',verifyAccessToken,utilizadorController.getNotificacoesPorLer)
 router.get('/getUserByToken',verifyAccessToken,utilizadorController.getUserByToken)
 router.get('/:id/foto',verifyAccessToken,utilizadorController.getUtilizadorFoto)
 router.get('/tipoCount',verifyAccessToken, utilizadorController.countUtilizadoresByTipo);
-router.get('/updatePass',verifyAccessToken, utilizadorController.updatePass);
 router.get('/:id',verifyAccessToken, utilizadorController.getUtilizador);
 router.post('/add',verifyAccessToken,isAdmin, upload.single('foto'), utilizadorController.insertUtilizador);
 router.post('/makeEmpregadoLimpeza/:id',verifyAccessToken,isAdmin, utilizadorController.makeEmpregadoLimpeza);
-router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+//router.post('/addTestUsers', utilizadorController.insertTestUtilizadores);
+router.put('/updateOwnPass',verifyAccessToken, utilizadorController.updateOwnPass);
 router.post('/confirmar/:token', utilizadorController.confirmarUtilizador);
-router.post('/testEmail', utilizadorController.testMail);
+router.post('/setFotoB64',verifyAccessToken, utilizadorController.setUtilizadorFotoBase64);
+//router.post('/testEmail', utilizadorController.testMail);
 router.post('/login', utilizadorController.login);
 router.post('/loginWeb', utilizadorController.loginWeb);
 router.post('/refreshToken', utilizadorController.refreshToken);

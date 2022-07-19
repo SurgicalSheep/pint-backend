@@ -32,13 +32,17 @@ async function createNotificacaoSalaIndisponivel(salaIndisponivel) {
       let now = new Date()
       let time = now.getHours() + ":"+ now.getMinutes()+":"+now.getSeconds();
       const reservasAfetadas = await Reserva.findAll({
-        where:{[Op.and]:[{
-            idsala:sala.idsala
-      },{
-            data:{[Op.gte]:now}
-      },{
+        where:{
+          idsala:sala.idsala,
+          [Op.or]:[{[Op.and]:[{
+            data:now
+          },{
             horainicio:{[Op.gte]:time}
-      }]}},{transaction:t});
+          }]
+        },{
+          data:{[Op.gt]:now}
+          }]
+        }},{transaction:t});
       if(!salaIndisponivel.justificacao){
         salaIndisponivel.justificacao = "motivos desconhecidos!"
       }
@@ -47,8 +51,15 @@ async function createNotificacaoSalaIndisponivel(salaIndisponivel) {
         descricao: `A sala ${sala.nome} acabou de ficar indisponível devido a ${salaIndisponivel.justificacao}`,
       },{transaction:t});
       await t.commit();
+      let usersSent = []
+      let sent = false;
       reservasAfetadas.map(async(reservaAfetada)=>{
-        await notificacao.addUtilizadores(reservaAfetada.idutilizador);
+        usersSent.map(async(x)=>{
+          if(!(x == reservaAfetada.idutilizador)){
+            await notificacao.addUtilizadores(reservaAfetada.idutilizador);
+            usersSent.push(reservaAfetada.idutilizador)
+          }
+        })
         sendUpdateNotificacao(reservaAfetada.idutilizador, notificacao);
       });
     } catch (error) {

@@ -3,7 +3,7 @@ const router = express.Router();
 const {verifyAccessToken, isAdmin} = require("../middlewares/jwt")
 
 const salaController = require('../controllers/salaController')
-router.get('/list:limit?:offset?',verifyAccessToken, salaController.list);
+router.get('/list', salaController.list);
 router.get('/:id',verifyAccessToken, salaController.getSala);
 router.get('/:id/reservas',verifyAccessToken,salaController.getSalaReservas)
 router.post('/add',verifyAccessToken, isAdmin, salaController.insertSala);

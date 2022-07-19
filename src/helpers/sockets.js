@@ -78,7 +78,7 @@ function startSocket(server) {
         socket.on('disconnect',()=>{
           console.log("Disconnected");
           let i = socketsConnected.map((x)=>{
-            return x.idUser
+            return x.id
           }).indexOf(socket.id)
           socketsConnected.splice(i,1);
         })
@@ -87,7 +87,7 @@ function startSocket(server) {
             if (err && err.message === "unauthorized event") {
               socket.disconnect();
               let i = socketsConnected.map((x)=>{
-                return x.idUser
+                return x.id
               }).indexOf(socket.id)
               socketsConnected.splice(i,1);
             }
@@ -122,6 +122,19 @@ function sendUpdateSala() {
   io.emit('updateSala','updateSala')
 }
 
+function sendUpdatePedido() {
+  io.emit('updatePedido','updatePedido')
+}
+
+function sendUpdateCentro() {
+  io.emit('updateCentro','updateCentro')
+}
+
+function sendUpdateFeedback() {
+  io.emit('updateFeedback','updateFeedback')
+}
+
+
 
 module.exports= {
     startSocket:startSocket,
@@ -129,6 +142,9 @@ module.exports= {
     sendUpdateNotificacao:sendUpdateNotificacao,
     sendUpdateUtilizador:sendUpdateUtilizador,
     sendUpdateReserva:sendUpdateReserva,
-    sendUpdateSala:sendUpdateSala
+    sendUpdateSala:sendUpdateSala,
+    sendUpdatePedido:sendUpdatePedido,
+    sendUpdateCentro:sendUpdateCentro,
+    sendUpdateFeedback:sendUpdateFeedback
 }
 

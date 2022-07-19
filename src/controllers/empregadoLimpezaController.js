@@ -7,6 +7,7 @@ const Centro = require("../models/centro");
 const Op = Sequelize.Op;
 const createError = require('http-errors')
 const {utilizadorSchema} = require("../schemas/userSchema");
+const bcrypt = require("bcrypt");
 
 controllers.list = async (req, res, next) => {
   try {
@@ -136,9 +137,9 @@ controllers.list = async (req, res, next) => {
     next(error);
   }
 };
-controllers.editEmpregadoLimpeza = async (req, res) => {
+controllers.editEmpregadoLimpeza = async (req, res, next) => {
   let id = req.params.id;
-  if (Number.isInteger(+id)) {
+  if (isNaN(id)) next(createError.BadRequest("Id is not an Integer!"));
     const t = await sequelize.transaction();
     try {
       bcrypt.hash(req.body.password, 10, async function (err, hash) {
@@ -167,9 +168,6 @@ controllers.editEmpregadoLimpeza = async (req, res) => {
       await t.rollback();
       res.status(400).send(error);
     }
-  } else {
-    res.status("422").send("Id is not an Integer!");
-  }
 };
 controllers.insertEmpregadoLimpeza = async (req, res, next) => {
   const t = await sequelize.transaction();
@@ -233,28 +231,33 @@ controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
 };
 controllers.getEmpregadoLimpeza = async (req, res, next) => {
   let {id} = req.params;
-  if (!isNaN(id)) {
-    const data = await EmpregadoLimpeza.scope("noPassword").findByPk(id, { include: [{ model: Centro }] });
-    if (data.dataValues.foto) {
-      try {
-        let idk = fs.readFileSync(
-          data.dataValues.foto,
-          "base64",
-          (err, val) => {
-            if (err) return err;
-            return val;
-          }
-        );
-        data.dataValues.fotoConv = idk;
-      } catch (error) {
-        data.dataValues.fotoConv = "";
+  try {
+    if (!isNaN(id)) {
+      const data = await EmpregadoLimpeza.scope("noPassword").findByPk(id, { include: [{ model: Centro }] });
+      if (data.dataValues.foto) {
+        try {
+          let idk = fs.readFileSync(
+            data.dataValues.foto,
+            "base64",
+            (err, val) => {
+              if (err) return err;
+              return val;
+            }
+          );
+          data.dataValues.fotoConv = idk;
+        } catch (error) {
+          data.dataValues.fotoConv = "";
+        }
+        
       }
-      
+      res.send({ data: data });
+    } else {
+      createError[422]("Id is not an Integer!")
     }
-    res.send({ data: data });
-  } else {
-    createError[422]("Id is not an Integer!")
+  } catch (error) {
+    next(error)
   }
+
 };
 controllers.makeUtilizador = async (req, res, next) => {
   const t = await sequelize.transaction();

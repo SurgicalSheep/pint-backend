@@ -14,7 +14,6 @@ controllers.list = async (req, res, next) => {
   try {
     let {limit,offset,pesquisa,lotacao} = req.query
     let centro = req.query.centros
-    console.log(centro)
   if(!limit || limit == 0){
     limit = 5;
   }
@@ -94,9 +93,14 @@ controllers.list = async (req, res, next) => {
   }
   
 };
-controllers.count = async (req, res) => {
-  const data = await Sala.Count();
-  res.send({ data: data });
+controllers.count = async (req, res,next) => {
+  try {
+    const data = await Sala.Count();
+    res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.getSalaReservas = async(req,res,next) => {
   let {limit,offset} = req.body
@@ -128,7 +132,8 @@ controllers.getSalaReservas = async(req,res,next) => {
   
 }
 controllers.getSala = async (req, res, next) => {
-  const {id} = req.params;
+  try {
+    const {id} = req.params;
     
     if(isNaN(id)) return next(createError.BadRequest("Id is not a Integer"));
   const data = await Sala.findOne({
@@ -138,6 +143,10 @@ controllers.getSala = async (req, res, next) => {
     include:[{model:Centro}]
   });
   res.send({ data: data });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 controllers.editSala = async (req, res, next) => {
   const t = await sequelize.transaction();
