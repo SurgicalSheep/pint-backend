@@ -47,8 +47,15 @@ async function createNotificacaoSalaIndisponivel(salaIndisponivel) {
         descricao: `A sala ${sala.nome} acabou de ficar indisponível devido a ${salaIndisponivel.justificacao}`,
       },{transaction:t});
       await t.commit();
+      let usersSent = []
+      let sent = false;
       reservasAfetadas.map(async(reservaAfetada)=>{
-        await notificacao.addUtilizadores(reservaAfetada.idutilizador);
+        usersSent.map(async(x)=>{
+          if(!(x == reservaAfetada.idutilizador)){
+            await notificacao.addUtilizadores(reservaAfetada.idutilizador);
+            usersSent.push(reservaAfetada.idutilizador)
+          }
+        })
         sendUpdateNotificacao(reservaAfetada.idutilizador, notificacao);
       });
     } catch (error) {
