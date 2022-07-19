@@ -707,7 +707,7 @@ controllers.editUtilizador = async (req, res, next) => {
           where: { email: result.email },
         });
       }
-
+      console.log("ola")
       if (emailExists) {
         if (emailExists.idutilizador != id) {
           if (req.file) {
@@ -735,13 +735,11 @@ controllers.editUtilizador = async (req, res, next) => {
           );
           let path = "public/imgs/utilizadores/" + x;
           let s3Path = await sendFotoUtilizador(path, req.params.id);
-          await t.commit();
           await Utilizador.update(
             { foto: s3Path },
             { where: { idutilizador: req.params.id } }
           );
         } else {
-          await t.commit();
         }
       });
     } else {
@@ -766,7 +764,6 @@ controllers.editUtilizador = async (req, res, next) => {
             { transaction: t }
           );
         }
-        await t.commit();
       } else {
         if (req.file) {
           fs.unlink(req.file.path, (err, result) => {
@@ -776,6 +773,7 @@ controllers.editUtilizador = async (req, res, next) => {
         throw createError.Unauthorized();
       }
     }
+    await t.commit();
     sendUpdateUtilizador();
     res.send({ data: "Utilizador updated!" });
   } catch (err) {

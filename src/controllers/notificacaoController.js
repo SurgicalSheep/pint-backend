@@ -8,6 +8,9 @@ const fs = require("fs");
 const { Op } = require("sequelize");
 const createError = require('http-errors')
 const {sendUpdateNotificacao} = require("../helpers/sockets")
+const {
+  getFileUtilizador,
+} = require("../helpers/s3");
 controllers.list = async (req, res) => {
   let {limit,offset} = req.query;
   if (!limit || limit == 0) {
@@ -142,51 +145,49 @@ controllers.getNotificacoesUtilizador = async (req, res, next) => {
     }
     const utilizador = await Utilizador.findByPk(req.params.id)
     const data = await utilizador.getNotificacoes({limit:limit,offset:offset,order:[["idnotificacao","DESC"]],joinTableAttributes:["recebida"],include:[{model:Utilizador, as: 'utilizador'}]})
-    if(data.length > 0){
-      data.forEach((x, i) => {
-        if (x.dataValues.utilizador) {
-          if (x.dataValues.utilizador.dataValues.foto) {
-            let idk = fs.readFileSync(
-              x.dataValues.utilizador.dataValues.foto,
-              "base64",
-              (err, val) => {
-                if (err) return err;
-                return val;
-              }
-            );
-            x.dataValues.utilizador.dataValues.fotoConv = idk;
-          }
-        }
-      });
-    }
-    
-    const count = await Utilizador.count({
-      attributes: [],
-      where: {},
-      include: [
-        {
-          model: Notificacao,
-          include: [
-            { model: Utilizador.scope("noPassword"), as: "utilizador" },
-          ],
-          through: {
-            as:"estadoNotificacao",
-            attributes: ["recebida"],
-            where: { idutilizador: req.params.id },
-          },
-          where: {},
-        },
-      ],
-    });
-    let x = {data}
-    x.count = count
 
+    await fotoConv(data).then(async(aaa)=>{
+      const count = await Utilizador.count({
+        attributes: [],
+        where: {},
+        include: [
+          {
+            model: Notificacao,
+            include: [
+              { model: Utilizador.scope("noPassword"), as: "utilizador" },
+            ],
+            through: {
+              as:"estadoNotificacao",
+              attributes: ["recebida"],
+              where: { idutilizador: req.params.id },
+            },
+            where: {},
+          },
+        ],
+      });
+      let x = {data}
+      x.count = count
+  
+      
+      res.send(x);
+    })
     
-    res.send(x);
+    
   } catch (error) {
     next(error);
   }
 };
+
+async function fotoConv(data) {
+  for (let x of data) {
+    if (x.dataValues.utilizador?.foto) {
+      try {
+        let idk = await getFileUtilizador(x.dataValues.utilizador.idutilizador);
+        x.dataValues.utilizador.dataValues.fotoConv = idk;
+      } catch (error) {}
+    }
+  }
+}
 
 controllers.editNotificacao = async (req, res, next) => {
   const { id } = req.params;

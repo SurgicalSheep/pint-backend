@@ -29,16 +29,6 @@ controllers.list = async (req, res) => {
       ],
     });
 
-    for (let x of data) {
-        if (x.dataValues.foto) {
-          try {
-              let idk = await getFileUtilizador(x.idutilizador)
-              x.dataValues.fotoConv = idk;
-          } catch (error) {
-          }
-        }
-      }
-
       await fotoConv(data).then(async(aaa)=>{
         let x = { data };
         const count = await Feedback.count();
