@@ -677,7 +677,7 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
     final.map((x)=>{
       for (const [key,value] of Object.entries(x)) {
         if(key != "dia"){
-          let p = (value * 100)/1440
+          let p = (Math.round(value * 100)/1440).toFixed(2)
           x[key] = p
         }
       }
