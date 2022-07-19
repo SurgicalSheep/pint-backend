@@ -612,7 +612,7 @@ controllers.salasUtilizadasPercent = async (req, res, next) => {
         idsala: sala.dataValues.idsala,
         count: c,
         lotacaoMax: sala.dataValues.lotacaomax,
-        nome:sala.dataValues.nome
+        nome: sala.dataValues.nome,
       });
     }
     let arrayFinal = [];
@@ -621,12 +621,12 @@ controllers.salasUtilizadasPercent = async (req, res, next) => {
       countSolo.map((y) => {
         if (x.lotacaoMax == y.lotacaoMax) {
           let percent = (y.count * 100) / x.count;
-          if(!percent) percent = 0
+          if (!percent) percent = 0;
           arrayFinal.push({
             idsala: y.idsala,
             p: percent,
             lotacaoMax: y.lotacaoMax,
-            nome:y.nome
+            nome: y.nome,
           });
         }
       });
@@ -644,63 +644,71 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
     const { centro } = req.query;
     let now = new Date();
     let todayData = new Date();
-    todayData.setHours(0,0,0,0)
+    todayData.setHours(0, 0, 0, 0);
     let previousMonth = new Date();
-    previousMonth.setMonth(now.getMonth()-1)
-    console.log("aaaaaaaaaa"+previousMonth)
+    previousMonth.setMonth(now.getMonth() - 1);
     let time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
     const salasCentro = await Sala.findAll({
       where: { idcentro: centro },
     });
-    let final=[]
-    salasCentro.map(async(x)=>{
+    let final = [];
+    for (let x of salasCentro) {
       let reservas1Month = await Reserva.findAll({
-        where:{
-          [Op.and]:[{
-            data:{[Op.lt]:now}
-          },{
-            data:{[Op.gt]:previousMonth}
-          },{
-            idsala:x.idsala
-          }]
+        where: {
+          [Op.and]: [
+            {
+              data: { [Op.lt]: now },
+            },
+            {
+              data: { [Op.gt]: previousMonth },
+            },
+            {
+              idsala: x.idsala,
+            },
+          ],
         },
-        order:[["data","ASC"]]
-      })
-      let reservasMinutos=[]
-      reservas1Month.map(async(x)=>{
-         //create date format
-         let horaInicioArray = x.dataValues.horainicio.split(':');
-         let horaI = horaInicioArray[0]
-         let minutoI = horaInicioArray[1];
-         let horaFimArray = x.dataValues.horafinal.split(':');
-         let horaF = horaFimArray[0]
-         let minutoF = horaFimArray[1];
-         var start = new Date(todayData)
-         start.setHours(horaI);
-         start.setMinutes(minutoI)
-         start.setSeconds(0)
-         var end = new Date(todayData)
-         end.setHours(horaF);
-         end.setMinutes(minutoF)
-         end.setSeconds(0)
-         let timeDiff = Math.abs(Math.round((((start-end) % 86400000) % 3600000) / 60000))
-         let exists = false
-         reservasMinutos.map((y)=>{
-          if(y.dia == x.dataValues.data){
-            y.minutos = y.minutos + timeDiff
-            exists = true
+        order: [["data", "ASC"]],
+      });
+      let reservasMinutos = [];
+      for (let w of reservas1Month) {
+        //create date format
+        let horaInicioArray = w.dataValues.horainicio.split(":");
+        let horaI = horaInicioArray[0];
+        let minutoI = horaInicioArray[1];
+        let horaFimArray = w.dataValues.horafinal.split(":");
+        let horaF = horaFimArray[0];
+        let minutoF = horaFimArray[1];
+        var start = new Date(todayData);
+        start.setHours(horaI);
+        start.setMinutes(minutoI);
+        start.setSeconds(0);
+        var end = new Date(todayData);
+        end.setHours(horaF);
+        end.setMinutes(minutoF);
+        end.setSeconds(0);
+
+        let timeDiff = (end.getTime() - start.getTime()) / 1000 / 60;
+        let exists = false;
+        reservasMinutos.map((y) => {
+          if (y.dia == w.dataValues.data) {
+            [x.dataValues.nome] = [x.dataValues.nome] + timeDiff;
+            exists = true;
           }
-         })
-         if(!exists)
-         reservasMinutos.push({idsala:x.dataValues.idsala,minutos:timeDiff,dia:x.dataValues.data})
-         
-      })
-      console.log(reservasMinutos)
-      final.push(reservasMinutos)
-    })
+        });
+        if (!exists) {
+          let a = final.findIndex((v) => v.dia == w.dataValues.data);
+          if (a !== -1) {
+            final[a][x.dataValues.nome] = timeDiff
+          } else {
+            reservasMinutos.push({[x.dataValues.nome]: timeDiff,dia: w.dataValues.data});
+          }
+          
+        }
+      }
+      if (reservasMinutos.length > 0) final.push(...reservasMinutos);
+    }
 
-
-    res.send(final);
+    res.send({ final });
   } catch (err) {
     next(err);
   }
