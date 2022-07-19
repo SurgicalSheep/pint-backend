@@ -122,6 +122,7 @@ controllers.getPedidoEstado = async (req, res, next) => {
   try {
     const {centro} = req.query
     const pedidos = await Pedido.findAll({
+      limit:10,
       where:{estado:false},
       include:[{
         model:Sala,
