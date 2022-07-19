@@ -3,7 +3,7 @@ var Utilizador = require("../models/utilizador");
 var Sala = require("../models/sala");
 var Reserva = require("../models/reserva");
 var sequelize = require("../models/database");
-const Sequelize = require('sequelize')
+const Sequelize = require("sequelize");
 const { Op, where } = require("sequelize");
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
@@ -40,181 +40,183 @@ function isValidDate(dateString) {
 
 controllers.list = async (req, res, next) => {
   try {
-    let { limit, offset, pesquisa, centros,salas, data } = req.query;
-  if (!req.query.limit || req.query.limit == 0) {
-    limit = 5;
-  }
-  if (!req.query.offset) {
-    offset = 0;
-  }
-  if (!centros) {
-    centros = new Array(0);
-    const allCentros = await Centro.findAll({ attributes: ["idcentro"] });
-    allCentros.map((x, i) => {
-      centros[i] = Number(x.dataValues.idcentro);
-    });
-  }
-  if (!salas) {
-    salas = new Array(0);
-    const allSalas = await Sala.findAll({ attributes: ["idsala"] });
-    allSalas.map((x, i) => {
-      salas[i] = Number(x.dataValues.idsala);
-    });
-  }
-  if(!pesquisa) pesquisa=""
-  let reservas;
-  let count;
-  let whereObject = {};
-  let today = new Date()
-  if (data) {
-    if (pesquisa && !isNaN(pesquisa)) {
-      whereObject = {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                "$utilizadore.ncolaborador$": pesquisa,
-              },
-              {
-                "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$utilizadore.ncolaborador$": pesquisa,
-              },
-            ],
-          },
-          {
-            "$sala.idcentro$": { [Op.in]: centros },
-          },
-          {
-            "$reservas.data$": data,
-          },
-          {
-            "$sala.idsala$": { [Op.in]: salas },
-          },{
-            "$reservas.data$":{[Op.gt]:today},
-          },
-        ],
-      };
-    } else {
-      whereObject = {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-            ],
-          },
-          {
-            "$sala.idcentro$": { [Op.in]: centros },
-          },
-          {
-            "$reservas.data$": data,
-          },
-          {
-            "$sala.idsala$": { [Op.in]: salas },
-          },{
-            "$reservas.data$":{[Op.gt]:today},
-          }
-        ],
-      };
+    let { limit, offset, pesquisa, centros, salas, data } = req.query;
+    if (!req.query.limit || req.query.limit == 0) {
+      limit = 5;
     }
-  }else{
-    if (pesquisa && !isNaN(pesquisa)) {
-      whereObject = {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                "$utilizadore.ncolaborador$": pesquisa,
-              },
-              {
-                "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$utilizadore.ncolaborador$": pesquisa,
-              },
-            ],
-          },
-          {
-            "$sala.idcentro$": { [Op.in]: centros },
-          },
-          {
-            "$sala.idsala$": { [Op.in]: salas },
-          },{
-            "$reservas.data$":{[Op.gt]:today},
-          }
-        ],
-      };
-    } else {
-      whereObject = {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-              {
-                "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
-              },
-            ],
-          },
-          {
-            "$sala.idcentro$": { [Op.in]: centros },
-          },
-          {
-            "$sala.idsala$": { [Op.in]: salas },
-          },{
-            "$reservas.data$":{[Op.gt]:today},
-          }
-        ],
-      };
+    if (!req.query.offset) {
+      offset = 0;
     }
-  }
-    
+    if (!centros) {
+      centros = new Array(0);
+      const allCentros = await Centro.findAll({ attributes: ["idcentro"] });
+      allCentros.map((x, i) => {
+        centros[i] = Number(x.dataValues.idcentro);
+      });
+    }
+    if (!salas) {
+      salas = new Array(0);
+      const allSalas = await Sala.findAll({ attributes: ["idsala"] });
+      allSalas.map((x, i) => {
+        salas[i] = Number(x.dataValues.idsala);
+      });
+    }
+    if (!pesquisa) pesquisa = "";
+    let reservas;
+    let count;
+    let whereObject = {};
+    let today = new Date();
+    if (data) {
+      if (pesquisa && !isNaN(pesquisa)) {
+        whereObject = {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  "$utilizadore.ncolaborador$": pesquisa,
+                },
+                {
+                  "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$utilizadore.ncolaborador$": pesquisa,
+                },
+              ],
+            },
+            {
+              "$sala.idcentro$": { [Op.in]: centros },
+            },
+            {
+              "$reservas.data$": data,
+            },
+            {
+              "$sala.idsala$": { [Op.in]: salas },
+            },
+            {
+              "$reservas.data$": { [Op.gt]: today },
+            },
+          ],
+        };
+      } else {
+        whereObject = {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+              ],
+            },
+            {
+              "$sala.idcentro$": { [Op.in]: centros },
+            },
+            {
+              "$reservas.data$": data,
+            },
+            {
+              "$sala.idsala$": { [Op.in]: salas },
+            },
+            {
+              "$reservas.data$": { [Op.gt]: today },
+            },
+          ],
+        };
+      }
+    } else {
+      if (pesquisa && !isNaN(pesquisa)) {
+        whereObject = {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  "$utilizadore.ncolaborador$": pesquisa,
+                },
+                {
+                  "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$utilizadore.ncolaborador$": pesquisa,
+                },
+              ],
+            },
+            {
+              "$sala.idcentro$": { [Op.in]: centros },
+            },
+            {
+              "$sala.idsala$": { [Op.in]: salas },
+            },
+            {
+              "$reservas.data$": { [Op.gt]: today },
+            },
+          ],
+        };
+      } else {
+        whereObject = {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  "$utilizadore.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+                {
+                  "$sala.nome$": { [Op.iLike]: "%" + pesquisa + "%" },
+                },
+              ],
+            },
+            {
+              "$sala.idcentro$": { [Op.in]: centros },
+            },
+            {
+              "$sala.idsala$": { [Op.in]: salas },
+            },
+            {
+              "$reservas.data$": { [Op.gt]: today },
+            },
+          ],
+        };
+      }
+    }
 
-  reservas = await Reserva.scope("noIdUtilizador").findAll({
-    limit: limit,
-    offset: offset,
-    include: [
-      {
-        model: Sala,
-      },
-      {
-        model: Utilizador.scope("noPassword"),
-      },
-    ],
-    where: whereObject,
-    order: [["data", "ASC"]],
-  });
-  count = await Reserva.count({
-    include: [
-      {
-        model: Sala,
-      },
-      {
-        model: Utilizador.scope("noPassword"),
-      },
-    ],
-    where: whereObject,
-    order: [["data", "ASC"]],
-  });
+    reservas = await Reserva.scope("noIdUtilizador").findAll({
+      limit: limit,
+      offset: offset,
+      include: [
+        {
+          model: Sala,
+        },
+        {
+          model: Utilizador.scope("noPassword"),
+        },
+      ],
+      where: whereObject,
+      order: [["data", "ASC"]],
+    });
+    count = await Reserva.count({
+      include: [
+        {
+          model: Sala,
+        },
+        {
+          model: Utilizador.scope("noPassword"),
+        },
+      ],
+      where: whereObject,
+      order: [["data", "ASC"]],
+    });
 
-  res.send({ count: count, data: reservas });
+    res.send({ count: count, data: reservas });
   } catch (error) {
-    next(error)
+    next(error);
   }
-  
 };
 controllers.getReserva = async (req, res) => {
   const data = await Reserva.scope("noIdSala")
@@ -521,9 +523,10 @@ controllers.rangeReservasBySala = async (req, res, next) => {
 
 controllers.reservasDecorrer = async (req, res, next) => {
   try {
-    const {centro} = req.query
+    const { centro } = req.query;
     let now = new Date();
     let time = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+
     const data = await Reserva.findAll({
       where: {
         [Op.and]: [
@@ -544,18 +547,19 @@ controllers.reservasDecorrer = async (req, res, next) => {
                 horafinal: { [Op.lte]: time },
               },
             ],
-          }
+          },
         ],
       },
       include: [
         {
           model: Sala,
-          where:{
-            idcentro:centro
-          }
-        },{
-          model:Utilizador
-        }
+          where: {
+            ...(centro && { idcentro: { [Op.in]: centro } }),
+          },
+        },
+        {
+          model: Utilizador,
+        },
       ],
     });
     res.send({ data });
@@ -564,38 +568,69 @@ controllers.reservasDecorrer = async (req, res, next) => {
   }
 };
 
-
 controllers.stat = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
-    const {centro} = req.query
+    const { centro } = req.query;
     const lotacoesMax = await Sala.findAll({
       attributes: [
-        [Sequelize.fn('DISTINCT', Sequelize.col('lotacaomax')) ,'lotacaomax'],
+        [Sequelize.fn("DISTINCT", Sequelize.col("lotacaomax")), "lotacaomax"],
       ],
-      where:{
-        idcentro:centro
-      }
+      where: {
+        idcentro: centro,
+      },
     });
     const salasCentro = await Sala.findAll({
-      where:{idcentro:centro}
-    })
-    let idk = [];
-    for(let lotacao of lotacoesMax){
+      where: { idcentro: centro },
+    });
+    let countGeral = [];
+    for (let lotacao of lotacoesMax) {
       let c = await Reserva.count({
-        include:[{
-          model:Sala,
-          where:{lotacaomax:lotacao.dataValues.lotacaomax,idcentro:centro}
-        }]
-      })
-      idk.push({lotacaoMax:lotacao.dataValues.lotacaomax,count:c})
+        include: [
+          {
+            model: Sala,
+            where: {
+              lotacaomax: lotacao.dataValues.lotacaomax,
+              idcentro: centro,
+            },
+          },
+        ],
+      });
+      countGeral.push({ lotacaoMax: lotacao.dataValues.lotacaomax, count: c });
     }
-    
-    let x = await Reserva.count({
-      
-    })
+    let countSolo = [];
+    for (let sala of salasCentro) {
+      let c = await Reserva.count({
+        include: [
+          {
+            model: Sala,
+            where: { idsala: sala.dataValues.idsala, idcentro: centro },
+          },
+        ],
+      });
+      countSolo.push({
+        idsala: sala.dataValues.idsala,
+        count: c,
+        lotacaoMax: sala.dataValues.lotacaomax,
+      });
+    }
+    let arrayFinal = [];
+
+    countGeral.map((x) => {
+      countSolo.map((y) => {
+        if (x.lotacaoMax == y.lotacaoMax) {
+          let percent = (y.count * 100) / x.count;
+          arrayFinal.push({
+            idsala: y.idsala,
+            p: percent,
+            lotacaoMax: y.lotacaoMax,
+          });
+        }
+      });
+    });
+
     await t.commit();
-    res.send(idk)
+    res.send(arrayFinal);
   } catch (err) {
     await t.rollback();
     next(err);
