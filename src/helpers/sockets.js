@@ -123,7 +123,7 @@ function sendUpdateSala() {
 }
 
 function sendUpdatePedido() {
-  io.emit('updateSala','updateSala')
+  io.emit('updatePedido','updatePedido')
 }
 
 function sendUpdateCentro() {
