@@ -23,6 +23,8 @@ controllers.list = async (req, res) => {
     ]
   });
 
+  console.log(data)
+
   let x = { data };
     const count = await Pedido.count();
     x.count = count;
