@@ -48,15 +48,20 @@ async function sendImagemCentro(path,key) {
 }
 
 async function getFileUtilizador(key) {
-      const params = {
-        Bucket: process.env.S3_BUCKET,
-        Key: "imgs/utilizadores/"+key+".jpeg"
-    }
-    s3.getObject(params)
-     const image = await s3.getObject(params, function(err, data) {
-    }).promise();
-    let base64 = image.Body.toString('base64')
-    return (base64)
+  try {
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Key: "imgs/utilizadores/"+key+".jpeg"
+  }
+  s3.getObject(params)
+   const image = await s3.getObject(params, function(err, data) {
+  }).promise();
+  let base64 = image.Body.toString('base64')
+  return (base64)
+  } catch (error) {
+    return ""
+  }
+      
 }
 
 async function getImagemCentro(key) {

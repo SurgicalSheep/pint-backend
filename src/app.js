@@ -38,6 +38,22 @@ app.use("/notificacao", notificacaoRouters);
 var options = {
   customCss: '.swagger-ui .topbar { display: none }'
 };
+app.get('/mobile', function(req, res,next){
+  try {
+    res.download('src/app-mobile.zip');
+  } catch (error) {
+    next(error)
+  }
+  
+});
+app.get('/tablet', function(req, res,next){
+  try {
+    res.download('src/tablet.zip');
+  } catch (error) {
+    next(error)
+  }
+  
+});
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.get("/favicon.ico", (req, res) => res.sendStatus(204));
 
