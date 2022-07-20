@@ -74,7 +74,7 @@ async function getImagemCentro(key) {
   }
   s3.getObject(params)
    const image = await s3.getObject(params, function(err, data) {
-    if(err) reject(err)
+    if(err) reject("")
   }).promise();
   let base64 = image.Body.toString('base64')
   resolve(base64)

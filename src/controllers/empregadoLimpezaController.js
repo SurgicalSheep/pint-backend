@@ -8,6 +8,7 @@ const Op = Sequelize.Op;
 const createError = require('http-errors')
 const {utilizadorSchema} = require("../schemas/userSchema");
 const bcrypt = require("bcrypt");
+const { sendUpdateUtilizador } = require("../helpers/sockets");
 
 controllers.list = async (req, res, next) => {
   try {
@@ -163,6 +164,7 @@ controllers.editEmpregadoLimpeza = async (req, res, next) => {
       })
       
       await t.commit();
+      sendUpdateUtilizador()
       res.status(200).send("Ok");
     } catch (error) {
       await t.rollback();
@@ -201,8 +203,7 @@ controllers.insertEmpregadoLimpeza = async (req, res, next) => {
         await user.save();
         await t.commit();
       }
-      const io = req.app.get('socketio');
-      io.emit('newUser',"newUser")
+      sendUpdateUtilizador()
       res.send({ data: user });
     });
   } catch (error) {
@@ -223,6 +224,7 @@ controllers.deleteEmpregadoLimpeza = async (req, res, next) => {
     try {
       await EmpregadoLimpeza.destroy({ where: { idutilizador: id } });
       await t.commit();
+      sendUpdateUtilizador()
       res.sendStatus(204);
     } catch (error) {
       await t.rollback();
