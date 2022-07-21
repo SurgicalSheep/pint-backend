@@ -531,7 +531,7 @@ controllers.reservasDecorrer = async (req, res, next) => {
         {
           model: Sala,
           where: {
-            ...(centro && { idcentro: { [Op.in]: centro } }),
+            ...(centro && { idcentro:centro  }),
           },
         },
         {
