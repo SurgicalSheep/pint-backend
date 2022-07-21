@@ -682,7 +682,6 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
       }
       if (reservasMinutos.length > 0) final.push(...reservasMinutos);
     }
-    console.log(final)
     final.map((x)=>{
       for (const [key,value] of Object.entries(x)) {
         if(key != "dia"){
