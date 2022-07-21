@@ -326,16 +326,23 @@ controllers.searchReservas = async (req, res, next) => {
 
 controllers.rangeReservas = async (req, res, next) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, centro } = req.query;
     if (!(start && end)) {
       return next(createError.BadRequest("Date missing"));
     }
+    const s = new Date(start)
+    const e = new Date(end)
     let data = await Reserva.count({
       attributes: ["data"],
-      as: "value",
       where: {
-        data: { [Op.between]: [start, end] },
+        data: { [Op.between]: [s, e] },
       },
+      include:[{
+        model:Sala,
+        where:{
+        ...(centro && { idcentro: centro }),
+        }
+      }],
       group: "data",
     });
     res.send({ data: data });
@@ -620,6 +627,7 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
     });
     let final = [];
     for (let x of salasCentro) {
+      let nome = x.dataValues.nome
       let reservas1Month = await Reserva.findAll({
         where: {
           [Op.and]: [
@@ -653,27 +661,28 @@ controllers.salasAlocacaoMensal = async (req, res, next) => {
         end.setHours(horaF);
         end.setMinutes(minutoF);
         end.setSeconds(0);
-
         let timeDiff = (end.getTime() - start.getTime()) / 1000 / 60;
         let exists = false;
         reservasMinutos.map((y) => {
           if (y.dia == w.dataValues.data) {
-            [x.dataValues.nome] = [x.dataValues.nome] + timeDiff;
+            [nome] = [nome] + timeDiff;
             exists = true;
           }
         });
         if (!exists) {
           let a = final.findIndex((v) => v.dia == w.dataValues.data);
           if (a !== -1) {
-            final[a][x.dataValues.nome] = timeDiff
+            
+            final[a][x.nome] = timeDiff
           } else {
-            reservasMinutos.push({[x.dataValues.nome]: timeDiff,dia: w.dataValues.data});
+            reservasMinutos.push({[x.nome]: timeDiff,dia: w.dataValues.data});
           }
           
         }
       }
       if (reservasMinutos.length > 0) final.push(...reservasMinutos);
     }
+    console.log(final)
     final.map((x)=>{
       for (const [key,value] of Object.entries(x)) {
         if(key != "dia"){
