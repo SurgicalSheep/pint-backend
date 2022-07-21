@@ -183,24 +183,27 @@ controllers.list = async (req, res, next) => {
 };
 
 controllers.countUtilizadoresByTipo = async (req, res, next) => {
+  try {
+    const {centro} = req.query
+  
+  
   let countAdmin = await Utilizador.count({
     where: {
       admin: true,
+      ...(centro && { idcentro: centro }),
     },
   });
-  let countAdminLimpeza = await EmpregadoLimpeza.count({
-    where: {
-      admin: true,
-    },
-  });
-  countAdmin -= countAdminLimpeza;
-  let countLimpeza = await EmpregadoLimpeza.count();
-  let countUtilizadores = await Utilizador.count();
+  let countLimpeza = await EmpregadoLimpeza.count({where:{...(centro && { idcentro: centro })}});
+  let countUtilizadores = await Utilizador.count({where:{...(centro && { idcentro: centro })}});
   countUtilizadores -= countLimpeza;
   countUtilizadores -= countAdmin;
   res.send({
     data: { U: countUtilizadores, L: countLimpeza, admin: countAdmin },
   });
+  } catch (error) {
+    next(error)
+  }
+  
 };
 
 controllers.deleteUtilizador = async (req, res, next) => {
