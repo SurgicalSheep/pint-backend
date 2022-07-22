@@ -4,12 +4,15 @@ var Sala = require("../models/sala");
 var Reserva = require("../models/reserva");
 var sequelize = require("../models/database");
 const Sequelize = require("sequelize");
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
 const createError = require("http-errors");
 const { searchNotificacaoSchema } = require("../schemas/reservaSchema");
 const Centro = require("../models/centro");
 const { sendUpdateReserva } = require("../helpers/sockets");
 const client = require("../models/redisDatabase");
+const {
+  getFileUtilizador,
+} = require("../helpers/s3");
 
 /*const isValidDate = function(date) {
   return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
@@ -36,6 +39,17 @@ function isValidDate(dateString) {
 
   // Check the range of the day
   return day > 0 && day <= monthLength[month - 1];
+}
+
+async function fotoConv(data) {
+  for (let x of data) {
+    if (x.dataValues.utilizadore.dataValues.foto) {
+      try {
+        let idk = await getFileUtilizador(x.dataValues.utilizadore.dataValues.idutilizador);
+        x.dataValues.utilizadore.dataValues.fotoConv = idk;
+      } catch (error) {}
+    }
+  }
 }
 
 controllers.list = async (req, res, next) => {
@@ -185,7 +199,7 @@ controllers.list = async (req, res, next) => {
         };
       }
     }
-
+    
     reservas = await Reserva.scope("noIdUtilizador").findAll({
       limit: limit,
       offset: offset,
@@ -200,6 +214,7 @@ controllers.list = async (req, res, next) => {
       where: whereObject,
       order: [["data", "ASC"]],
     });
+    await fotoConv(reservas)
     count = await Reserva.count({
       include: [
         {
