@@ -66,19 +66,23 @@ async function getFileUtilizador(key) {
 
 async function getImagemCentro(key) {
     
-
-  return new Promise(async(resolve, reject) => {
-    const params = {
-      Bucket: process.env.S3_BUCKET,
-      Key: "imgs/centros/"+key+".jpeg"
+  try {
+    return new Promise(async(resolve, reject) => {
+      const params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: "imgs/centros/"+key+".jpeg"
+    }
+    s3.getObject(params)
+     const image = await s3.getObject(params, function(err, data) {
+      if(err) reject("")
+    }).promise();
+    let base64 = image.Body.toString('base64')
+    resolve(base64)
+    });
+  } catch (error) {
+    return ""
   }
-  s3.getObject(params)
-   const image = await s3.getObject(params, function(err, data) {
-    if(err) reject("")
-  }).promise();
-  let base64 = image.Body.toString('base64')
-  resolve(base64)
-  });
+  
 }
 
 async function deleteImagemUtilizador(key){
