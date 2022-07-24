@@ -10,7 +10,6 @@ const Sala = require("../models/sala");
 controllers.list = async (req, res, next) => {
   try {
     let {limit,offset} = req.query;
-    let now = new Date();
   if (!limit || limit == 0) {
     limit = 5;
   }
@@ -20,9 +19,6 @@ controllers.list = async (req, res, next) => {
   const data = await Pedido.findAll({
     limit:limit,
     offset:offset,
-    where:{
-      data:{[Op.gte]:now}
-    },
     include:[
       {model:Sala}
     ]
@@ -125,9 +121,13 @@ try {
 controllers.getPedidoEstado = async (req, res, next) => {
   try {
     const {centro} = req.query
+    let now = new Date();
     const pedidos = await Pedido.findAll({
       limit:10,
-      where:{estado:false},
+      where:{
+        estado:false,
+        data:{[Op.gte]:now}
+      },
       include:[{
         model:Sala,
         where:{
